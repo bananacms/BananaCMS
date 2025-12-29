@@ -9,6 +9,7 @@
     <?php if (!empty($noindex)): ?><meta name="robots" content="noindex, nofollow"><?php endif; ?>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="/static/css/xpk.css">
+    <script>function toggleSidebar(){}</script>
 </head>
 <body class="bg-white text-gray-900 min-h-screen pb-14 md:pb-0">
     <!-- 顶部导航 -->

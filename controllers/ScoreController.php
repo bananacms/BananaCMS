@@ -26,11 +26,11 @@ class ScoreController extends BaseController
 
         // 验证参数
         if (!in_array($type, ['vod', 'art']) || $targetId <= 0) {
-            $this->json(1, '参数错误');
+            $this->apiJson(1, '参数错误');
         }
 
         if ($score < 1 || $score > 10) {
-            $this->json(1, '评分范围为1-10分');
+            $this->apiJson(1, '评分范围为1-10分');
         }
 
         // 检查评分设置
@@ -40,7 +40,7 @@ class ScoreController extends BaseController
         $userId = $this->getUserId();
 
         if (!$userId && !$allowGuest) {
-            $this->json(2, '请先登录');
+            $this->apiJson(2, '请先登录');
         }
 
         // 执行评分
@@ -51,14 +51,14 @@ class ScoreController extends BaseController
         }
 
         if ($result['action'] === 'exists') {
-            $this->json(1, $result['message']);
+            $this->apiJson(1, $result['message']);
         }
 
         // 获取最新统计
         $stats = $this->scoreModel->getStats($type, $targetId);
 
         $msg = $result['action'] === 'update' ? '评分已更新' : '评分成功';
-        $this->json(0, $msg, [
+        $this->apiJson(0, $msg, [
             'action' => $result['action'],
             'score' => $score,
             'stats' => $stats
@@ -74,7 +74,7 @@ class ScoreController extends BaseController
         $targetId = (int)$this->get('target_id', 0);
 
         if (!in_array($type, ['vod', 'art']) || $targetId <= 0) {
-            $this->json(1, '参数错误');
+            $this->apiJson(1, '参数错误');
         }
 
         $stats = $this->scoreModel->getStats($type, $targetId);
@@ -94,7 +94,7 @@ class ScoreController extends BaseController
             $hasRated = $this->scoreModel->hasRated($type, $targetId, 0);
         }
 
-        $this->json(0, 'success', [
+        $this->apiJson(0, 'success', [
             'stats' => $stats,
             'user_score' => $userScore,
             'has_rated' => $hasRated
@@ -110,9 +110,9 @@ class ScoreController extends BaseController
     }
 
     /**
-     * JSON响应
+     * API响应
      */
-    private function json(int $code, string $msg, array $data = []): void
+    private function apiJson(int $code, string $msg, array $data = []): void
     {
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode(['code' => $code, 'msg' => $msg, 'data' => $data], JSON_UNESCAPED_UNICODE);

@@ -140,7 +140,7 @@ $router->post('link/apply', fn() => (new XpkLinkController())->apply());
 require_once CTRL_PATH . 'CommentController.php';
 $router->get('comment/list', fn() => (new CommentController())->list());
 $router->get('comment/replies', fn() => (new CommentController())->replies());
-$router->post('comment/post', fn() => (new CommentController())->post());
+$router->post('comment/post', fn() => (new CommentController())->postComment());
 $router->post('comment/vote', fn() => (new CommentController())->vote());
 $router->post('comment/delete', fn() => (new CommentController())->delete());
 

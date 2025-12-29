@@ -98,7 +98,7 @@ class ShortController extends BaseController
 
         $list = $this->shortModel->getVideos($page, 10, $category);
 
-        $this->json(0, 'success', [
+        $this->apiJson(0, 'success', [
             'list' => $list,
             'page' => $page,
             'has_more' => count($list) >= 10
@@ -113,7 +113,7 @@ class ShortController extends BaseController
         $exclude = (int)($this->get('exclude', 0));
         $list = $this->shortModel->getRandom(5, $exclude);
 
-        $this->json(0, 'success', ['list' => $list]);
+        $this->apiJson(0, 'success', ['list' => $list]);
     }
 
     /**
@@ -124,18 +124,18 @@ class ShortController extends BaseController
         $id = (int)($this->get('id', 0));
 
         if ($id <= 0) {
-            $this->json(1, '参数错误');
+            $this->apiJson(1, '参数错误');
         }
 
         $short = $this->shortModel->getDetail($id);
 
         if (!$short || $short['short_status'] != 1) {
-            $this->json(1, '视频不存在');
+            $this->apiJson(1, '视频不存在');
         }
 
         $this->shortModel->incHits($id);
 
-        $this->json(0, 'success', $short);
+        $this->apiJson(0, 'success', $short);
     }
 
     /**
@@ -146,18 +146,18 @@ class ShortController extends BaseController
         $id = (int)($this->post('id', 0));
 
         if ($id <= 0) {
-            $this->json(1, '参数错误');
+            $this->apiJson(1, '参数错误');
         }
 
         $likes = $this->shortModel->like($id);
 
-        $this->json(0, 'success', ['likes' => $likes]);
+        $this->apiJson(0, 'success', ['likes' => $likes]);
     }
 
     /**
-     * JSON响应
+     * API响应
      */
-    private function json(int $code, string $msg, array $data = []): void
+    private function apiJson(int $code, string $msg, array $data = []): void
     {
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode(['code' => $code, 'msg' => $msg, 'data' => $data], JSON_UNESCAPED_UNICODE);

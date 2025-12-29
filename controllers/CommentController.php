@@ -1,6 +1,6 @@
 <?php
 /**
- * 前台评论控制�?
+ * 前台评论控制器
  * Powered by https://xpornkit.com
  */
 
@@ -16,7 +16,7 @@ class CommentController extends BaseController
     }
 
     /**
-     * 获取评论列表（AJAX�?
+     * 获取评论列表（AJAX）
      */
     public function list(): void
     {
@@ -30,7 +30,7 @@ class CommentController extends BaseController
 
         $result = $this->commentModel->getListByTarget($type, $targetId, $page, 20);
         
-        // 获取用户投票状�?
+        // 获取用户投票状态
         $userId = $this->getUserId();
         $commentIds = array_column($result['list'], 'comment_id');
         foreach ($result['list'] as &$item) {
@@ -49,7 +49,7 @@ class CommentController extends BaseController
     }
 
     /**
-     * 获取更多回复（AJAX�?
+     * 获取更多回复（AJAX）
      */
     public function replies(): void
     {
@@ -67,15 +67,15 @@ class CommentController extends BaseController
     /**
      * 发表评论
      */
-    public function post(): void
+    public function postComment(): void
     {
-        // 检查评论功能是否开�?
+        // 检查评论功能是否开启
         $config = xpk_cache()->get('site_config') ?: [];
         if (($config['comment_enabled'] ?? '1') !== '1') {
-            $this->apiJson(1, '评论功能已关�?);
+            $this->apiJson(1, '评论功能已关闭');
         }
 
-        // 检查登�?
+        // 检查登录
         $userId = $this->getUserId();
         $allowGuest = ($config['comment_guest'] ?? '0') === '1';
         
@@ -103,14 +103,14 @@ class CommentController extends BaseController
             $this->apiJson(1, "评论内容至少 {$minLen} 个字");
         }
         if ($contentLen > $maxLen) {
-            $this->apiJson(1, "评论内容最�?{$maxLen} 个字");
+            $this->apiJson(1, "评论内容最多 {$maxLen} 个字");
         }
 
         // 检查发言频率
         $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '';
         if (!$this->commentModel->checkFrequency($userId ?: 0, $ip)) {
             $interval = (int)($config['comment_interval'] ?? 60);
-            $this->apiJson(1, "发言太频繁，�?{$interval} 秒后再试");
+            $this->apiJson(1, "发言太频繁，请 {$interval} 秒后再试");
         }
 
         // 发表评论
@@ -137,7 +137,7 @@ class CommentController extends BaseController
     }
 
     /**
-     * 点赞/�?
+     * 点赞/踩
      */
     public function vote(): void
     {
@@ -155,7 +155,7 @@ class CommentController extends BaseController
 
         $result = $this->commentModel->vote($commentId, $userId, $action);
         
-        // 获取最新数�?
+        // 获取最新数据
         $comment = $this->commentModel->find($commentId);
         
         $this->apiJson(0, 'success', [
@@ -167,7 +167,7 @@ class CommentController extends BaseController
     }
 
     /**
-     * 删除自己的评�?
+     * 删除自己的评论
      */
     public function delete(): void
     {

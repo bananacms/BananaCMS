@@ -78,7 +78,12 @@ class XpkRouter
 
         // 404
         http_response_code(404);
-        require VIEW_PATH . 'errors/404.php';
+        $errorPage = (defined('VIEW_PATH') ? VIEW_PATH : __DIR__ . '/../views/') . 'errors/404.php';
+        if (file_exists($errorPage)) {
+            require $errorPage;
+        } else {
+            echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>404</title></head><body style="text-align:center;padding:50px;font-family:sans-serif;"><h1>404</h1><p>页面不存在</p><a href="/">返回首页</a></body></html>';
+        }
     }
 
     /**
