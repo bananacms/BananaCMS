@@ -128,6 +128,7 @@ let totalUpdated = 0;
 let startTime = 0;
 let startPage = 1;
 let totalPages = 0;
+let abortController = null;
 
 function log(msg, type = 'info') {
     const box = document.getElementById('logBox');
@@ -192,6 +193,11 @@ function beginCollect(fromPage) {
 
 function stopCollect() {
     collecting = false;
+    // 中断正在进行的请求
+    if (abortController) {
+        abortController.abort();
+        abortController = null;
+    }
     document.getElementById('startBtn').classList.remove('hidden');
     const resumeBtn = document.getElementById('resumeBtn');
     if (resumeBtn) resumeBtn.classList.remove('hidden');
@@ -202,6 +208,9 @@ function stopCollect() {
 
 function doCollect(page) {
     if (!collecting) return;
+    
+    // 创建新的 AbortController
+    abortController = new AbortController();
     
     const data = new URLSearchParams({
         id: <?= $collect['collect_id'] ?>,
@@ -215,10 +224,13 @@ function doCollect(page) {
     fetch('/admin.php/collect/docollect', {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: data
+        body: data,
+        signal: abortController.signal
     })
     .then(r => r.json())
     .then(res => {
+        if (!collecting) return; // 双重检查
+        
         if (res.code !== 0) {
             log(res.msg, 'error');
             stopCollect();
@@ -255,6 +267,10 @@ function doCollect(page) {
         }
     })
     .catch(err => {
+        if (err.name === 'AbortError') {
+            // 请求被中断，正常情况
+            return;
+        }
         log('请求失败: ' + err, 'error');
         stopCollect();
     });

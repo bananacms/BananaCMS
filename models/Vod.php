@@ -50,21 +50,11 @@ class XpkVod extends XpkModel
             $num = min($num, 5);
         }
 
-        // 先按点击量排序
-        $list = $this->db->query(
-            "SELECT * FROM {$this->table} WHERE vod_status = 1 AND vod_hits > 0 ORDER BY vod_hits DESC LIMIT ?",
+        // 按点击量排序（包括0点击的）
+        return $this->db->query(
+            "SELECT * FROM {$this->table} WHERE vod_status = 1 ORDER BY vod_hits DESC, vod_time DESC LIMIT ?",
             [$num]
         );
-        
-        // 如果没有热门数据，随机取一些
-        if (empty($list)) {
-            $list = $this->db->query(
-                "SELECT * FROM {$this->table} WHERE vod_status = 1 ORDER BY RAND() LIMIT ?",
-                [$num]
-            );
-        }
-        
-        return $list;
     }
 
     /**
