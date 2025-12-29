@@ -185,8 +185,11 @@ class BaseController
     /**
      * 渲染视图（display别名）
      */
-    protected function display(string $template): void
+    protected function display(string $template, array $data = []): void
     {
+        foreach ($data as $key => $value) {
+            $this->data[$key] = $value;
+        }
         $this->render($template);
     }
 
