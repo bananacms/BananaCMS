@@ -185,11 +185,34 @@ class XpkVod extends XpkModel
     }
 
     /**
-     * 按分类获取视频
+     * 按分类获取视频（包含子分类）
      */
     public function getByType(int $typeId, int $page = 1, int $pageSize = 20): array
     {
-        return $this->paginate($page, $pageSize, ['vod_type_id' => $typeId, 'vod_status' => 1], 'vod_time DESC');
+        // 获取该分类及其所有子分类的ID
+        $typeModel = new XpkType();
+        $typeIds = $typeModel->getChildIds($typeId);
+        
+        $offset = ($page - 1) * $pageSize;
+        $placeholders = implode(',', array_fill(0, count($typeIds), '?'));
+        
+        $sql = "SELECT * FROM {$this->table} 
+                WHERE vod_status = 1 AND vod_type_id IN ({$placeholders})
+                ORDER BY vod_time DESC LIMIT {$pageSize} OFFSET {$offset}";
+        
+        $countSql = "SELECT COUNT(*) as total FROM {$this->table} 
+                     WHERE vod_status = 1 AND vod_type_id IN ({$placeholders})";
+        
+        $list = $this->db->query($sql, $typeIds);
+        $total = $this->db->queryOne($countSql, $typeIds)['total'] ?? 0;
+        
+        return [
+            'list' => $list,
+            'total' => (int)$total,
+            'page' => $page,
+            'pageSize' => $pageSize,
+            'totalPages' => ceil($total / $pageSize),
+        ];
     }
 
     /**

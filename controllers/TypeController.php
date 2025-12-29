@@ -27,6 +27,15 @@ class TypeController extends BaseController
             return;
         }
 
+        // 获取父分类信息
+        if ($type['type_pid'] > 0) {
+            $parent = $this->typeModel->getById($type['type_pid']);
+            if ($parent) {
+                $type['parent_name'] = $parent['type_name'];
+                $type['parent_en'] = $parent['type_en'];
+            }
+        }
+
         $result = $this->vodModel->getByType($id, $page, PAGE_SIZE);
         
         // 子分类
