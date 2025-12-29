@@ -40,6 +40,7 @@ require_once MODEL_PATH . 'Type.php';
 require_once MODEL_PATH . 'Actor.php';
 require_once MODEL_PATH . 'Art.php';
 require_once MODEL_PATH . 'User.php';
+require_once MODEL_PATH . 'Stats.php';
 
 // 加载控制器
 require_once CTRL_PATH . 'BaseController.php';
