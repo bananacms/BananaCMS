@@ -194,6 +194,16 @@
             });
         });
     }
+
+    // 分页跳转
+    function goToPage(baseUrl, totalPages) {
+        const input = document.getElementById('pageJumpInput');
+        let page = parseInt(input.value);
+        if (isNaN(page) || page < 1) page = 1;
+        if (page > totalPages) page = totalPages;
+        const separator = baseUrl.includes('?') ? '&' : '?';
+        window.location.href = baseUrl + separator + 'page=' + page;
+    }
     </script>
 </body>
 </html>

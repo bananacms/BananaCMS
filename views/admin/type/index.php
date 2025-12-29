@@ -6,9 +6,9 @@
 
 <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold">分类管理</h1>
-    <a href="/admin.php/type/add" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+    <button onclick="openTypeModal()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
         + 添加分类
-    </a>
+    </button>
 </div>
 
 <div class="bg-white rounded-lg shadow overflow-hidden">
@@ -44,7 +44,7 @@
                     </span>
                 </td>
                 <td class="px-4 py-3 text-sm space-x-2">
-                    <a href="/admin.php/type/edit/<?= $type['type_id'] ?>" class="text-blue-500 hover:underline">编辑</a>
+                    <button onclick="openTypeModal(<?= $type['type_id'] ?>)" class="text-blue-500 hover:underline">编辑</button>
                     <button onclick="deleteItem('/admin.php/type/delete', <?= $type['type_id'] ?>)" class="text-red-500 hover:underline">删除</button>
                 </td>
             </tr>
@@ -53,3 +53,143 @@
         </tbody>
     </table>
 </div>
+
+<!-- 分类模态框 -->
+<div id="typeModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center px-6 py-4 border-b">
+            <h3 id="typeModalTitle" class="text-lg font-bold">添加分类</h3>
+            <button onclick="closeTypeModal()" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <form id="typeForm" onsubmit="saveType(event)" class="p-6">
+            <input type="hidden" name="_token" value="<?= $csrfToken ?>">
+            <input type="hidden" name="type_id" id="typeId" value="">
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">父级分类</label>
+                    <select name="type_pid" id="typePid" class="w-full border rounded px-3 py-2">
+                        <option value="0">顶级分类</option>
+                        <?php foreach ($parentTypes ?? [] as $pt): ?>
+                        <option value="<?= $pt['type_id'] ?>"><?= htmlspecialchars($pt['type_name']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">分类名称 *</label>
+                    <input type="text" name="type_name" id="typeName" required class="w-full border rounded px-3 py-2">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">英文名</label>
+                    <input type="text" name="type_en" id="typeEn" class="w-full border rounded px-3 py-2" placeholder="用于URL">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">排序</label>
+                        <input type="number" name="type_sort" id="typeSort" value="0" class="w-full border rounded px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
+                        <select name="type_status" id="typeStatus" class="w-full border rounded px-3 py-2">
+                            <option value="1">启用</option>
+                            <option value="0">禁用</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">SEO关键词</label>
+                    <input type="text" name="type_key" id="typeKey" class="w-full border rounded px-3 py-2">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">SEO描述</label>
+                    <textarea name="type_des" id="typeDes" rows="3" class="w-full border rounded px-3 py-2"></textarea>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end space-x-3">
+                <button type="button" onclick="closeTypeModal()" class="px-4 py-2 border rounded hover:bg-gray-50">取消</button>
+                <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">保存</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openTypeModal(id = null) {
+    const modal = document.getElementById('typeModal');
+    const title = document.getElementById('typeModalTitle');
+    
+    // 重置表单
+    document.getElementById('typeForm').reset();
+    document.getElementById('typeId').value = '';
+    
+    if (id) {
+        title.textContent = '编辑分类';
+        // 加载数据
+        fetch('/admin.php/type/get?id=' + id)
+            .then(r => r.json())
+            .then(data => {
+                if (data.code === 0) {
+                    const t = data.data;
+                    document.getElementById('typeId').value = t.type_id;
+                    document.getElementById('typePid').value = t.type_pid;
+                    document.getElementById('typeName').value = t.type_name;
+                    document.getElementById('typeEn').value = t.type_en;
+                    document.getElementById('typeSort').value = t.type_sort;
+                    document.getElementById('typeStatus').value = t.type_status;
+                    document.getElementById('typeKey').value = t.type_key || '';
+                    document.getElementById('typeDes').value = t.type_des || '';
+                }
+            });
+    } else {
+        title.textContent = '添加分类';
+    }
+    
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeTypeModal() {
+    const modal = document.getElementById('typeModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+function saveType(e) {
+    e.preventDefault();
+    const form = document.getElementById('typeForm');
+    const formData = new FormData(form);
+    const id = formData.get('type_id');
+    const url = id ? '/admin.php/type/edit/' + id : '/admin.php/type/add';
+    
+    fetch(url, {
+        method: 'POST',
+        body: new URLSearchParams(formData)
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.code === 0) {
+            xpkToast(data.msg || '保存成功', 'success');
+            closeTypeModal();
+            location.reload();
+        } else {
+            xpkToast(data.msg || '保存失败', 'error');
+        }
+    })
+    .catch(() => xpkToast('请求失败', 'error'));
+}
+
+// 点击遮罩关闭
+document.getElementById('typeModal').addEventListener('click', function(e) {
+    if (e.target === this) closeTypeModal();
+});
+</script>

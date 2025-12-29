@@ -187,8 +187,20 @@ CREATE TABLE `xpk_config` (
 INSERT INTO `xpk_config` VALUES 
 (1, 'site_name', '香蕉影视'),
 (2, 'site_url', 'http://localhost'),
-(3, 'site_keywords', '香蕉CMS,BananaCMS,免费影视CMS'),
-(4, 'site_description', '香蕉CMS - 轻量级影视内容管理系统');
+(3, 'site_keywords', '香蕉CMS,BananaCMS,免费影视CMS,在线观看'),
+(4, 'site_description', '香蕉CMS - 轻量级影视内容管理系统，提供最新电影、电视剧、综艺、动漫在线观看'),
+(5, 'url_mode', '4'),
+(6, 'seo_title_vod_detail', '{name}在线观看 - {sitename}'),
+(7, 'seo_keywords_vod_detail', '{name},{actor},{type},{year},{area}'),
+(8, 'seo_description_vod_detail', '{name}由{actor}主演，{year}年{area}{type}，{description}'),
+(9, 'seo_title_type', '{name}大全_最新{name}排行榜 - {sitename}'),
+(10, 'seo_keywords_type', '{name},{name}大全,最新{name},{name}排行榜'),
+(11, 'seo_title_actor_detail', '{name}个人资料_主演作品 - {sitename}'),
+(12, 'seo_title_art_detail', '{name} - {sitename}'),
+(13, 'comment_audit', '0'),
+(14, 'comment_guest', '1'),
+(15, 'user_register', '1'),
+(16, 'user_register_limit', '5');
 
 -- 采集站表
 DROP TABLE IF EXISTS `xpk_collect`;

@@ -65,9 +65,9 @@
     <div class="space-y-2 text-sm">
         <p class="text-gray-600">以下是一些常用的资源站API（仅供参考，请自行验证）：</p>
         <ul class="list-disc list-inside text-gray-500 space-y-1">
-            <li>淘片资源：https://taopianapi.com/home/cjapi/as/mc10/vod/xml</li>
             <li>红牛资源：https://www.hongniuzy2.com/api.php/provide/vod/</li>
             <li>光速资源：https://api.guangsuapi.com/api.php/provide/vod/</li>
+            <li>暴风资源：https://bfzyapi.com/api.php/provide/vod/</li>
             <li>量子资源：https://cj.lziapi.com/api.php/provide/vod/</li>
         </ul>
     </div>

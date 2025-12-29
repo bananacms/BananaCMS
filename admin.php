@@ -89,34 +89,38 @@ $router->post('admin.php/vod/status', fn() => (new AdminVodController())->status
 
 // 分类管理
 $router->get('admin.php/type', fn() => (new AdminTypeController())->index());
+$router->get('admin.php/type/get', fn() => (new AdminTypeController())->get());
 $router->get('admin.php/type/add', fn() => (new AdminTypeController())->add());
-$router->post('admin.php/type/add', fn() => (new AdminTypeController())->doAdd());
+$router->post('admin.php/type/add', fn() => (new AdminTypeController())->add());
 $router->get('admin.php/type/edit/{id}', fn($id) => (new AdminTypeController())->edit((int)$id));
-$router->post('admin.php/type/edit/{id}', fn($id) => (new AdminTypeController())->doEdit((int)$id));
+$router->post('admin.php/type/edit/{id}', fn($id) => (new AdminTypeController())->edit((int)$id));
 $router->post('admin.php/type/delete', fn() => (new AdminTypeController())->delete());
 
 // 演员管理
 $router->get('admin.php/actor', fn() => (new AdminActorController())->index());
+$router->get('admin.php/actor/get', fn() => (new AdminActorController())->get());
 $router->get('admin.php/actor/add', fn() => (new AdminActorController())->add());
-$router->post('admin.php/actor/add', fn() => (new AdminActorController())->doAdd());
+$router->post('admin.php/actor/add', fn() => (new AdminActorController())->add());
 $router->get('admin.php/actor/edit/{id}', fn($id) => (new AdminActorController())->edit((int)$id));
-$router->post('admin.php/actor/edit/{id}', fn($id) => (new AdminActorController())->doEdit((int)$id));
+$router->post('admin.php/actor/edit/{id}', fn($id) => (new AdminActorController())->edit((int)$id));
 $router->post('admin.php/actor/delete', fn() => (new AdminActorController())->delete());
 
 // 文章管理
 $router->get('admin.php/art', fn() => (new AdminArtController())->index());
+$router->get('admin.php/art/get', fn() => (new AdminArtController())->get());
 $router->get('admin.php/art/add', fn() => (new AdminArtController())->add());
-$router->post('admin.php/art/add', fn() => (new AdminArtController())->doAdd());
+$router->post('admin.php/art/add', fn() => (new AdminArtController())->add());
 $router->get('admin.php/art/edit/{id}', fn($id) => (new AdminArtController())->edit((int)$id));
-$router->post('admin.php/art/edit/{id}', fn($id) => (new AdminArtController())->doEdit((int)$id));
+$router->post('admin.php/art/edit/{id}', fn($id) => (new AdminArtController())->edit((int)$id));
 $router->post('admin.php/art/delete', fn() => (new AdminArtController())->delete());
 
 // 文章分类管理
 $router->get('admin.php/art_type', fn() => (new AdminArtTypeController())->index());
+$router->get('admin.php/art_type/get', fn() => (new AdminArtTypeController())->get());
 $router->get('admin.php/art_type/add', fn() => (new AdminArtTypeController())->add());
-$router->post('admin.php/art_type/add', fn() => (new AdminArtTypeController())->doAdd());
+$router->post('admin.php/art_type/add', fn() => (new AdminArtTypeController())->add());
 $router->get('admin.php/art_type/edit/{id}', fn($id) => (new AdminArtTypeController())->edit((int)$id));
-$router->post('admin.php/art_type/edit/{id}', fn($id) => (new AdminArtTypeController())->doEdit((int)$id));
+$router->post('admin.php/art_type/edit/{id}', fn($id) => (new AdminArtTypeController())->edit((int)$id));
 $router->post('admin.php/art_type/delete', fn() => (new AdminArtTypeController())->delete());
 
 // 用户管理
@@ -139,6 +143,7 @@ $router->post('admin.php/collect/edit/{id}', fn($id) => (new AdminCollectControl
 $router->post('admin.php/collect/delete', fn() => (new AdminCollectController())->delete());
 $router->get('admin.php/collect/bind/{id}', fn($id) => (new AdminCollectController())->bind((int)$id));
 $router->post('admin.php/collect/savebind/{id}', fn($id) => (new AdminCollectController())->saveBind((int)$id));
+$router->post('admin.php/collect/syncCategories', fn() => (new AdminCollectController())->syncCategories());
 $router->get('admin.php/collect/run/{id}', fn($id) => (new AdminCollectController())->run((int)$id));
 $router->post('admin.php/collect/docollect', fn() => (new AdminCollectController())->doCollect());
 $router->post('admin.php/collect/test', fn() => (new AdminCollectController())->test());
@@ -150,10 +155,11 @@ $router->post('admin.php/log/clean', fn() => (new AdminLogController())->clean()
 // 友链管理
 require_once CTRL_PATH . 'admin/LinkController.php';
 $router->get('admin.php/link', fn() => (new AdminLinkController())->index());
+$router->get('admin.php/link/get', fn() => (new AdminLinkController())->get());
 $router->get('admin.php/link/add', fn() => (new AdminLinkController())->add());
-$router->post('admin.php/link/add', fn() => (new AdminLinkController())->doAdd());
+$router->post('admin.php/link/add', fn() => (new AdminLinkController())->add());
 $router->get('admin.php/link/edit/{id}', fn($id) => (new AdminLinkController())->edit((int)$id));
-$router->post('admin.php/link/edit/{id}', fn($id) => (new AdminLinkController())->doEdit((int)$id));
+$router->post('admin.php/link/edit/{id}', fn($id) => (new AdminLinkController())->edit((int)$id));
 $router->post('admin.php/link/delete', fn() => (new AdminLinkController())->delete());
 $router->post('admin.php/link/audit', fn() => (new AdminLinkController())->audit());
 $router->post('admin.php/link/check', fn() => (new AdminLinkController())->check());
@@ -162,10 +168,11 @@ $router->post('admin.php/link/saveSetting', fn() => (new AdminLinkController())-
 // 广告管理
 require_once CTRL_PATH . 'admin/AdController.php';
 $router->get('admin.php/ad', fn() => (new AdminAdController())->index());
+$router->get('admin.php/ad/get', fn() => (new AdminAdController())->get());
 $router->get('admin.php/ad/add', fn() => (new AdminAdController())->add());
-$router->post('admin.php/ad/doAdd', fn() => (new AdminAdController())->doAdd());
+$router->post('admin.php/ad/add', fn() => (new AdminAdController())->add());
 $router->get('admin.php/ad/edit/{id}', fn($id) => (new AdminAdController())->edit((int)$id));
-$router->post('admin.php/ad/doEdit/{id}', fn($id) => (new AdminAdController())->doEdit((int)$id));
+$router->post('admin.php/ad/edit/{id}', fn($id) => (new AdminAdController())->edit((int)$id));
 $router->post('admin.php/ad/delete', fn() => (new AdminAdController())->delete());
 $router->post('admin.php/ad/toggle', fn() => (new AdminAdController())->toggle());
 $router->post('admin.php/ad/click', fn() => (new AdminAdController())->click());

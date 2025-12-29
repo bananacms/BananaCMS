@@ -49,7 +49,7 @@ class AdminConfigController extends AdminBaseController
             'user_register' => trim($this->post('user_register', '1')),
             'user_register_limit' => trim($this->post('user_register_limit', '5')),
             // URL规则
-            'url_mode' => trim($this->post('url_mode', '1')),
+            'url_mode' => trim($this->post('url_mode', '4')),
             'url_vod_detail' => trim($this->post('url_vod_detail', '')),
             'url_vod_play' => trim($this->post('url_vod_play', '')),
             'url_type' => trim($this->post('url_type', '')),

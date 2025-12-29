@@ -35,27 +35,40 @@ class AdminAdController extends AdminBaseController
         $this->assign('positions', XpkAd::getPositions());
         $this->assign('types', XpkAd::getTypes());
         $this->assign('stats', $stats);
+        $this->assign('csrfToken', $this->csrfToken());
         $this->assign('flash', $this->getFlash());
 
         $this->render('ad/index', '广告管理');
     }
 
     /**
-     * 添加广告
+     * 获取单个广告（AJAX）
      */
-    public function add(): void
+    public function get(): void
     {
-        $this->assign('positions', XpkAd::getPositions());
-        $this->assign('types', XpkAd::getTypes());
-        $this->assign('csrfToken', $this->csrfToken());
-        $this->render('ad/form', '添加广告');
+        $id = (int)$this->get('id', 0);
+        $ad = $this->adModel->find($id);
+        
+        if (!$ad) {
+            $this->error('广告不存在');
+        }
+        
+        $this->success('ok', $ad);
     }
 
     /**
-     * 处理添加
+     * 添加广告（AJAX）
      */
-    public function doAdd(): void
+    public function add(): void
     {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->assign('positions', XpkAd::getPositions());
+            $this->assign('types', XpkAd::getTypes());
+            $this->assign('csrfToken', $this->csrfToken());
+            $this->render('ad/form', '添加广告');
+            return;
+        }
+
         if (!$this->verifyCsrf()) {
             $this->error('非法请求');
         }
@@ -70,43 +83,33 @@ class AdminAdController extends AdminBaseController
 
         if ($id) {
             $this->log('添加', '广告', "ID:{$id} {$data['ad_title']}");
-            $this->flash('success', '添加成功');
-            $this->redirect('/admin.php/ad');
+            $this->success('添加成功');
         } else {
             $this->error('添加失败');
         }
     }
 
     /**
-     * 编辑广告
+     * 编辑广告（AJAX）
      */
     public function edit(int $id): void
     {
         $ad = $this->adModel->find($id);
         if (!$ad) {
-            $this->flash('error', '广告不存在');
-            $this->redirect('/admin.php/ad');
+            $this->error('广告不存在');
         }
 
-        $this->assign('ad', $ad);
-        $this->assign('positions', XpkAd::getPositions());
-        $this->assign('types', XpkAd::getTypes());
-        $this->assign('csrfToken', $this->csrfToken());
-        $this->render('ad/form', '编辑广告');
-    }
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->assign('ad', $ad);
+            $this->assign('positions', XpkAd::getPositions());
+            $this->assign('types', XpkAd::getTypes());
+            $this->assign('csrfToken', $this->csrfToken());
+            $this->render('ad/form', '编辑广告');
+            return;
+        }
 
-    /**
-     * 处理编辑
-     */
-    public function doEdit(int $id): void
-    {
         if (!$this->verifyCsrf()) {
             $this->error('非法请求');
-        }
-
-        $ad = $this->adModel->find($id);
-        if (!$ad) {
-            $this->error('广告不存在');
         }
 
         $data = $this->getFormData();
@@ -118,8 +121,7 @@ class AdminAdController extends AdminBaseController
         $this->adModel->update($id, $data);
         $this->log('编辑', '广告', "ID:{$id} {$data['ad_title']}");
 
-        $this->flash('success', '保存成功');
-        $this->redirect('/admin.php/ad');
+        $this->success('保存成功');
     }
 
     /**

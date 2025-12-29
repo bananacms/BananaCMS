@@ -23,24 +23,37 @@ class AdminArtTypeController extends AdminBaseController
         $list = $this->artTypeModel->getAll();
         
         $this->assign('list', $list);
+        $this->assign('csrfToken', $this->csrfToken());
         $this->assign('flash', $this->getFlash());
         $this->render('art_type/index', '文章分类管理');
     }
 
     /**
-     * 添加分类
+     * 获取单个分类（AJAX）
      */
-    public function add(): void
+    public function get(): void
     {
-        $this->assign('csrfToken', $this->csrfToken());
-        $this->render('art_type/form', '添加文章分类');
+        $id = (int)$this->get('id', 0);
+        $type = $this->artTypeModel->find($id);
+        
+        if (!$type) {
+            $this->error('分类不存在');
+        }
+        
+        $this->success('ok', $type);
     }
 
     /**
-     * 处理添加
+     * 添加分类（AJAX）
      */
-    public function doAdd(): void
+    public function add(): void
     {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->assign('csrfToken', $this->csrfToken());
+            $this->render('art_type/form', '添加文章分类');
+            return;
+        }
+
         if (!$this->verifyCsrf()) {
             $this->error('非法请求');
         }
@@ -59,41 +72,31 @@ class AdminArtTypeController extends AdminBaseController
         $id = $this->artTypeModel->insert($data);
 
         if ($id) {
-            $this->flash('success', '添加成功');
-            $this->redirect('/admin.php/art_type');
+            $this->success('添加成功');
         } else {
             $this->error('添加失败');
         }
     }
 
     /**
-     * 编辑分类
+     * 编辑分类（AJAX）
      */
     public function edit(int $id): void
     {
         $type = $this->artTypeModel->find($id);
         if (!$type) {
-            $this->flash('error', '分类不存在');
-            $this->redirect('/admin.php/art_type');
+            $this->error('分类不存在');
         }
 
-        $this->assign('type', $type);
-        $this->assign('csrfToken', $this->csrfToken());
-        $this->render('art_type/form', '编辑文章分类');
-    }
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->assign('type', $type);
+            $this->assign('csrfToken', $this->csrfToken());
+            $this->render('art_type/form', '编辑文章分类');
+            return;
+        }
 
-    /**
-     * 处理编辑
-     */
-    public function doEdit(int $id): void
-    {
         if (!$this->verifyCsrf()) {
             $this->error('非法请求');
-        }
-
-        $type = $this->artTypeModel->find($id);
-        if (!$type) {
-            $this->error('分类不存在');
         }
 
         $data = [
@@ -109,8 +112,7 @@ class AdminArtTypeController extends AdminBaseController
 
         $this->artTypeModel->update($id, $data);
 
-        $this->flash('success', '保存成功');
-        $this->redirect('/admin.php/art_type');
+        $this->success('保存成功');
     }
 
     /**

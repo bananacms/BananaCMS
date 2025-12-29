@@ -25,6 +25,7 @@ class ArtController extends BaseController
         $this->assign('page', $result['page']);
         $this->assign('totalPages', $result['totalPages']);
         $this->assign('total', $result['total']);
+        $this->assign('baseUrl', '/art');
         
         // SEO
         $this->assign('title', '文章资讯 - ' . $this->data['siteName']);

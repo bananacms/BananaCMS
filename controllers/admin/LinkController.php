@@ -39,80 +39,86 @@ class AdminLinkController extends AdminBaseController
         $this->assign('status', $status);
         $this->assign('stats', $stats);
         $this->assign('linkAutoApprove', $config['link_auto_approve'] ?? '0');
+        $this->assign('csrfToken', $this->csrfToken());
         $this->assign('flash', $this->getFlash());
 
         $this->render('link/index', '友链管理');
     }
 
     /**
-     * 添加友链
+     * 获取单个友链（AJAX）
      */
-    public function add(): void
+    public function get(): void
     {
-        $this->assign('csrfToken', $this->csrfToken());
-        $this->render('link/form', '添加友链');
+        $id = (int)$this->get('id', 0);
+        $link = $this->linkModel->find($id);
+        
+        if (!$link) {
+            $this->error('友链不存在');
+        }
+        
+        $this->success('ok', $link);
     }
 
     /**
-     * 处理添加
+     * 添加友链（AJAX）
      */
-    public function doAdd(): void
+    public function add(): void
     {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->assign('csrfToken', $this->csrfToken());
+            $this->render('link/form', '添加友链');
+            return;
+        }
+
         if (!$this->verifyCsrf()) {
             $this->error('非法请求');
         }
 
         $data = $this->getFormData();
-        $data['link_status'] = 1; // 后台添加直接通过
         $data['link_type'] = 1;   // 手动添加
+        $data['link_time'] = time();
+
+        if (empty($data['link_name']) || empty($data['link_url'])) {
+            $this->error('网站名称和地址不能为空');
+        }
 
         $id = $this->linkModel->insert($data);
 
         if ($id) {
             $this->log('添加', '友链', "ID:{$id} {$data['link_name']}");
-            $this->flash('success', '添加成功');
-            $this->redirect('/admin.php/link');
+            $this->success('添加成功');
         } else {
             $this->error('添加失败');
         }
     }
 
     /**
-     * 编辑友链
+     * 编辑友链（AJAX）
      */
     public function edit(int $id): void
     {
         $link = $this->linkModel->find($id);
         if (!$link) {
-            $this->flash('error', '友链不存在');
-            $this->redirect('/admin.php/link');
+            $this->error('友链不存在');
         }
 
-        $this->assign('link', $link);
-        $this->assign('csrfToken', $this->csrfToken());
-        $this->render('link/form', '编辑友链');
-    }
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->assign('link', $link);
+            $this->assign('csrfToken', $this->csrfToken());
+            $this->render('link/form', '编辑友链');
+            return;
+        }
 
-    /**
-     * 处理编辑
-     */
-    public function doEdit(int $id): void
-    {
         if (!$this->verifyCsrf()) {
             $this->error('非法请求');
-        }
-
-        $link = $this->linkModel->find($id);
-        if (!$link) {
-            $this->error('友链不存在');
         }
 
         $data = $this->getFormData();
         $this->linkModel->update($id, $data);
         $this->log('编辑', '友链', "ID:{$id} {$data['link_name']}");
 
-        $this->flash('success', '保存成功');
-        $this->redirect('/admin.php/link');
+        $this->success('保存成功');
     }
 
     /**
@@ -157,7 +163,6 @@ class AdminLinkController extends AdminBaseController
         $id = (int)$this->post('id', 0);
 
         if ($id > 0) {
-            // 单个检测
             $link = $this->linkModel->find($id);
             if (!$link) {
                 $this->error('友链不存在');
@@ -171,7 +176,6 @@ class AdminLinkController extends AdminBaseController
 
             $this->success($hasBacklink ? '检测通过，对方已添加回链' : '检测失败，未发现回链');
         } else {
-            // 批量检测
             $results = $this->linkModel->batchCheck();
             $this->success("检测完成：{$results['success']}个有回链，{$results['fail']}个无回链");
         }

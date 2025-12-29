@@ -33,13 +33,35 @@
 
     <!-- 分页 -->
     {if $totalPages > 1}
-    <div class="flex justify-center gap-2 mt-8">
+    <div class="flex flex-wrap justify-center items-center gap-2 mt-8">
         {if $page > 1}
-        <a href="/short/drama/page/{$page-1}" class="px-4 py-2 bg-white border rounded hover:bg-gray-50">上一页</a>
+        <a href="/short/drama/page/{$page-1}" class="px-4 py-2 bg-gray-100 rounded hover:bg-gray-200 text-sm">上一页</a>
         {/if}
-        <span class="px-4 py-2 text-gray-500">{$page} / {$totalPages}</span>
+        
+        {if $page > 3}
+        <a href="/short/drama/page/1" class="px-3 py-2 bg-gray-100 rounded hover:bg-gray-200 text-sm">1</a>
+        {if $page > 4}<span class="px-2 text-gray-400">...</span>{/if}
+        {/if}
+        
+        {for $i=max(1,$page-2) to min($totalPages,$page+2)}
+        {if $i == $page}
+        <span class="px-3 py-2 bg-red-600 text-white rounded text-sm">{$i}</span>
+        {else}
+        <a href="/short/drama/page/{$i}" class="px-3 py-2 bg-gray-100 rounded hover:bg-gray-200 text-sm">{$i}</a>
+        {/if}
+        {/for}
+        
+        {if $page < $totalPages - 2}
+        {if $page < $totalPages - 3}<span class="px-2 text-gray-400">...</span>{/if}
+        <a href="/short/drama/page/{$totalPages}" class="px-3 py-2 bg-gray-100 rounded hover:bg-gray-200 text-sm">{$totalPages}</a>
+        {/if}
+        
         {if $page < $totalPages}
-        <a href="/short/drama/page/{$page+1}" class="px-4 py-2 bg-white border rounded hover:bg-gray-50">下一页</a>
+        <a href="/short/drama/page/{$page+1}" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm">下一页</a>
+        {/if}
+        
+        {if $totalPages > 5}
+        <span class="text-gray-500 text-sm ml-2">共 {$totalPages} 页</span>
         {/if}
     </div>
     {/if}

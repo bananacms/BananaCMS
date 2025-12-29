@@ -6,9 +6,9 @@
 
 <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold">演员管理</h1>
-    <a href="/admin.php/actor/add" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+    <button onclick="openActorModal()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
         + 添加演员
-    </a>
+    </button>
 </div>
 
 <!-- 搜索 -->
@@ -64,7 +64,7 @@
                     </span>
                 </td>
                 <td class="px-4 py-3 text-sm space-x-2">
-                    <a href="/admin.php/actor/edit/<?= $actor['actor_id'] ?>" class="text-blue-500 hover:underline">编辑</a>
+                    <button onclick="openActorModal(<?= $actor['actor_id'] ?>)" class="text-blue-500 hover:underline">编辑</button>
                     <button onclick="deleteItem('/admin.php/actor/delete', <?= $actor['actor_id'] ?>)" class="text-red-500 hover:underline">删除</button>
                 </td>
             </tr>
@@ -75,19 +75,162 @@
 </div>
 
 <!-- 分页 -->
-<?php if ($totalPages > 1): ?>
-<div class="mt-4 flex justify-center">
-    <nav class="flex space-x-1">
-        <?php if ($page > 1): ?>
-        <a href="?page=<?= $page - 1 ?>&keyword=<?= urlencode($keyword) ?>" class="px-3 py-2 border rounded hover:bg-gray-100">上一页</a>
-        <?php endif; ?>
-        <?php for ($i = max(1, $page - 2); $i <= min($totalPages, $page + 2); $i++): ?>
-        <a href="?page=<?= $i ?>&keyword=<?= urlencode($keyword) ?>" 
-            class="px-3 py-2 border rounded <?= $i == $page ? 'bg-blue-500 text-white' : 'hover:bg-gray-100' ?>"><?= $i ?></a>
-        <?php endfor; ?>
-        <?php if ($page < $totalPages): ?>
-        <a href="?page=<?= $page + 1 ?>&keyword=<?= urlencode($keyword) ?>" class="px-3 py-2 border rounded hover:bg-gray-100">下一页</a>
-        <?php endif; ?>
-    </nav>
+<?php 
+$baseUrl = "/admin.php/actor?keyword=" . urlencode($keyword);
+include __DIR__ . '/../components/pagination.php'; 
+?>
+
+<!-- 演员模态框 -->
+<div id="actorModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center px-6 py-4 border-b sticky top-0 bg-white">
+            <h3 id="actorModalTitle" class="text-lg font-bold">添加演员</h3>
+            <button onclick="closeActorModal()" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <form id="actorForm" onsubmit="saveActor(event)" class="p-6">
+            <input type="hidden" name="_token" value="<?= $csrfToken ?>">
+            <input type="hidden" name="actor_id" id="actorId" value="">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">姓名 *</label>
+                    <input type="text" name="actor_name" id="actorName" required class="w-full border rounded px-3 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">英文名</label>
+                    <input type="text" name="actor_en" id="actorEn" class="w-full border rounded px-3 py-2">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">头像</label>
+                    <input type="text" name="actor_pic" id="actorPic" class="w-full border rounded px-3 py-2" placeholder="图片URL">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">性别</label>
+                    <select name="actor_sex" id="actorSex" class="w-full border rounded px-3 py-2">
+                        <option value="">未知</option>
+                        <option value="男">男</option>
+                        <option value="女">女</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">地区</label>
+                    <input type="text" name="actor_area" id="actorArea" class="w-full border rounded px-3 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">血型</label>
+                    <select name="actor_blood" id="actorBlood" class="w-full border rounded px-3 py-2">
+                        <option value="">未知</option>
+                        <option value="A">A型</option>
+                        <option value="B">B型</option>
+                        <option value="AB">AB型</option>
+                        <option value="O">O型</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">生日</label>
+                    <input type="text" name="actor_birthday" id="actorBirthday" class="w-full border rounded px-3 py-2" placeholder="1990-01-01">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">身高</label>
+                    <input type="text" name="actor_height" id="actorHeight" class="w-full border rounded px-3 py-2" placeholder="170cm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">体重</label>
+                    <input type="text" name="actor_weight" id="actorWeight" class="w-full border rounded px-3 py-2" placeholder="60kg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
+                    <select name="actor_status" id="actorStatus" class="w-full border rounded px-3 py-2">
+                        <option value="1">启用</option>
+                        <option value="0">禁用</option>
+                    </select>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">简介</label>
+                    <textarea name="actor_content" id="actorContent" rows="3" class="w-full border rounded px-3 py-2"></textarea>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end space-x-3">
+                <button type="button" onclick="closeActorModal()" class="px-4 py-2 border rounded hover:bg-gray-50">取消</button>
+                <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">保存</button>
+            </div>
+        </form>
+    </div>
 </div>
-<?php endif; ?>
+
+<script>
+function openActorModal(id = null) {
+    const modal = document.getElementById('actorModal');
+    const title = document.getElementById('actorModalTitle');
+    
+    document.getElementById('actorForm').reset();
+    document.getElementById('actorId').value = '';
+    
+    if (id) {
+        title.textContent = '编辑演员';
+        fetch('/admin.php/actor/get?id=' + id)
+            .then(r => r.json())
+            .then(data => {
+                if (data.code === 0) {
+                    const a = data.data;
+                    document.getElementById('actorId').value = a.actor_id;
+                    document.getElementById('actorName').value = a.actor_name || '';
+                    document.getElementById('actorEn').value = a.actor_en || '';
+                    document.getElementById('actorPic').value = a.actor_pic || '';
+                    document.getElementById('actorSex').value = a.actor_sex || '';
+                    document.getElementById('actorArea').value = a.actor_area || '';
+                    document.getElementById('actorBlood').value = a.actor_blood || '';
+                    document.getElementById('actorBirthday').value = a.actor_birthday || '';
+                    document.getElementById('actorHeight').value = a.actor_height || '';
+                    document.getElementById('actorWeight').value = a.actor_weight || '';
+                    document.getElementById('actorStatus').value = a.actor_status;
+                    document.getElementById('actorContent').value = a.actor_content || '';
+                }
+            });
+    } else {
+        title.textContent = '添加演员';
+    }
+    
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeActorModal() {
+    const modal = document.getElementById('actorModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+function saveActor(e) {
+    e.preventDefault();
+    const form = document.getElementById('actorForm');
+    const formData = new FormData(form);
+    const id = formData.get('actor_id');
+    const url = id ? '/admin.php/actor/edit/' + id : '/admin.php/actor/add';
+    
+    fetch(url, {
+        method: 'POST',
+        body: new URLSearchParams(formData)
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.code === 0) {
+            xpkToast(data.msg || '保存成功', 'success');
+            closeActorModal();
+            location.reload();
+        } else {
+            xpkToast(data.msg || '保存失败', 'error');
+        }
+    })
+    .catch(() => xpkToast('请求失败', 'error'));
+}
+
+document.getElementById('actorModal').addEventListener('click', function(e) {
+    if (e.target === this) closeActorModal();
+});
+</script>

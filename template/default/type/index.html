@@ -51,19 +51,7 @@
     <?php endforeach; ?>
 </div>
 
-<?php if ($totalPages > 1): ?>
-<div class="flex justify-center items-center space-x-2">
-    <?php if ($page > 1): ?>
-    <a href="/type/<?= $type['type_id'] ?>/page/<?= $page - 1 ?>" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded">上一页</a>
-    <?php endif; ?>
-    
-    <span class="px-4 py-2 text-gray-600">第 <?= $page ?> / <?= $totalPages ?> 页</span>
-    
-    <?php if ($page < $totalPages): ?>
-    <a href="/type/<?= $type['type_id'] ?>/page/<?= $page + 1 ?>" class="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded">下一页</a>
-    <?php endif; ?>
-</div>
-<?php endif; ?>
+<?php include TPL_PATH . 'components/pagination.php'; ?>
 
 <?php else: ?>
 <div class="text-center py-20 text-gray-500">

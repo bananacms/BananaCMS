@@ -38,6 +38,7 @@ class TypeController extends BaseController
         $this->assign('page', $result['page']);
         $this->assign('totalPages', $result['totalPages']);
         $this->assign('total', $result['total']);
+        $this->assign('baseUrl', '/type/' . $id);
         
         // SEO
         $seoVars = ['name' => $type['type_name']];

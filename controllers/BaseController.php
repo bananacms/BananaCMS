@@ -52,7 +52,7 @@ class BaseController
         $this->data['siteUrl'] = $config['site_url'] ?? SITE_URL;
         $this->data['siteKeywords'] = $config['site_keywords'] ?? SITE_KEYWORDS;
         $this->data['siteDescription'] = $config['site_description'] ?? SITE_DESCRIPTION;
-        $this->data['urlMode'] = $config['url_mode'] ?? '1';
+        $this->data['urlMode'] = $config['url_mode'] ?? '4';
     }
 
     /**
@@ -116,7 +116,7 @@ class BaseController
     protected function buildUrl(string $type, array $params = []): string
     {
         $config = $this->data['siteConfig'] ?? [];
-        $mode = $config['url_mode'] ?? '1';
+        $mode = $config['url_mode'] ?? '4';
         
         // 预设URL规则
         $rules = [

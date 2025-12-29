@@ -55,15 +55,15 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">URL模式</label>
                     <select name="url_mode" class="w-full border rounded px-3 py-2">
-                        <option value="1" <?= ($config['url_mode'] ?? '1') === '1' ? 'selected' : '' ?>>模式1：/vod/detail/123</option>
-                        <option value="2" <?= ($config['url_mode'] ?? '1') === '2' ? 'selected' : '' ?>>模式2：/vod/123.html</option>
-                        <option value="4" <?= ($config['url_mode'] ?? '1') === '4' ? 'selected' : '' ?>>模式4：/video/slug（推荐SEO）</option>
-                        <option value="5" <?= ($config['url_mode'] ?? '1') === '5' ? 'selected' : '' ?>>模式5：/video/slug.html</option>
-                        <option value="3" <?= ($config['url_mode'] ?? '1') === '3' ? 'selected' : '' ?>>模式3：自定义规则</option>
+                        <option value="4" <?= ($config['url_mode'] ?? '4') === '4' ? 'selected' : '' ?>>模式4：/video/slug（推荐SEO）</option>
+                        <option value="5" <?= ($config['url_mode'] ?? '4') === '5' ? 'selected' : '' ?>>模式5：/video/slug.html</option>
+                        <option value="1" <?= ($config['url_mode'] ?? '4') === '1' ? 'selected' : '' ?>>模式1：/vod/detail/123</option>
+                        <option value="2" <?= ($config['url_mode'] ?? '4') === '2' ? 'selected' : '' ?>>模式2：/vod/123.html</option>
+                        <option value="3" <?= ($config['url_mode'] ?? '4') === '3' ? 'selected' : '' ?>>模式3：自定义规则</option>
                     </select>
                     <p class="text-xs text-gray-500 mt-1">模式4/5使用slug别名，需在内容编辑时填写slug字段</p>
                 </div>
-                <div id="custom-url-rules" class="space-y-3 <?= ($config['url_mode'] ?? '1') !== '3' ? 'hidden' : '' ?>">
+                <div id="custom-url-rules" class="space-y-3 <?= ($config['url_mode'] ?? '4') !== '3' ? 'hidden' : '' ?>">
                     <div>
                         <label class="block text-sm text-gray-600 mb-1">视频详情</label>
                         <input type="text" name="url_vod_detail" value="<?= htmlspecialchars($config['url_vod_detail'] ?? 'vod/{id}.html') ?>"

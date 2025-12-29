@@ -122,6 +122,8 @@ $router->get('article/{slug}.html', fn($slug) => (new ArtController())->detailBy
 // 搜索
 $router->get('search', fn() => (new SearchController())->index());
 $router->get('search/page/{page}', fn($page) => (new SearchController())->index((int)$page));
+$router->get('search/{keyword}', fn($keyword) => (new SearchController())->index(1, $keyword));
+$router->get('search/{keyword}/page/{page}', fn($keyword, $page) => (new SearchController())->index((int)$page, $keyword));
 
 // 用户
 $router->get('user/login', fn() => (new UserController())->login());

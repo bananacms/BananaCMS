@@ -1,5 +1,21 @@
 <h1 class="text-2xl font-bold mb-6">执行采集 - <?= htmlspecialchars($collect['collect_name']) ?></h1>
 
+<?php 
+$binds = !empty($collect['collect_bind']) ? json_decode($collect['collect_bind'], true) : [];
+$bindCount = count($binds);
+?>
+
+<?php if ($bindCount == 0): ?>
+<div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+    <p class="text-red-800 font-medium">⚠️ 尚未绑定任何分类，采集将无法进行！</p>
+    <p class="text-red-600 text-sm mt-1">请先 <a href="/admin.php/collect/bind/<?= $collect['collect_id'] ?>" class="underline">绑定分类</a> 后再执行采集</p>
+</div>
+<?php else: ?>
+<div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+    <p class="text-green-800">✅ 已绑定 <?= $bindCount ?> 个分类，可以开始采集</p>
+</div>
+<?php endif; ?>
+
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <!-- 采集设置 -->
     <div class="bg-white rounded-lg shadow p-6">
@@ -11,7 +27,10 @@
                 <select id="typeId" class="w-full border rounded px-3 py-2">
                     <option value="0">全部分类</option>
                     <?php foreach ($remoteCategories as $cat): ?>
-                    <option value="<?= $cat['id'] ?>"><?= htmlspecialchars($cat['name']) ?></option>
+                    <?php $isBound = isset($binds[$cat['id']]); ?>
+                    <option value="<?= $cat['id'] ?>" <?= !$isBound ? 'disabled' : '' ?>>
+                        <?= htmlspecialchars($cat['name']) ?><?= !$isBound ? ' (未绑定)' : '' ?>
+                    </option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -46,7 +65,7 @@
                 <p class="text-xs text-gray-500 mt-1">勾选后会下载海报图片到服务器，速度较慢</p>
             </div>
 
-            <button onclick="startCollect()" id="startBtn" class="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded font-bold">
+            <button onclick="startCollect()" id="startBtn" class="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded font-bold <?= $bindCount == 0 ? 'opacity-50 cursor-not-allowed' : '' ?>" <?= $bindCount == 0 ? 'disabled' : '' ?>>
                 🚀 开始采集
             </button>
             

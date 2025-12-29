@@ -169,7 +169,7 @@ function xpk_page_url(string $type, array $params = []): string
         $config = xpk_cache()->get('site_config') ?: [];
     }
     
-    $mode = $config['url_mode'] ?? '1';
+    $mode = $config['url_mode'] ?? '4';
     
     // 预设URL规则
     $rules = [

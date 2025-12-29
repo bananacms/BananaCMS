@@ -35,6 +35,7 @@ class ShortController extends BaseController
         $this->assign('total', $result['total']);
         $this->assign('page', $page);
         $this->assign('totalPages', ceil($result['total'] / 20));
+        $this->assign('baseUrl', '/short/drama');
         $this->assign('pageTitle', '短剧');
         $this->display('short/drama');
     }

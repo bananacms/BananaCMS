@@ -21,7 +21,7 @@ $perPage = 5000; // 每个分片最多5000条
 
 // 获取URL模式配置
 $config = xpk_cache()->get('site_config') ?: [];
-$urlMode = $config['url_mode'] ?? '1';
+$urlMode = $config['url_mode'] ?? '4';
 
 // 生成索引或分片
 if (empty($type)) {

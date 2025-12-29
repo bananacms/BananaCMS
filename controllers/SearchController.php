@@ -17,9 +17,14 @@ class SearchController extends BaseController
     /**
      * 搜索页
      */
-    public function index(int $page = 1): void
+    public function index(int $page = 1, string $keyword = ''): void
     {
-        $keyword = trim($this->get('wd', ''));
+        // 支持两种方式：伪静态 /search/关键词 或 ?wd=关键词
+        if (empty($keyword)) {
+            $keyword = trim($this->get('wd', ''));
+        } else {
+            $keyword = urldecode($keyword);
+        }
         
         if (empty($keyword)) {
             $this->assign('vodList', []);
@@ -27,6 +32,7 @@ class SearchController extends BaseController
             $this->assign('total', 0);
             $this->assign('page', 1);
             $this->assign('totalPages', 0);
+            $this->assign('baseUrl', '/search');
         } else {
             $result = $this->vodModel->search($keyword, $page, PAGE_SIZE);
             
@@ -35,6 +41,8 @@ class SearchController extends BaseController
             $this->assign('total', $result['total']);
             $this->assign('page', $result['page']);
             $this->assign('totalPages', $result['totalPages']);
+            // 伪静态分页URL
+            $this->assign('baseUrl', '/search/' . urlencode($keyword));
         }
         
         // SEO - 搜索页禁止收录

@@ -39,7 +39,7 @@
                 <a href="/admin.php/link?status=1" class="px-3 py-1.5 rounded <?= $status === '1' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' ?>">已通过</a>
                 <a href="/admin.php/link?status=2" class="px-3 py-1.5 rounded <?= $status === '2' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' ?>">已拒绝</a>
             </div>
-            <a href="/admin.php/link/add" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">添加友链</a>
+            <button onclick="openLinkModal()" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">添加友链</button>
         </div>
     </div>
 
@@ -103,7 +103,7 @@
                         <button onclick="audit(<?= $item['link_id'] ?>, 2)" class="text-red-500 hover:underline">拒绝</button>
                         <?php endif; ?>
                         <button onclick="checkLink(<?= $item['link_id'] ?>)" class="text-blue-500 hover:underline">检测</button>
-                        <a href="/admin.php/link/edit/<?= $item['link_id'] ?>" class="text-blue-500 hover:underline">编辑</a>
+                        <button onclick="openLinkModal(<?= $item['link_id'] ?>)" class="text-blue-500 hover:underline">编辑</button>
                         <button onclick="deleteLink(<?= $item['link_id'] ?>)" class="text-red-500 hover:underline">删除</button>
                     </td>
                 </tr>
@@ -114,17 +114,134 @@
     </div>
 
     <!-- 分页 -->
-    <?php if ($totalPages > 1): ?>
-    <div class="flex justify-center gap-2">
-        <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-        <a href="/admin.php/link?page=<?= $i ?>&status=<?= $status ?>" 
-           class="px-3 py-1 rounded <?= $i == $page ? 'bg-blue-500 text-white' : 'bg-gray-100 hover:bg-gray-200' ?>"><?= $i ?></a>
-        <?php endfor; ?>
+    <?php 
+    $baseUrl = "/admin.php/link?status={$status}";
+    include __DIR__ . '/../components/pagination.php'; 
+    ?>
+</div>
+
+<!-- 友链模态框 -->
+<div id="linkModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4">
+        <div class="flex justify-between items-center px-6 py-4 border-b">
+            <h3 id="linkModalTitle" class="text-lg font-bold">添加友链</h3>
+            <button onclick="closeLinkModal()" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <form id="linkForm" onsubmit="saveLink(event)" class="p-6">
+            <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+            <input type="hidden" name="link_id" id="linkId" value="">
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">网站名称 *</label>
+                    <input type="text" name="link_name" id="linkName" required class="w-full border rounded px-3 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">网站地址 *</label>
+                    <input type="url" name="link_url" id="linkUrl" required placeholder="https://" class="w-full border rounded px-3 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Logo图片</label>
+                    <input type="url" name="link_logo" id="linkLogo" placeholder="https://" class="w-full border rounded px-3 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">联系方式</label>
+                    <input type="text" name="link_contact" id="linkContact" placeholder="QQ/邮箱/Telegram" class="w-full border rounded px-3 py-2">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">排序</label>
+                        <input type="number" name="link_sort" id="linkSort" value="0" class="w-full border rounded px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
+                        <select name="link_status" id="linkStatus" class="w-full border rounded px-3 py-2">
+                            <option value="0">待审核</option>
+                            <option value="1">已通过</option>
+                            <option value="2">已拒绝</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end space-x-3">
+                <button type="button" onclick="closeLinkModal()" class="px-4 py-2 border rounded hover:bg-gray-50">取消</button>
+                <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">保存</button>
+            </div>
+        </form>
     </div>
-    <?php endif; ?>
 </div>
 
 <script>
+function openLinkModal(id = null) {
+    const modal = document.getElementById('linkModal');
+    const title = document.getElementById('linkModalTitle');
+    
+    document.getElementById('linkForm').reset();
+    document.getElementById('linkId').value = '';
+    
+    if (id) {
+        title.textContent = '编辑友链';
+        fetch('/admin.php/link/get?id=' + id)
+            .then(r => r.json())
+            .then(data => {
+                if (data.code === 0) {
+                    const l = data.data;
+                    document.getElementById('linkId').value = l.link_id;
+                    document.getElementById('linkName').value = l.link_name || '';
+                    document.getElementById('linkUrl').value = l.link_url || '';
+                    document.getElementById('linkLogo').value = l.link_logo || '';
+                    document.getElementById('linkContact').value = l.link_contact || '';
+                    document.getElementById('linkSort').value = l.link_sort || 0;
+                    document.getElementById('linkStatus').value = l.link_status;
+                }
+            });
+    } else {
+        title.textContent = '添加友链';
+    }
+    
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeLinkModal() {
+    const modal = document.getElementById('linkModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+function saveLink(e) {
+    e.preventDefault();
+    const form = document.getElementById('linkForm');
+    const formData = new FormData(form);
+    const id = formData.get('link_id');
+    const url = id ? '/admin.php/link/edit/' + id : '/admin.php/link/add';
+    
+    fetch(url, {
+        method: 'POST',
+        body: new URLSearchParams(formData)
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.code === 0) {
+            xpkToast(data.msg || '保存成功', 'success');
+            closeLinkModal();
+            location.reload();
+        } else {
+            xpkToast(data.msg || '保存失败', 'error');
+        }
+    })
+    .catch(() => xpkToast('请求失败', 'error'));
+}
+
+document.getElementById('linkModal').addEventListener('click', function(e) {
+    if (e.target === this) closeLinkModal();
+});
+
 function saveSetting() {
     const autoApprove = document.getElementById('autoApprove').checked ? '1' : '0';
     fetch('/admin.php/link/saveSetting', {

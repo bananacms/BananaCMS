@@ -142,24 +142,10 @@
 </div>
 
 <!-- 分页 -->
-<?php if ($totalPages > 1): ?>
-<div class="mt-4 flex justify-center gap-2">
-    <?php if ($page > 1): ?>
-    <a href="?page=<?= $page - 1 ?>&type=<?= urlencode($type) ?>&status=<?= urlencode($status) ?>" class="px-3 py-1 bg-white border rounded hover:bg-gray-50">上一页</a>
-    <?php endif; ?>
-    
-    <?php for ($i = max(1, $page - 2); $i <= min($totalPages, $page + 2); $i++): ?>
-    <a href="?page=<?= $i ?>&type=<?= urlencode($type) ?>&status=<?= urlencode($status) ?>" 
-       class="px-3 py-1 border rounded <?= $i === $page ? 'bg-primary text-white' : 'bg-white hover:bg-gray-50' ?>">
-        <?= $i ?>
-    </a>
-    <?php endfor; ?>
-    
-    <?php if ($page < $totalPages): ?>
-    <a href="?page=<?= $page + 1 ?>&type=<?= urlencode($type) ?>&status=<?= urlencode($status) ?>" class="px-3 py-1 bg-white border rounded hover:bg-gray-50">下一页</a>
-    <?php endif; ?>
-</div>
-<?php endif; ?>
+<?php 
+$baseUrl = "/admin.php/short?type=" . urlencode($type) . "&status=" . urlencode($status);
+include __DIR__ . '/../components/pagination.php'; 
+?>
 
 <script>
 function toggleStatus(id) {

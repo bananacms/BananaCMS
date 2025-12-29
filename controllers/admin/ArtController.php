@@ -63,32 +63,49 @@ class AdminArtController extends AdminBaseController
         $this->assign('keyword', $keyword);
         $this->assign('typeId', $typeId);
         $this->assign('types', $this->artTypeModel->getAll());
+        $this->assign('csrfToken', $this->csrfToken());
         $this->assign('flash', $this->getFlash());
 
         $this->render('art/index', '文章管理');
     }
 
     /**
-     * 添加文章
+     * 获取单篇文章（AJAX）
      */
-    public function add(): void
+    public function get(): void
     {
-        $this->assign('types', $this->artTypeModel->getAll());
-        $this->assign('csrfToken', $this->csrfToken());
-        $this->render('art/form', '添加文章');
+        $id = (int)$this->get('id', 0);
+        $art = $this->artModel->find($id);
+        
+        if (!$art) {
+            $this->error('文章不存在');
+        }
+        
+        $this->success('ok', $art);
     }
 
     /**
-     * 处理添加
+     * 添加文章（AJAX）
      */
-    public function doAdd(): void
+    public function add(): void
     {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->assign('types', $this->artTypeModel->getAll());
+            $this->assign('csrfToken', $this->csrfToken());
+            $this->render('art/form', '添加文章');
+            return;
+        }
+
         if (!$this->verifyCsrf()) {
             $this->error('非法请求');
         }
 
         $data = $this->getFormData();
         $data['art_time'] = time();
+        
+        if (empty($data['art_name'])) {
+            $this->error('文章标题不能为空');
+        }
         
         // 自动生成 slug
         if (empty($data['art_slug']) && !empty($data['art_name'])) {
@@ -100,42 +117,32 @@ class AdminArtController extends AdminBaseController
 
         if ($id) {
             $this->log('添加', '文章', "ID:{$id} {$data['art_name']}");
-            $this->flash('success', '添加成功');
-            $this->redirect('/admin.php/art');
+            $this->success('添加成功');
         } else {
             $this->error('添加失败');
         }
     }
 
     /**
-     * 编辑文章
+     * 编辑文章（AJAX）
      */
     public function edit(int $id): void
     {
         $art = $this->artModel->find($id);
         if (!$art) {
-            $this->flash('error', '文章不存在');
-            $this->redirect('/admin.php/art');
+            $this->error('文章不存在');
         }
 
-        $this->assign('art', $art);
-        $this->assign('types', $this->artTypeModel->getAll());
-        $this->assign('csrfToken', $this->csrfToken());
-        $this->render('art/form', '编辑文章');
-    }
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->assign('art', $art);
+            $this->assign('types', $this->artTypeModel->getAll());
+            $this->assign('csrfToken', $this->csrfToken());
+            $this->render('art/form', '编辑文章');
+            return;
+        }
 
-    /**
-     * 处理编辑
-     */
-    public function doEdit(int $id): void
-    {
         if (!$this->verifyCsrf()) {
             $this->error('非法请求');
-        }
-
-        $art = $this->artModel->find($id);
-        if (!$art) {
-            $this->error('文章不存在');
         }
 
         $data = $this->getFormData();
@@ -150,8 +157,7 @@ class AdminArtController extends AdminBaseController
         $this->artModel->update($id, $data);
         $this->log('编辑', '文章', "ID:{$id} {$data['art_name']}");
 
-        $this->flash('success', '保存成功');
-        $this->redirect('/admin.php/art');
+        $this->success('保存成功');
     }
 
     /**

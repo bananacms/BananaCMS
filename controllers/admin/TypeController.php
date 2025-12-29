@@ -20,29 +20,44 @@ class AdminTypeController extends AdminBaseController
     public function index(): void
     {
         $types = $this->typeModel->getTree();
+        $parentTypes = $this->typeModel->getAll(['type_pid' => 0]);
 
         $this->assign('types', $types);
+        $this->assign('parentTypes', $parentTypes);
+        $this->assign('csrfToken', $this->csrfToken());
         $this->assign('flash', $this->getFlash());
         $this->render('type/index', '分类管理');
     }
 
     /**
-     * 添加分类
+     * 获取单个分类（AJAX）
      */
-    public function add(): void
+    public function get(): void
     {
-        $parentTypes = $this->typeModel->getAll(['type_pid' => 0]);
-
-        $this->assign('parentTypes', $parentTypes);
-        $this->assign('csrfToken', $this->csrfToken());
-        $this->render('type/form', '添加分类');
+        $id = (int)$this->get('id', 0);
+        $type = $this->typeModel->find($id);
+        
+        if (!$type) {
+            $this->error('分类不存在');
+        }
+        
+        $this->success('ok', $type);
     }
 
     /**
-     * 处理添加
+     * 添加分类（AJAX）
      */
-    public function doAdd(): void
+    public function add(): void
     {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            // GET请求显示表单页面（兼容旧方式）
+            $parentTypes = $this->typeModel->getAll(['type_pid' => 0]);
+            $this->assign('parentTypes', $parentTypes);
+            $this->assign('csrfToken', $this->csrfToken());
+            $this->render('type/form', '添加分类');
+            return;
+        }
+
         if (!$this->verifyCsrf()) {
             $this->error('非法请求');
         }
@@ -65,44 +80,34 @@ class AdminTypeController extends AdminBaseController
 
         if ($id) {
             $this->log('添加', '分类', "ID:{$id} {$data['type_name']}");
-            $this->flash('success', '添加成功');
-            $this->redirect('/admin.php/type');
+            $this->success('添加成功');
         } else {
             $this->error('添加失败');
         }
     }
 
     /**
-     * 编辑分类
+     * 编辑分类（AJAX）
      */
     public function edit(int $id): void
     {
         $type = $this->typeModel->find($id);
         if (!$type) {
-            $this->flash('error', '分类不存在');
-            $this->redirect('/admin.php/type');
+            $this->error('分类不存在');
         }
 
-        $parentTypes = $this->typeModel->getAll(['type_pid' => 0]);
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            // GET请求显示表单页面（兼容旧方式）
+            $parentTypes = $this->typeModel->getAll(['type_pid' => 0]);
+            $this->assign('type', $type);
+            $this->assign('parentTypes', $parentTypes);
+            $this->assign('csrfToken', $this->csrfToken());
+            $this->render('type/form', '编辑分类');
+            return;
+        }
 
-        $this->assign('type', $type);
-        $this->assign('parentTypes', $parentTypes);
-        $this->assign('csrfToken', $this->csrfToken());
-        $this->render('type/form', '编辑分类');
-    }
-
-    /**
-     * 处理编辑
-     */
-    public function doEdit(int $id): void
-    {
         if (!$this->verifyCsrf()) {
             $this->error('非法请求');
-        }
-
-        $type = $this->typeModel->find($id);
-        if (!$type) {
-            $this->error('分类不存在');
         }
 
         $data = [
@@ -123,8 +128,7 @@ class AdminTypeController extends AdminBaseController
         $this->typeModel->update($id, $data);
         $this->log('编辑', '分类', "ID:{$id} {$data['type_name']}");
 
-        $this->flash('success', '保存成功');
-        $this->redirect('/admin.php/type');
+        $this->success('保存成功');
     }
 
     /**

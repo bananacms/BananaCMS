@@ -93,9 +93,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // 更新配置（使用 REPLACE 确保写入）
                 $pdo->exec("REPLACE INTO `{$dbPrefix}config` (config_id, config_name, config_value) VALUES (1, 'site_name', " . $pdo->quote($siteName) . ")");
                 $pdo->exec("REPLACE INTO `{$dbPrefix}config` (config_id, config_name, config_value) VALUES (2, 'site_url', " . $pdo->quote($siteUrl) . ")");
-                $pdo->exec("REPLACE INTO `{$dbPrefix}config` (config_id, config_name, config_value) VALUES (3, 'site_keywords', '香蕉CMS,BananaCMS,免费影视CMS')");
-                $pdo->exec("REPLACE INTO `{$dbPrefix}config` (config_id, config_name, config_value) VALUES (4, 'site_description', '香蕉CMS - 轻量级影视内容管理系统')");
-                
+                $pdo->exec("REPLACE INTO `{$dbPrefix}config` (config_id, config_name, config_value) VALUES (3, 'site_keywords', '香蕉CMS,BananaCMS,免费影视CMS,在线观看')");
+                $pdo->exec("REPLACE INTO `{$dbPrefix}config` (config_id, config_name, config_value) VALUES (4, 'site_description', '香蕉CMS - 轻量级影视内容管理系统，提供最新电影、电视剧、综艺、动漫在线观看')");
+                // URL模式默认为4（slug模式）
+                $pdo->exec("REPLACE INTO `{$dbPrefix}config` (config_id, config_name, config_value) VALUES (5, 'url_mode', '4')");
+                // SEO模板默认值
+                $pdo->exec("REPLACE INTO `{$dbPrefix}config` (config_id, config_name, config_value) VALUES (6, 'seo_title_vod_detail', '{name}在线观看 - {sitename}')");
+                $pdo->exec("REPLACE INTO `{$dbPrefix}config` (config_id, config_name, config_value) VALUES (7, 'seo_keywords_vod_detail', '{name},{actor},{type},{year},{area}')");
+                $pdo->exec("REPLACE INTO `{$dbPrefix}config` (config_id, config_name, config_value) VALUES (8, 'seo_description_vod_detail', '{name}由{actor}主演，{year}年{area}{type}，{description}')");
+                $pdo->exec("REPLACE INTO `{$dbPrefix}config` (config_id, config_name, config_value) VALUES (9, 'seo_title_type', '{name}大全_最新{name}排行榜 - {sitename}')");
+                $pdo->exec("REPLACE INTO `{$dbPrefix}config` (config_id, config_name, config_value) VALUES (10, 'seo_keywords_type', '{name},{name}大全,最新{name},{name}排行榜')");
+                $pdo->exec("REPLACE INTO `{$dbPrefix}config` (config_id, config_name, config_value) VALUES (11, 'seo_title_actor_detail', '{name}个人资料_主演作品 - {sitename}')");
+                $pdo->exec("REPLACE INTO `{$dbPrefix}config` (config_id, config_name, config_value) VALUES (12, 'seo_title_art_detail', '{name} - {sitename}')");
+                // 评论和用户设置
+                $pdo->exec("REPLACE INTO `{$dbPrefix}config` (config_id, config_name, config_value) VALUES (13, 'comment_audit', '0')");
+                $pdo->exec("REPLACE INTO `{$dbPrefix}config` (config_id, config_name, config_value) VALUES (14, 'comment_guest', '1')");
+                $pdo->exec("REPLACE INTO `{$dbPrefix}config` (config_id, config_name, config_value) VALUES (15, 'user_register', '1')");
+                $pdo->exec("REPLACE INTO `{$dbPrefix}config` (config_id, config_name, config_value) VALUES (16, 'user_register_limit', '5')");
                 // 生成配置文件
                 $secret = 'xpk_' . bin2hex(random_bytes(16));
                 $config = "<?php\ndefine('APP_DEBUG', true);\ndefine('APP_SECRET', '{$secret}');\n";

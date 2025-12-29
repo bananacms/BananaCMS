@@ -158,6 +158,123 @@ class AdminCollectController extends AdminBaseController
     }
 
     /**
+     * 同步远程分类到本地 (AJAX)
+     */
+    public function syncCategories(): void
+    {
+        $id = (int)$this->post('id', 0);
+        
+        $collect = $this->collectModel->find($id);
+        if (!$collect) {
+            $this->error('采集站不存在');
+        }
+
+        // 获取远程分类
+        $remoteCategories = $this->collectModel->getCategories($collect);
+        if (!$remoteCategories) {
+            $this->error('获取远程分类失败');
+        }
+
+        // 获取本地已有分类名称
+        $localTypes = $this->typeModel->getAll();
+        $localNames = array_column($localTypes, 'type_name');
+
+        $added = 0;
+        $skipped = 0;
+        $bindData = [];
+
+        // 先处理一级分类
+        $parentMap = []; // 远程父ID => 本地ID
+        foreach ($remoteCategories as $cat) {
+            $pid = $cat['pid'] ?? 0;
+            if ($pid != 0) continue; // 跳过子分类，后面处理
+            
+            $name = trim($cat['name']);
+            if (in_array($name, $localNames)) {
+                // 已存在，找到对应ID用于绑定
+                foreach ($localTypes as $lt) {
+                    if ($lt['type_name'] === $name) {
+                        $bindData[$cat['id']] = $lt['type_id'];
+                        $parentMap[$cat['id']] = $lt['type_id'];
+                        break;
+                    }
+                }
+                $skipped++;
+                continue;
+            }
+
+            // 生成slug
+            require_once CORE_PATH . 'Slug.php';
+            $slug = xpk_slug_unique($name, 'type', 'type_slug');
+
+            // 新增分类
+            $newId = $this->typeModel->insert([
+                'type_pid' => 0,
+                'type_name' => $name,
+                'type_slug' => $slug,
+                'type_sort' => $cat['id'],
+                'type_status' => 1
+            ]);
+
+            if ($newId) {
+                $bindData[$cat['id']] = $newId;
+                $parentMap[$cat['id']] = $newId;
+                $localNames[] = $name;
+                $added++;
+            }
+        }
+
+        // 再处理子分类
+        foreach ($remoteCategories as $cat) {
+            $pid = $cat['pid'] ?? 0;
+            if ($pid == 0) continue; // 跳过一级分类
+            
+            $name = trim($cat['name']);
+            $localPid = $parentMap[$pid] ?? 0;
+            
+            // 检查是否已存在同名子分类
+            $exists = false;
+            foreach ($localTypes as $lt) {
+                if ($lt['type_name'] === $name && $lt['type_pid'] == $localPid) {
+                    $bindData[$cat['id']] = $lt['type_id'];
+                    $exists = true;
+                    $skipped++;
+                    break;
+                }
+            }
+            if ($exists) continue;
+
+            // 生成slug
+            require_once CORE_PATH . 'Slug.php';
+            $slug = xpk_slug_unique($name, 'type', 'type_slug');
+
+            // 新增子分类
+            $newId = $this->typeModel->insert([
+                'type_pid' => $localPid,
+                'type_name' => $name,
+                'type_slug' => $slug,
+                'type_sort' => $cat['id'],
+                'type_status' => 1
+            ]);
+
+            if ($newId) {
+                $bindData[$cat['id']] = $newId;
+                $added++;
+            }
+        }
+
+        // 自动保存绑定关系
+        if (!empty($bindData)) {
+            $this->collectModel->update($id, [
+                'collect_bind' => json_encode($bindData)
+            ]);
+        }
+
+        $this->log('同步分类', '采集', "ID:{$id} 新增{$added}个，跳过{$skipped}个");
+        $this->success("同步完成！新增 {$added} 个分类，跳过 {$skipped} 个已存在");
+    }
+
+    /**
      * 保存分类绑定
      */
     public function saveBind(int $id): void
@@ -208,6 +325,9 @@ class AdminCollectController extends AdminBaseController
      */
     public function doCollect(): void
     {
+        // 单次请求最多执行120秒
+        set_time_limit(120);
+        
         $id = (int)$this->post('id', 0);
         $page = (int)$this->post('page', 1);
         $typeId = (int)$this->post('type_id', 0) ?: null;
@@ -224,6 +344,11 @@ class AdminCollectController extends AdminBaseController
         $binds = [];
         if (!empty($collect['collect_bind'])) {
             $binds = json_decode($collect['collect_bind'], true) ?: [];
+        }
+
+        // 检查是否有绑定
+        if (empty($binds)) {
+            $this->error('请先绑定分类后再采集');
         }
 
         // 获取视频列表

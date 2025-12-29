@@ -51,31 +51,48 @@ class AdminActorController extends AdminBaseController
         $this->assign('pageSize', $pageSize);
         $this->assign('totalPages', ceil($total / $pageSize));
         $this->assign('keyword', $keyword);
+        $this->assign('csrfToken', $this->csrfToken());
         $this->assign('flash', $this->getFlash());
 
         $this->render('actor/index', '演员管理');
     }
 
     /**
-     * 添加演员
+     * 获取单个演员（AJAX）
      */
-    public function add(): void
+    public function get(): void
     {
-        $this->assign('csrfToken', $this->csrfToken());
-        $this->render('actor/form', '添加演员');
+        $id = (int)$this->get('id', 0);
+        $actor = $this->actorModel->find($id);
+        
+        if (!$actor) {
+            $this->error('演员不存在');
+        }
+        
+        $this->success('ok', $actor);
     }
 
     /**
-     * 处理添加
+     * 添加演员（AJAX）
      */
-    public function doAdd(): void
+    public function add(): void
     {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->assign('csrfToken', $this->csrfToken());
+            $this->render('actor/form', '添加演员');
+            return;
+        }
+
         if (!$this->verifyCsrf()) {
             $this->error('非法请求');
         }
 
         $data = $this->getFormData();
         $data['actor_time'] = time();
+        
+        if (empty($data['actor_name'])) {
+            $this->error('演员姓名不能为空');
+        }
         
         // 自动生成 slug
         if (empty($data['actor_slug']) && !empty($data['actor_name'])) {
@@ -87,41 +104,31 @@ class AdminActorController extends AdminBaseController
 
         if ($id) {
             $this->log('添加', '演员', "ID:{$id} {$data['actor_name']}");
-            $this->flash('success', '添加成功');
-            $this->redirect('/admin.php/actor');
+            $this->success('添加成功');
         } else {
             $this->error('添加失败');
         }
     }
 
     /**
-     * 编辑演员
+     * 编辑演员（AJAX）
      */
     public function edit(int $id): void
     {
         $actor = $this->actorModel->find($id);
         if (!$actor) {
-            $this->flash('error', '演员不存在');
-            $this->redirect('/admin.php/actor');
+            $this->error('演员不存在');
         }
 
-        $this->assign('actor', $actor);
-        $this->assign('csrfToken', $this->csrfToken());
-        $this->render('actor/form', '编辑演员');
-    }
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->assign('actor', $actor);
+            $this->assign('csrfToken', $this->csrfToken());
+            $this->render('actor/form', '编辑演员');
+            return;
+        }
 
-    /**
-     * 处理编辑
-     */
-    public function doEdit(int $id): void
-    {
         if (!$this->verifyCsrf()) {
             $this->error('非法请求');
-        }
-
-        $actor = $this->actorModel->find($id);
-        if (!$actor) {
-            $this->error('演员不存在');
         }
 
         $data = $this->getFormData();
@@ -136,8 +143,7 @@ class AdminActorController extends AdminBaseController
         $this->actorModel->update($id, $data);
         $this->log('编辑', '演员', "ID:{$id} {$data['actor_name']}");
 
-        $this->flash('success', '保存成功');
-        $this->redirect('/admin.php/actor');
+        $this->success('保存成功');
     }
 
     /**
