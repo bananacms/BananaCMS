@@ -1,6 +1,6 @@
 <?php
 /**
- * 前台评论控制器
+ * 前台评论控制�?
  * Powered by https://xpornkit.com
  */
 
@@ -16,7 +16,7 @@ class CommentController extends BaseController
     }
 
     /**
-     * 获取评论列表（AJAX）
+     * 获取评论列表（AJAX�?
      */
     public function list(): void
     {
@@ -25,12 +25,12 @@ class CommentController extends BaseController
         $page = (int)$this->get('page', 1);
 
         if (!in_array($type, ['vod', 'art']) || $targetId <= 0) {
-            $this->json(1, '参数错误');
+            $this->apiJson(1, '参数错误');
         }
 
         $result = $this->commentModel->getListByTarget($type, $targetId, $page, 20);
         
-        // 获取用户投票状态
+        // 获取用户投票状�?
         $userId = $this->getUserId();
         $commentIds = array_column($result['list'], 'comment_id');
         foreach ($result['list'] as &$item) {
@@ -40,7 +40,7 @@ class CommentController extends BaseController
         }
         $userVotes = $userId ? $this->commentModel->getUserVotes($userId, $commentIds) : [];
 
-        $this->json(0, 'success', [
+        $this->apiJson(0, 'success', [
             'list' => $result['list'],
             'total' => $result['total'],
             'page' => $page,
@@ -49,7 +49,7 @@ class CommentController extends BaseController
     }
 
     /**
-     * 获取更多回复（AJAX）
+     * 获取更多回复（AJAX�?
      */
     public function replies(): void
     {
@@ -57,11 +57,11 @@ class CommentController extends BaseController
         $offset = (int)$this->get('offset', 0);
 
         if ($parentId <= 0) {
-            $this->json(1, '参数错误');
+            $this->apiJson(1, '参数错误');
         }
 
         $replies = $this->commentModel->getMoreReplies($parentId, $offset, 10);
-        $this->json(0, 'success', ['list' => $replies]);
+        $this->apiJson(0, 'success', ['list' => $replies]);
     }
 
     /**
@@ -69,18 +69,18 @@ class CommentController extends BaseController
      */
     public function post(): void
     {
-        // 检查评论功能是否开启
+        // 检查评论功能是否开�?
         $config = xpk_cache()->get('site_config') ?: [];
         if (($config['comment_enabled'] ?? '1') !== '1') {
-            $this->json(1, '评论功能已关闭');
+            $this->apiJson(1, '评论功能已关�?);
         }
 
-        // 检查登录
+        // 检查登�?
         $userId = $this->getUserId();
         $allowGuest = ($config['comment_guest'] ?? '0') === '1';
         
         if (!$userId && !$allowGuest) {
-            $this->json(2, '请先登录');
+            $this->apiJson(2, '请先登录');
         }
 
         $type = $this->post('type', 'vod');
@@ -91,7 +91,7 @@ class CommentController extends BaseController
 
         // 验证参数
         if (!in_array($type, ['vod', 'art']) || $targetId <= 0) {
-            $this->json(1, '参数错误');
+            $this->apiJson(1, '参数错误');
         }
 
         // 验证内容长度
@@ -100,17 +100,17 @@ class CommentController extends BaseController
         $contentLen = mb_strlen($content);
 
         if ($contentLen < $minLen) {
-            $this->json(1, "评论内容至少 {$minLen} 个字");
+            $this->apiJson(1, "评论内容至少 {$minLen} 个字");
         }
         if ($contentLen > $maxLen) {
-            $this->json(1, "评论内容最多 {$maxLen} 个字");
+            $this->apiJson(1, "评论内容最�?{$maxLen} 个字");
         }
 
         // 检查发言频率
         $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '';
         if (!$this->commentModel->checkFrequency($userId ?: 0, $ip)) {
             $interval = (int)($config['comment_interval'] ?? 60);
-            $this->json(1, "发言太频繁，请 {$interval} 秒后再试");
+            $this->apiJson(1, "发言太频繁，�?{$interval} 秒后再试");
         }
 
         // 发表评论
@@ -127,38 +127,38 @@ class CommentController extends BaseController
 
         if ($result['id']) {
             $msg = $result['need_audit'] ? '评论已提交，等待审核' : '评论成功';
-            $this->json(0, $msg, [
+            $this->apiJson(0, $msg, [
                 'id' => $result['id'],
                 'need_audit' => $result['need_audit']
             ]);
         } else {
-            $this->json(1, '评论失败');
+            $this->apiJson(1, '评论失败');
         }
     }
 
     /**
-     * 点赞/踩
+     * 点赞/�?
      */
     public function vote(): void
     {
         $userId = $this->getUserId();
         if (!$userId) {
-            $this->json(2, '请先登录');
+            $this->apiJson(2, '请先登录');
         }
 
         $commentId = (int)$this->post('id', 0);
         $action = $this->post('action', 'up');
 
         if ($commentId <= 0 || !in_array($action, ['up', 'down'])) {
-            $this->json(1, '参数错误');
+            $this->apiJson(1, '参数错误');
         }
 
         $result = $this->commentModel->vote($commentId, $userId, $action);
         
-        // 获取最新数据
+        // 获取最新数�?
         $comment = $this->commentModel->find($commentId);
         
-        $this->json(0, 'success', [
+        $this->apiJson(0, 'success', [
             'action' => $result['action'],
             'type' => $result['type'],
             'up' => $comment['comment_up'] ?? 0,
@@ -167,27 +167,27 @@ class CommentController extends BaseController
     }
 
     /**
-     * 删除自己的评论
+     * 删除自己的评�?
      */
     public function delete(): void
     {
         $userId = $this->getUserId();
         if (!$userId) {
-            $this->json(2, '请先登录');
+            $this->apiJson(2, '请先登录');
         }
 
         $commentId = (int)$this->post('id', 0);
         if ($commentId <= 0) {
-            $this->json(1, '参数错误');
+            $this->apiJson(1, '参数错误');
         }
 
         $comment = $this->commentModel->find($commentId);
         if (!$comment || $comment['user_id'] != $userId) {
-            $this->json(1, '无权删除');
+            $this->apiJson(1, '无权删除');
         }
 
         $this->commentModel->delete($commentId, true);
-        $this->json(0, '删除成功');
+        $this->apiJson(0, '删除成功');
     }
 
     /**
@@ -199,9 +199,9 @@ class CommentController extends BaseController
     }
 
     /**
-     * JSON响应
+     * API响应
      */
-    protected function json(int $code, string $msg, array $data = []): void
+    private function apiJson(int $code, string $msg, array $data = []): void
     {
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode(['code' => $code, 'msg' => $msg, 'data' => $data], JSON_UNESCAPED_UNICODE);
