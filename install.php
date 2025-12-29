@@ -172,7 +172,7 @@ $envPass = !in_array(false, array_column($envChecks, 3));
         <?php if ($step === 1): ?>
         <h2 class="text-2xl font-bold mb-6">许可协议</h2>
         <div class="bg-gray-50 rounded p-4 h-48 overflow-y-auto text-sm text-gray-600 mb-6">
-            <p class="font-bold mb-2">MIT License - Copyright (c) 2024 XPornKit.com</p>
+            <p class="font-bold mb-2">MIT License - Copyright (c) <?= date('Y') ?> XPornKit.com</p>
             <p class="mb-2">本软件免费开源，您可以自由使用、修改和分发。</p>
             <p class="text-red-600 font-bold">特别说明：请保留页脚版权信息，删除可能导致部分功能受限。</p>
         </div>

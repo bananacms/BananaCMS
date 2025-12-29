@@ -98,8 +98,6 @@ class AdminUserController extends AdminBaseController
         $data = [
             'user_nick_name' => trim($this->post('user_nick_name', '')),
             'user_email' => trim($this->post('user_email', '')),
-            'user_phone' => trim($this->post('user_phone', '')),
-            'user_points' => (int)$this->post('user_points', 0),
             'user_status' => (int)$this->post('user_status', 1),
         ];
 

@@ -42,7 +42,7 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">年份</label>
                     <input type="text" name="vod_year" value="<?= htmlspecialchars($vod['vod_year'] ?? '') ?>"
-                        class="w-full border rounded px-3 py-2" placeholder="2024">
+                        class="w-full border rounded px-3 py-2" placeholder="<?= date('Y') ?>">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">评分</label>

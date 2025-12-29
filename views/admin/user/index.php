@@ -37,7 +37,6 @@
                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">用户名</th>
                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">昵称</th>
                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">邮箱</th>
-                <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">积分</th>
                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">状态</th>
                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">注册时间</th>
                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">操作</th>
@@ -46,7 +45,7 @@
         <tbody class="divide-y">
             <?php if (empty($list)): ?>
             <tr>
-                <td colspan="8" class="px-4 py-8 text-center text-gray-500">暂无数据</td>
+                <td colspan="7" class="px-4 py-8 text-center text-gray-500">暂无数据</td>
             </tr>
             <?php else: ?>
             <?php foreach ($list as $user): ?>
@@ -55,7 +54,6 @@
                 <td class="px-4 py-3 text-sm font-medium"><?= htmlspecialchars($user['user_name']) ?></td>
                 <td class="px-4 py-3 text-sm"><?= htmlspecialchars($user['user_nick_name'] ?: '-') ?></td>
                 <td class="px-4 py-3 text-sm"><?= htmlspecialchars($user['user_email'] ?: '-') ?></td>
-                <td class="px-4 py-3 text-sm"><?= number_format($user['user_points']) ?></td>
                 <td class="px-4 py-3">
                     <span class="px-2 py-1 rounded text-xs <?= $user['user_status'] ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' ?>">
                         <?= $user['user_status'] ? '正常' : '禁用' ?>

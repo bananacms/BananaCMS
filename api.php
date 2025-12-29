@@ -253,7 +253,6 @@ class XpkApi
             'username' => $user['user_name'],
             'nickname' => $user['user_nick_name'] ?: $user['user_name'],
             'avatar' => $user['user_pic'],
-            'points' => $user['user_points'],
             'token' => $token,
         ]);
     }
