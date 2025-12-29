@@ -90,6 +90,7 @@ $router->post('admin.php/vod/status', fn() => (new AdminVodController())->status
 // 分类管理
 $router->get('admin.php/type', fn() => (new AdminTypeController())->index());
 $router->get('admin.php/type/get', fn() => (new AdminTypeController())->get());
+$router->get('admin.php/type/getOne', fn() => (new AdminTypeController())->getOne());
 $router->get('admin.php/type/add', fn() => (new AdminTypeController())->add());
 $router->post('admin.php/type/add', fn() => (new AdminTypeController())->add());
 $router->get('admin.php/type/edit/{id}', fn($id) => (new AdminTypeController())->edit((int)$id));
