@@ -80,15 +80,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $pdo->prepare("INSERT INTO `{$dbPrefix}admin` (admin_name, admin_pwd, admin_status) VALUES (?, ?, 1)");
                 $stmt->execute([$adminUser, password_hash($adminPass, PASSWORD_DEFAULT)]);
                 
-                // 更新配置
-                $pdo->exec("UPDATE `{$dbPrefix}config` SET config_value = " . $pdo->quote($siteName) . " WHERE config_name = 'site_name'");
-                if ($siteUrl) {
-                    $pdo->exec("UPDATE `{$dbPrefix}config` SET config_value = " . $pdo->quote($siteUrl) . " WHERE config_name = 'site_url'");
-                }
+                // 更新配置（使用 REPLACE 确保写入）
+                $pdo->exec("REPLACE INTO `{$dbPrefix}config` (config_id, config_name, config_value) VALUES (1, 'site_name', " . $pdo->quote($siteName) . ")");
+                $pdo->exec("REPLACE INTO `{$dbPrefix}config` (config_id, config_name, config_value) VALUES (2, 'site_url', " . $pdo->quote($siteUrl) . ")");
+                $pdo->exec("REPLACE INTO `{$dbPrefix}config` (config_id, config_name, config_value) VALUES (3, 'site_keywords', '香蕉CMS,BananaCMS,免费影视CMS')");
+                $pdo->exec("REPLACE INTO `{$dbPrefix}config` (config_id, config_name, config_value) VALUES (4, 'site_description', '香蕉CMS - 轻量级影视内容管理系统')");
                 
                 // 生成配置文件
                 $secret = 'xpk_' . bin2hex(random_bytes(16));
-                $config = "<?php\ndefine('APP_DEBUG', false);\ndefine('APP_SECRET', '{$secret}');\n";
+                $config = "<?php\ndefine('APP_DEBUG', true);\ndefine('APP_SECRET', '{$secret}');\n";
                 $config .= "define('SITE_NAME', '{$siteName}');\ndefine('SITE_URL', '{$siteUrl}');\n";
                 $config .= "define('SITE_KEYWORDS', '');\ndefine('SITE_DESCRIPTION', '');\n";
                 $config .= "define('DB_HOST', '{$dbHost}');\ndefine('DB_PORT', '{$dbPort}');\n";

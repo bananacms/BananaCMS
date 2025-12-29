@@ -43,11 +43,16 @@ class XpkRouter
     public function dispatch(): void
     {
         $method = $_SERVER['REQUEST_METHOD'];
-        $uri = trim($_SERVER['REQUEST_URI'], '/');
         
-        // 去除查询字符串
-        if (($pos = strpos($uri, '?')) !== false) {
-            $uri = substr($uri, 0, $pos);
+        // 支持多种URL模式：PATH_INFO 或 查询字符串
+        if (!empty($_GET['s'])) {
+            $uri = trim($_GET['s'], '/');
+        } else {
+            $uri = trim($_SERVER['REQUEST_URI'], '/');
+            // 去除查询字符串
+            if (($pos = strpos($uri, '?')) !== false) {
+                $uri = substr($uri, 0, $pos);
+            }
         }
 
         foreach ($this->routes as $route) {
@@ -121,6 +126,9 @@ class XpkRouter
      */
     public function getUri(): string
     {
+        if (!empty($_GET['s'])) {
+            return trim($_GET['s'], '/');
+        }
         $uri = trim($_SERVER['REQUEST_URI'], '/');
         if (($pos = strpos($uri, '?')) !== false) {
             $uri = substr($uri, 0, $pos);

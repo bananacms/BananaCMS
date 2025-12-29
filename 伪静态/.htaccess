@@ -11,11 +11,7 @@
     # 前台路由
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^(.*)$ index.php/$1 [QSA,L]
-
-    # 后台路由
-    RewriteCond %{REQUEST_URI} ^/admin\.php
-    RewriteRule ^admin\.php/(.*)$ admin.php?/$1 [QSA,L]
+    RewriteRule ^(.*)$ index.php?s=$1 [QSA,L]
 </IfModule>
 
 # 禁止访问敏感目录

@@ -89,7 +89,7 @@ class XpkVod extends XpkModel
     }
 
     /**
-     * 搜索视频
+     * 搜索视频（优先全文搜索，降级LIKE）
      */
     public function search(string $keyword, int $page = 1, int $pageSize = 20): array
     {
@@ -97,6 +97,44 @@ class XpkVod extends XpkModel
             return ['list' => [], 'total' => 0, 'page' => 1, 'pageSize' => $pageSize, 'totalPages' => 0];
         }
 
+        $offset = ($page - 1) * $pageSize;
+        
+        // 尝试全文搜索
+        try {
+            $sql = "SELECT *, MATCH(vod_name, vod_sub, vod_actor) AGAINST(? IN NATURAL LANGUAGE MODE) AS relevance 
+                    FROM {$this->table} 
+                    WHERE vod_status = 1 AND MATCH(vod_name, vod_sub, vod_actor) AGAINST(? IN NATURAL LANGUAGE MODE)
+                    ORDER BY relevance DESC, vod_time DESC LIMIT {$pageSize} OFFSET {$offset}";
+            
+            $countSql = "SELECT COUNT(*) as total FROM {$this->table} 
+                         WHERE vod_status = 1 AND MATCH(vod_name, vod_sub, vod_actor) AGAINST(? IN NATURAL LANGUAGE MODE)";
+
+            $list = $this->db->query($sql, [$keyword, $keyword]);
+            $total = $this->db->queryOne($countSql, [$keyword])['total'] ?? 0;
+            
+            // 全文搜索无结果时降级到LIKE
+            if (empty($list)) {
+                return $this->searchByLike($keyword, $page, $pageSize);
+            }
+        } catch (\Exception $e) {
+            // 全文索引不存在时降级到LIKE
+            return $this->searchByLike($keyword, $page, $pageSize);
+        }
+
+        return [
+            'list' => $list,
+            'total' => (int)$total,
+            'page' => $page,
+            'pageSize' => $pageSize,
+            'totalPages' => ceil($total / $pageSize),
+        ];
+    }
+
+    /**
+     * LIKE搜索（降级方案）
+     */
+    private function searchByLike(string $keyword, int $page, int $pageSize): array
+    {
         $offset = ($page - 1) * $pageSize;
         $keyword = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $keyword) . '%';
 

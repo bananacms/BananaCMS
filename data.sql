@@ -106,7 +106,8 @@ CREATE TABLE `xpk_vod` (
   KEY `vod_type_id` (`vod_type_id`),
   KEY `vod_time` (`vod_time`),
   KEY `vod_hits` (`vod_hits`),
-  KEY `vod_status` (`vod_status`)
+  KEY `vod_status` (`vod_status`),
+  FULLTEXT KEY `ft_search` (`vod_name`, `vod_sub`, `vod_actor`) WITH PARSER ngram
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='视频表';
 
 -- 演员表
