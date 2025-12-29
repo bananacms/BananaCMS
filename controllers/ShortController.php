@@ -155,13 +155,4 @@ class ShortController extends BaseController
         $this->apiJson(0, 'success', ['likes' => $likes]);
     }
 
-    /**
-     * API响应
-     */
-    private function apiJson(int $code, string $msg, array $data = []): void
-    {
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode(['code' => $code, 'msg' => $msg, 'data' => $data], JSON_UNESCAPED_UNICODE);
-        exit;
-    }
 }

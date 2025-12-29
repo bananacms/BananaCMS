@@ -109,13 +109,4 @@ class ScoreController extends BaseController
         return (int)($_SESSION['user_id'] ?? 0);
     }
 
-    /**
-     * API响应
-     */
-    private function apiJson(int $code, string $msg, array $data = []): void
-    {
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode(['code' => $code, 'msg' => $msg, 'data' => $data], JSON_UNESCAPED_UNICODE);
-        exit;
-    }
 }
