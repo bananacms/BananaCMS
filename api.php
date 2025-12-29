@@ -145,6 +145,9 @@ class XpkApi
             // 首页
             'home' => $this->home(),
             
+            // 前端收藏（简化版）
+            'collect' => $this->collect(),
+            
             default => $this->error('未知接口'),
         };
     }
@@ -1049,6 +1052,55 @@ class XpkApi
         $data['banners'] = $this->getBanners();
 
         $this->success($data);
+    }
+
+    // ==================== 前端收藏接口 ====================
+
+    /**
+     * 前端收藏/取消收藏（基于Session）
+     */
+    private function collect(): void
+    {
+        // 检查Session登录
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
+        $userId = $_SESSION['user_id'] ?? 0;
+        if (!$userId) {
+            $this->error('请先登录', 2);
+        }
+
+        $type = $this->input('type', 'vod');
+        $id = (int)$this->input('id', 0);
+
+        if ($id <= 0) {
+            $this->error('参数错误');
+        }
+
+        $table = DB_PREFIX . 'collect';
+        
+        // 检查是否已收藏
+        $exists = $this->db->queryOne(
+            "SELECT collect_id FROM {$table} WHERE user_id = ? AND collect_type = ? AND collect_rel_id = ?",
+            [$userId, $type, $id]
+        );
+
+        if ($exists) {
+            // 取消收藏
+            $this->db->execute(
+                "DELETE FROM {$table} WHERE collect_id = ?",
+                [$exists['collect_id']]
+            );
+            $this->success('已取消收藏');
+        } else {
+            // 添加收藏
+            $this->db->execute(
+                "INSERT INTO {$table} (user_id, collect_type, collect_rel_id, collect_time) VALUES (?, ?, ?, ?)",
+                [$userId, $type, $id, time()]
+            );
+            $this->success('收藏成功');
+        }
     }
 
     // ==================== 辅助方法 ====================
