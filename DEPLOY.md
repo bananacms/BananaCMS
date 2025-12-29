@@ -56,30 +56,50 @@ chmod -R 755 config/
 ```apache
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    RewriteBase /
+
+    # Sitemap
+    RewriteRule ^sitemap\.xml$ sitemap.php [QSA,L]
+
+    # 前台路由
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^(.*)$ index.php/$1 [QSA,PT,L]
+    RewriteRule ^(.*)$ index.php/$1 [QSA,L]
+
+    # 后台路由
+    RewriteCond %{REQUEST_URI} ^/admin\.php
+    RewriteRule ^admin\.php/(.*)$ admin.php?/$1 [QSA,L]
 </IfModule>
+
+# 禁止访问敏感目录
+<FilesMatch "^(config|core|models|controllers|views|runtime|tests)">
+    Order deny,allow
+    Deny from all
+</FilesMatch>
 ```
 
 #### Nginx
 ```nginx
-location / {
-    try_files $uri $uri/ /index.php?$query_string;
-}
-
-location ~ \.php$ {
-    fastcgi_pass 127.0.0.1:9000;
-    fastcgi_index index.php;
-    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-    include fastcgi_params;
+# Sitemap
+location = /sitemap.xml {
+    rewrite ^ /sitemap.php last;
 }
 
 # 禁止访问敏感目录
-location ~ ^/(config|runtime|models|controllers|core)/ {
+location ~ ^/(config|core|models|controllers|views|runtime|tests)/ {
     deny all;
 }
+
+# 前台伪静态
+location / {
+    if (!-e $request_filename) {
+        rewrite ^(.*)$ /index.php?s=$1 last;
+        break;
+    }
+}
 ```
+
+> 💡 完整配置文件见 `伪静态/` 目录
 
 ### 6. 创建安装锁
 
@@ -118,13 +138,12 @@ touch config/install.lock
 | 伪静态已配置 | ☐ |
 | HTTPS 已启用 | ☐ |
 
-## 默认账号
+## 管理员账号
+
+管理员账号在安装向导中设置，没有默认账号。
 
 - 后台地址: `/admin.php`
-- 用户名: `admin`
-- 密码: `123456`
-
-**【重要】上线后请立即修改默认密码！**
+- 账号密码: 安装时自行设置
 
 ## 目录结构
 
@@ -159,7 +178,7 @@ A: 检查 upload 目录权限，确保 PHP 有写入权限
 ### Q: 采集失败
 A: 检查服务器是否允许外部请求，curl 扩展是否开启
 
-## 技术支持
+## 相关链接
 
-- 官网: https://xpornkit.com
-- 文档: 查看 README.md
+- 导航站: [XPornKit成人导航](https://xpornkit.com/zh)
+- 问题反馈: 提交 GitHub Issue

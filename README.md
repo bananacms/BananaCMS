@@ -142,7 +142,12 @@ define('R2_PUBLIC_URL', '');
 **Nginx:**
 ```nginx
 location / {
-    try_files $uri $uri/ /index.php?$query_string;
+    if (!-e $request_filename) {
+        rewrite ^(.*)$ /index.php?s=$1 last;
+    }
+}
+location ~ ^/(config|core|models|controllers|views|runtime)/ {
+    deny all;
 }
 ```
 
@@ -153,6 +158,8 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.php/$1 [QSA,L]
 ```
+
+> 完整配置见 `伪静态/` 目录
 
 ## 📱 API 文档
 
