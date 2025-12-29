@@ -68,7 +68,15 @@
     <?php if (!empty($vod['vod_content'])): ?>
         <div class="mb-8">
             <h2 class="text-lg font-bold mb-3">剧情简介</h2>
-            <p class="text-gray-600 leading-relaxed"><?php echo nl2br(htmlspecialchars($vod['vod_content'])); ?></p>
+            <div class="text-gray-600 leading-loose text-justify" style="text-indent: 2em;">
+                <?php 
+                $content = $vod['vod_content'];
+                // 处理常见的分隔符，转换为段落
+                $content = preg_replace('/[。！？][""]?\s*/u', "$0</p><p style=\"text-indent:2em;margin-top:0.5em;\">", $content);
+                $content = '<p>' . trim($content, '</p><p style="text-indent:2em;margin-top:0.5em;">') . '</p>';
+                echo $content;
+                ?>
+            </div>
         </div>
     <?php endif; ?>
 
