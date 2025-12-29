@@ -6,6 +6,7 @@
     <title><?php echo htmlspecialchars($title ?? SITE_NAME); ?></title>
     <meta name="keywords" content="<?php echo htmlspecialchars($keywords ?? SITE_KEYWORDS); ?>">
     <meta name="description" content="<?php echo htmlspecialchars($description ?? SITE_DESCRIPTION); ?>">
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <?php if (!empty($noindex)): ?><meta name="robots" content="noindex, nofollow"><?php endif; ?>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="/static/css/xpk.css">

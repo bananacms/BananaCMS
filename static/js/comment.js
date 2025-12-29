@@ -174,7 +174,7 @@ class XpkComment {
         return `
             <div class="comment-item border-b pb-4" data-id="${item.comment_id}">
                 <div class="flex gap-3">
-                    <img src="${item.user_pic || '/static/images/avatar.png'}" 
+                    <img src="${item.user_pic || '/static/images/avatar.svg'}" 
                          class="w-10 h-10 rounded-full bg-gray-200" alt="">
                     <div class="flex-1">
                         <div class="flex items-center gap-2 mb-1">
@@ -219,7 +219,7 @@ class XpkComment {
         return `
             <div class="reply-item" data-id="${reply.comment_id}">
                 <div class="flex gap-2">
-                    <img src="${reply.user_pic || '/static/images/avatar.png'}" 
+                    <img src="${reply.user_pic || '/static/images/avatar.svg'}" 
                          class="w-8 h-8 rounded-full bg-gray-200" alt="">
                     <div class="flex-1">
                         <div class="flex items-center gap-2 mb-1">
