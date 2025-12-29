@@ -4,7 +4,7 @@
  * Powered by https://xpornkit.com
  */
 
-class XpkLinkController extends BaseController
+class LinkController extends BaseController
 {
     private XpkLink $linkModel;
 

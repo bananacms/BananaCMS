@@ -72,7 +72,9 @@
                         <img src="<?= htmlspecialchars($vod['vod_pic']) ?>" class="w-12 h-16 object-cover rounded mr-3">
                         <?php endif; ?>
                         <div>
-                            <p class="text-sm font-medium"><?= htmlspecialchars($vod['vod_name']) ?></p>
+                            <a href="/vod/detail/<?= $vod['vod_id'] ?>" target="_blank" class="text-sm font-medium hover:text-blue-600 hover:underline">
+                                <?= htmlspecialchars($vod['vod_name']) ?>
+                            </a>
                             <?php if ($vod['vod_remarks']): ?>
                             <p class="text-xs text-gray-400"><?= htmlspecialchars($vod['vod_remarks']) ?></p>
                             <?php endif; ?>

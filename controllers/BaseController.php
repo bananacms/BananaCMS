@@ -163,6 +163,14 @@ class BaseController
     }
 
     /**
+     * 渲染视图（display别名）
+     */
+    protected function display(string $template): void
+    {
+        $this->render($template);
+    }
+
+    /**
      * 分配变量
      */
     protected function assign(string $name, mixed $value): void
@@ -276,5 +284,33 @@ class BaseController
         if (!$this->verifyCsrfToken()) {
             $this->error('安全验证失败，请刷新页面重试');
         }
+    }
+
+    /**
+     * 获取CSRF Token（别名）
+     */
+    protected function csrfToken(): string
+    {
+        return $this->generateCsrfToken();
+    }
+
+    /**
+     * API JSON响应
+     */
+    protected function apiJson(int $code, string $msg, array $data = []): void
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['code' => $code, 'msg' => $msg, 'data' => $data], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    /**
+     * 404错误页面
+     */
+    protected function error404(string $msg = '页面不存在'): void
+    {
+        http_response_code(404);
+        $this->assign('errorMsg', $msg);
+        $this->render('error/404');
     }
 }

@@ -406,22 +406,23 @@ class AdminCollectController extends AdminBaseController
             if ($exists) {
                 if ($mode === 'add') continue;
                 
-                // 更新
+                // 更新（包含简介内容）
+                $updateSql = "UPDATE " . DB_PREFIX . "vod SET 
+                    vod_remarks = ?, vod_content = ?, vod_play_from = ?, vod_play_url = ?, vod_time = ?
+                 WHERE vod_id = ?";
                 $updateData = [
                     $video['vod_remarks'],
+                    $video['vod_content'],
                     $video['vod_play_from'],
                     $video['vod_play_url'],
                     time(),
                     $exists['vod_id']
                 ];
-                $updateSql = "UPDATE " . DB_PREFIX . "vod SET 
-                    vod_remarks = ?, vod_play_from = ?, vod_play_url = ?, vod_time = ?
-                 WHERE vod_id = ?";
                 
                 // 如果下载了新图片也更新
                 if ($downloadPic && $picUrl !== $video['vod_pic']) {
                     $updateSql = "UPDATE " . DB_PREFIX . "vod SET 
-                        vod_pic = ?, vod_remarks = ?, vod_play_from = ?, vod_play_url = ?, vod_time = ?
+                        vod_pic = ?, vod_remarks = ?, vod_content = ?, vod_play_from = ?, vod_play_url = ?, vod_time = ?
                      WHERE vod_id = ?";
                     array_unshift($updateData, $picUrl);
                 }
