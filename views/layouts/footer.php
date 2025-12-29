@@ -32,9 +32,20 @@
                 </div>
                 <div class="flex space-x-6 mt-4 md:mt-0">
                     <a href="/link" class="text-gray-500 hover:text-gray-700 text-sm">友情链接</a>
-                    <a href="/about" class="text-gray-500 hover:text-gray-700 text-sm">关于我们</a>
-                    <a href="/contact" class="text-gray-500 hover:text-gray-700 text-sm">联系方式</a>
-                    <a href="/disclaimer" class="text-gray-500 hover:text-gray-700 text-sm">免责声明</a>
+                    <?php
+                    // 获取底部显示的单页
+                    if (!class_exists('XpkPage')) {
+                        require_once MODEL_PATH . 'Page.php';
+                    }
+                    $footerPages = (new XpkPage())->getEnabled();
+                    foreach ($footerPages as $fpage):
+                        if (!empty($fpage['page_footer'])):
+                    ?>
+                    <a href="/page/<?= htmlspecialchars($fpage['page_slug']) ?>" class="text-gray-500 hover:text-gray-700 text-sm"><?= htmlspecialchars($fpage['page_title']) ?></a>
+                    <?php 
+                        endif;
+                    endforeach; 
+                    ?>
                 </div>
             </div>
         </div>

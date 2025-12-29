@@ -62,11 +62,37 @@ class VodController extends BaseController
     }
 
     /**
+     * 按一级分类筛选
+     */
+    public function topType(int $topTypeId, int $page = 1): void
+    {
+        $type = $this->typeModel->getById($topTypeId);
+        if (!$type || $type['type_pid'] != 0) {
+            $this->redirect(xpk_url());
+            return;
+        }
+
+        $result = $this->vodModel->getByTopLevelType($topTypeId, $page, PAGE_SIZE);
+        
+        $this->assign('type', $type);
+        $this->assign('vodList', $result['list']);
+        $this->assign('page', $result['page']);
+        $this->assign('totalPages', $result['totalPages']);
+        $this->assign('total', $result['total']);
+        $this->assign('baseUrl', '/vod/top-type/' . $topTypeId);
+        
+        // SEO
+        $this->assign('title', $type['type_name'] . '大全 - ' . SITE_NAME);
+        
+        $this->render('vod/type');
+    }
+
+    /**
      * 视频详情
      */
     public function detail(int $id): void
     {
-        $vod = $this->vodModel->getDetail($id);
+        $vod = $this->vodModel->getDetailWithPlayList($id);
         if (!$vod) {
             $this->redirect(xpk_url());
             return;

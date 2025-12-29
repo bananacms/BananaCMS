@@ -6,46 +6,32 @@
 
 class PageController extends BaseController
 {
+    private XpkPage $pageModel;
+
+    public function __construct()
+    {
+        parent::__construct();
+        require_once MODEL_PATH . 'Page.php';
+        $this->pageModel = new XpkPage();
+    }
+
     /**
      * 显示单页面
      */
     public function show(string $slug): void
     {
-        $pages = [
-            'about' => [
-                'title' => '关于我们',
-                'config_key' => 'page_about'
-            ],
-            'contact' => [
-                'title' => '联系方式',
-                'config_key' => 'page_contact'
-            ],
-            'disclaimer' => [
-                'title' => '免责声明',
-                'config_key' => 'page_disclaimer'
-            ]
-        ];
+        $page = $this->pageModel->findBySlug($slug);
         
-        if (!isset($pages[$slug])) {
+        if (!$page) {
             $this->error404('页面不存在');
             return;
         }
         
-        $page = $pages[$slug];
-        $db = XpkDatabase::getInstance();
-        
-        // 从配置表获取内容
-        $config = $db->queryOne(
-            "SELECT config_value FROM " . DB_PREFIX . "config WHERE config_name = ?",
-            [$page['config_key']]
-        );
-        
-        $content = $config['config_value'] ?? '';
-        
         $this->display('page/show', [
-            'pageTitle' => $page['title'],
-            'pageContent' => $content,
-            'slug' => $slug
+            'pageTitle' => $page['page_title'],
+            'pageContent' => $page['page_content'],
+            'slug' => $slug,
+            'page' => $page
         ]);
     }
 }

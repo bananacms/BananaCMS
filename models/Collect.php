@@ -64,6 +64,7 @@ class XpkCollect extends XpkModel
         return null;
     }
 
+
     /**
      * 获取分类列表
      */
@@ -89,12 +90,34 @@ class XpkCollect extends XpkModel
             }
         } else {
             $xml = $result['data'];
+            // 支持多种XML格式
             if (isset($xml->class->ty)) {
+                // 格式1: <class><ty id="1" pid="0">电影</ty></class>
                 foreach ($xml->class->ty as $ty) {
                     $categories[] = [
                         'id' => (int)$ty['id'],
                         'name' => (string)$ty,
-                        'pid' => 0
+                        'pid' => (int)($ty['pid'] ?? 0)
+                    ];
+                }
+            } elseif (isset($xml->class)) {
+                // 格式2: <class><type_id>1</type_id><type_name>电影</type_name></class>
+                foreach ($xml->class as $class) {
+                    if (isset($class->type_id)) {
+                        $categories[] = [
+                            'id' => (int)$class->type_id,
+                            'name' => (string)($class->type_name ?? ''),
+                            'pid' => (int)($class->type_pid ?? 0)
+                        ];
+                    }
+                }
+            } elseif (isset($xml->type)) {
+                // 格式3: <type><id>1</id><name>电影</name></type>
+                foreach ($xml->type as $type) {
+                    $categories[] = [
+                        'id' => (int)($type->id ?? $type['id'] ?? 0),
+                        'name' => (string)($type->name ?? $type),
+                        'pid' => (int)($type->pid ?? $type['pid'] ?? 0)
                     ];
                 }
             }
@@ -133,15 +156,29 @@ class XpkCollect extends XpkModel
             }
         } else {
             $xml = $result['data'];
-            $pageCount = (int)($xml->list['pagecount'] ?? 1);
+            $pageCount = (int)($xml->list['pagecount'] ?? $xml['pagecount'] ?? 1);
+            
+            // 支持多种XML格式的视频列表
+            $videoNodes = null;
             if (isset($xml->list->video)) {
-                foreach ($xml->list->video as $video) {
+                // 格式1: <list><video><id>1</id><name>视频名</name></video></list>
+                $videoNodes = $xml->list->video;
+            } elseif (isset($xml->video)) {
+                // 格式2: <video><id>1</id><name>视频名</name></video>
+                $videoNodes = $xml->video;
+            } elseif (isset($xml->list->vod)) {
+                // 格式3: <list><vod><vod_id>1</vod_id><vod_name>视频名</vod_name></vod>
+                $videoNodes = $xml->list->vod;
+            }
+            
+            if ($videoNodes) {
+                foreach ($videoNodes as $video) {
                     $videos[] = [
-                        'vod_id' => (int)$video->id,
-                        'vod_name' => (string)$video->name,
-                        'type_id' => (int)($video->tid ?? 0),
-                        'type_name' => (string)($video->type ?? ''),
-                        'vod_time' => (string)($video->last ?? '')
+                        'vod_id' => (int)($video->id ?? $video->vod_id ?? 0),
+                        'vod_name' => (string)($video->name ?? $video->vod_name ?? ''),
+                        'type_id' => (int)($video->tid ?? $video->type_id ?? 0),
+                        'type_name' => (string)($video->type ?? $video->type_name ?? ''),
+                        'vod_time' => (string)($video->last ?? $video->vod_time ?? $video->time ?? '')
                     ];
                 }
             }
@@ -149,6 +186,7 @@ class XpkCollect extends XpkModel
         
         return ['list' => $videos, 'pagecount' => $pageCount, 'page' => $page];
     }
+
 
     /**
      * 获取视频详情
@@ -168,8 +206,22 @@ class XpkCollect extends XpkModel
             }
         } else {
             $xml = $result['data'];
+            
+            // 支持多种XML格式的视频详情
+            $videoNodes = null;
             if (isset($xml->list->video)) {
-                foreach ($xml->list->video as $video) {
+                // 格式1: <list><video>...</video></list>
+                $videoNodes = $xml->list->video;
+            } elseif (isset($xml->video)) {
+                // 格式2: <video>...</video>
+                $videoNodes = $xml->video;
+            } elseif (isset($xml->list->vod)) {
+                // 格式3: <list><vod>...</vod></list>
+                $videoNodes = $xml->list->vod;
+            }
+            
+            if ($videoNodes) {
+                foreach ($videoNodes as $video) {
                     $videos[] = $this->parseXmlVideo($video);
                 }
             }
@@ -194,11 +246,22 @@ class XpkCollect extends XpkModel
             'vod_year' => $item['vod_year'] ?? '',
             'vod_area' => $item['vod_area'] ?? '',
             'vod_lang' => $item['vod_lang'] ?? '',
+            'vod_letter' => $this->getFirstLetter($item['vod_name'] ?? ''),
+            'vod_tag' => $item['vod_tag'] ?? '',
+            'vod_class' => $item['vod_class'] ?? '',
+            'vod_isend' => (int)($item['vod_isend'] ?? 0),
+            'vod_serial' => $item['vod_serial'] ?? '',
+            'vod_total' => (int)($item['vod_total'] ?? 0),
+            'vod_weekday' => $item['vod_weekday'] ?? '',
+            'vod_state' => $item['vod_state'] ?? '',
+            'vod_version' => $item['vod_version'] ?? '',
             'vod_score' => $item['vod_score'] ?? 0,
             'vod_remarks' => $item['vod_remarks'] ?? '',
             'vod_content' => strip_tags($item['vod_content'] ?? ''),
             'vod_play_from' => $item['vod_play_from'] ?? '',
             'vod_play_url' => $item['vod_play_url'] ?? '',
+            'vod_down_from' => $item['vod_down_from'] ?? '',
+            'vod_down_url' => $item['vod_down_url'] ?? '',
             'type_id' => $item['type_id'] ?? 0,
             'type_name' => $item['type_name'] ?? ''
         ];
@@ -211,32 +274,99 @@ class XpkCollect extends XpkModel
     {
         $playFrom = [];
         $playUrl = [];
+        $downFrom = [];
+        $downUrl = [];
         
+        // 解析播放地址 - 支持多种XML格式
         if (isset($video->dl->dd)) {
+            // 格式1: <dl><dd flag="m3u8">播放地址</dd></dl>
             foreach ($video->dl->dd as $dd) {
-                $playFrom[] = (string)$dd['flag'];
-                $playUrl[] = (string)$dd;
+                $flag = (string)$dd['flag'];
+                $url = (string)$dd;
+                if (stripos($flag, 'down') !== false || stripos($flag, '下载') !== false) {
+                    $downFrom[] = $flag;
+                    $downUrl[] = $url;
+                } else {
+                    $playFrom[] = $flag;
+                    $playUrl[] = $url;
+                }
+            }
+        } elseif (isset($video->vod_play_from) && isset($video->vod_play_url)) {
+            // 格式2: <vod_play_from>m3u8</vod_play_from><vod_play_url>地址</vod_play_url>
+            $playFrom[] = (string)$video->vod_play_from;
+            $playUrl[] = (string)$video->vod_play_url;
+            
+            if (isset($video->vod_down_from) && isset($video->vod_down_url)) {
+                $downFrom[] = (string)$video->vod_down_from;
+                $downUrl[] = (string)$video->vod_down_url;
+            }
+        } elseif (isset($video->play)) {
+            // 格式3: <play><from>m3u8</from><url>地址</url></play>
+            foreach ($video->play as $play) {
+                $flag = (string)($play->from ?? $play['from'] ?? '');
+                $url = (string)($play->url ?? $play);
+                if (!empty($flag) && !empty($url)) {
+                    $playFrom[] = $flag;
+                    $playUrl[] = $url;
+                }
             }
         }
         
         return [
-            'vod_id' => (int)$video->id,
-            'vod_name' => (string)$video->name,
-            'vod_sub' => (string)($video->subname ?? ''),
-            'vod_en' => '',
-            'vod_pic' => (string)$video->pic,
-            'vod_actor' => (string)($video->actor ?? ''),
-            'vod_director' => (string)($video->director ?? ''),
-            'vod_year' => (string)($video->year ?? ''),
-            'vod_area' => (string)($video->area ?? ''),
-            'vod_lang' => (string)($video->lang ?? ''),
-            'vod_score' => (float)($video->score ?? 0),
-            'vod_remarks' => (string)($video->note ?? ''),
-            'vod_content' => strip_tags((string)($video->des ?? '')),
+            'vod_id' => (int)($video->id ?? $video->vod_id ?? 0),
+            'vod_name' => (string)($video->name ?? $video->vod_name ?? ''),
+            'vod_sub' => (string)($video->subname ?? $video->vod_sub ?? ''),
+            'vod_en' => (string)($video->en ?? $video->vod_en ?? ''),
+            'vod_pic' => (string)($video->pic ?? $video->vod_pic ?? ''),
+            'vod_actor' => (string)($video->actor ?? $video->vod_actor ?? ''),
+            'vod_director' => (string)($video->director ?? $video->vod_director ?? ''),
+            'vod_year' => (string)($video->year ?? $video->vod_year ?? ''),
+            'vod_area' => (string)($video->area ?? $video->vod_area ?? ''),
+            'vod_lang' => (string)($video->lang ?? $video->vod_lang ?? ''),
+            'vod_letter' => $this->getFirstLetter((string)($video->name ?? $video->vod_name ?? '')),
+            'vod_tag' => (string)($video->tag ?? $video->vod_tag ?? ''),
+            'vod_class' => (string)($video->class ?? $video->vod_class ?? ''),
+            'vod_isend' => (int)($video->isend ?? $video->vod_isend ?? 0),
+            'vod_serial' => (string)($video->serial ?? $video->vod_serial ?? ''),
+            'vod_total' => (int)($video->total ?? $video->vod_total ?? 0),
+            'vod_weekday' => (string)($video->weekday ?? $video->vod_weekday ?? ''),
+            'vod_state' => (string)($video->state ?? $video->vod_state ?? ''),
+            'vod_version' => (string)($video->version ?? $video->vod_version ?? ''),
+            'vod_score' => (float)($video->score ?? $video->vod_score ?? 0),
+            'vod_remarks' => (string)($video->note ?? $video->remarks ?? $video->vod_remarks ?? ''),
+            'vod_content' => strip_tags((string)($video->des ?? $video->content ?? $video->vod_content ?? '')),
             'vod_play_from' => implode('$$$', $playFrom),
             'vod_play_url' => implode('$$$', $playUrl),
-            'type_id' => (int)($video->tid ?? 0),
-            'type_name' => (string)($video->type ?? '')
+            'vod_down_from' => implode('$$$', $downFrom),
+            'vod_down_url' => implode('$$$', $downUrl),
+            'type_id' => (int)($video->tid ?? $video->type_id ?? 0),
+            'type_name' => (string)($video->type ?? $video->type_name ?? '')
         ];
+    }
+
+    /**
+     * 获取首字母
+     */
+    private function getFirstLetter(string $name): string
+    {
+        if (empty($name)) return '';
+        
+        $firstChar = mb_substr($name, 0, 1, 'UTF-8');
+        
+        // 如果是数字
+        if (is_numeric($firstChar)) {
+            return '0-9';
+        }
+        
+        // 如果是英文字母
+        if (preg_match('/^[A-Za-z]$/', $firstChar)) {
+            return strtoupper($firstChar);
+        }
+        
+        // 中文转拼音首字母
+        require_once CORE_PATH . 'Pinyin.php';
+        $pinyin = new XpkPinyin();
+        $letter = $pinyin->getFirstLetter($firstChar);
+        return strtoupper($letter);
     }
 }

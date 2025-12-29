@@ -94,7 +94,7 @@ class XpkRouter
     private function convertPattern(string $pattern): string
     {
         $pattern = str_replace(
-            ['{id}', '{slug}', '{page}', '{sid}', '{nid}', '{type}', '{keyword}', '{ep}'],
+            ['{id}', '{slug}', '{page}', '{sid}', '{nid}', '{type}', '{keyword}', '{ep}', '{key}'],
             [
                 '(\d{1,10})',           // id: 数字
                 '([a-zA-Z0-9_-]+)',     // slug: 字母数字下划线横线
@@ -104,6 +104,7 @@ class XpkRouter
                 '(\d{1,3})',            // type: 分类ID
                 '([^/]+)',              // keyword: 搜索关键词（支持中文URL编码）
                 '(\d{1,5})',            // ep: 集数
+                '([a-zA-Z0-9_-]+)',     // key: 页面标识
             ],
             $pattern
         );
@@ -182,6 +183,8 @@ function xpk_page_url(string $type, array $params = []): string
             'vod_play' => 'vod/play/{id}/{sid}/{nid}',
             'type' => 'type/{id}',
             'type_page' => 'type/{id}/page/{page}',
+            'top_type' => 'vod/top-type/{id}',
+            'top_type_page' => 'vod/top-type/{id}/page/{page}',
             'actor_detail' => 'actor/detail/{id}',
             'art_detail' => 'art/detail/{id}',
         ],
@@ -190,22 +193,28 @@ function xpk_page_url(string $type, array $params = []): string
             'vod_play' => 'play/{id}-{sid}-{nid}.html',
             'type' => 'type/{id}.html',
             'type_page' => 'type/{id}-{page}.html',
+            'top_type' => 'top-type/{id}.html',
+            'top_type_page' => 'top-type/{id}-{page}.html',
             'actor_detail' => 'actor/{id}.html',
             'art_detail' => 'art/{id}.html',
         ],
-        '4' => [ // slug 无后缀
+        '4' => [ // slug 无后缀（分类用ID，视频/演员/文章用slug）
             'vod_detail' => 'video/{slug}',
             'vod_play' => 'watch/{slug}/{sid}/{nid}',
-            'type' => 'category/{slug}',
-            'type_page' => 'category/{slug}/{page}',
+            'type' => 'type/{id}',
+            'type_page' => 'type/{id}/page/{page}',
+            'top_type' => 'vod/top-type/{id}',
+            'top_type_page' => 'vod/top-type/{id}/page/{page}',
             'actor_detail' => 'star/{slug}',
             'art_detail' => 'article/{slug}',
         ],
-        '5' => [ // slug 带 .html
+        '5' => [ // slug 带 .html（分类用ID）
             'vod_detail' => 'video/{slug}.html',
             'vod_play' => 'watch/{slug}-{sid}-{nid}.html',
-            'type' => 'category/{slug}.html',
-            'type_page' => 'category/{slug}-{page}.html',
+            'type' => 'type/{id}.html',
+            'type_page' => 'type/{id}-{page}.html',
+            'top_type' => 'top-type/{id}.html',
+            'top_type_page' => 'top-type/{id}-{page}.html',
             'actor_detail' => 'star/{slug}.html',
             'art_detail' => 'article/{slug}.html',
         ],

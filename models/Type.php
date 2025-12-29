@@ -214,4 +214,23 @@ class XpkType extends XpkModel
             "SELECT * FROM {$this->table} WHERE type_pid = 0 AND type_status = 1 ORDER BY type_sort ASC LIMIT 10"
         );
     }
+
+    /**
+     * 获取分类的一级分类ID
+     * 如果本身就是一级分类（pid=0），返回自身ID
+     * 如果是子分类，返回其父分类ID
+     */
+    public function getTopLevelId(int $typeId): int
+    {
+        $type = $this->getById($typeId);
+        if (!$type) return 0;
+        
+        // 如果是一级分类，返回自身ID
+        if ($type['type_pid'] == 0) {
+            return $typeId;
+        }
+        
+        // 如果是子分类，返回父分类ID
+        return (int)$type['type_pid'];
+    }
 }

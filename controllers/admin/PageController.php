@@ -6,99 +6,170 @@
 
 class AdminPageController extends AdminBaseController
 {
-    private array $pages = [
-        'about' => '关于我们',
-        'contact' => '联系方式',
-        'disclaimer' => '免责声明'
-    ];
+    private XpkPage $pageModel;
+
+    public function __construct()
+    {
+        parent::__construct();
+        require_once MODEL_PATH . 'Page.php';
+        $this->pageModel = new XpkPage();
+    }
 
     /**
      * 单页列表
      */
     public function index(): void
     {
-        $db = XpkDatabase::getInstance();
+        $pages = $this->pageModel->getAll();
         
-        $pageList = [];
-        foreach ($this->pages as $key => $title) {
-            $config = $db->queryOne(
-                "SELECT config_value FROM " . DB_PREFIX . "config WHERE config_name = ?",
-                ['page_' . $key]
-            );
-            $pageList[] = [
-                'key' => $key,
-                'title' => $title,
-                'content' => $config['config_value'] ?? '',
-                'has_content' => !empty($config['config_value'])
-            ];
-        }
-
-        $this->assign('pageList', $pageList);
+        $this->assign('pages', $pages);
         $this->assign('flash', $this->getFlash());
+        $this->assign('csrfToken', $this->csrfToken());
         $this->render('page/index', '单页管理');
     }
 
     /**
-     * 编辑单页
+     * 添加页面
      */
-    public function edit(string $key): void
+    public function add(): void
     {
-        if (!isset($this->pages[$key])) {
-            $this->flash('error', '页面不存在');
-            $this->redirect('/admin.php/page');
-            return;
-        }
-
-        $db = XpkDatabase::getInstance();
-        $config = $db->queryOne(
-            "SELECT config_value FROM " . DB_PREFIX . "config WHERE config_name = ?",
-            ['page_' . $key]
-        );
-
-        $this->assign('pageKey', $key);
-        $this->assign('pageTitle', $this->pages[$key]);
-        $this->assign('pageContent', $config['config_value'] ?? '');
+        $this->assign('page', null);
         $this->assign('csrfToken', $this->csrfToken());
-        $this->render('page/edit', '编辑 - ' . $this->pages[$key]);
+        $this->render('page/form', '添加单页');
     }
 
     /**
-     * 保存单页
+     * 处理添加
      */
-    public function save(): void
+    public function doAdd(): void
     {
         if (!$this->verifyCsrf()) {
             $this->error('非法请求');
         }
 
-        $key = $this->post('key', '');
-        $content = $this->post('content', '');
+        $slug = trim($this->post('page_slug', ''));
+        $title = trim($this->post('page_title', ''));
+        $content = $this->post('page_content', '');
+        $sort = (int)$this->post('page_sort', 0);
+        $status = (int)$this->post('page_status', 1);
+        $footer = (int)$this->post('page_footer', 1);
 
-        if (!isset($this->pages[$key])) {
+        if (empty($slug) || empty($title)) {
+            $this->error('标识和标题不能为空');
+        }
+
+        // 验证slug格式
+        if (!preg_match('/^[a-zA-Z0-9_-]+$/', $slug)) {
+            $this->error('标识只能包含字母、数字、下划线和横线');
+        }
+
+        // 检查slug是否已存在
+        if ($this->pageModel->slugExists($slug)) {
+            $this->error('该标识已存在');
+        }
+
+        $this->pageModel->insert([
+            'page_slug' => $slug,
+            'page_title' => $title,
+            'page_content' => $content,
+            'page_sort' => $sort,
+            'page_status' => $status,
+            'page_footer' => $footer
+        ]);
+
+        $this->log('添加', '单页', $title);
+        $this->success('添加成功');
+    }
+
+    /**
+     * 编辑页面
+     */
+    public function edit(int $id): void
+    {
+        $page = $this->pageModel->find($id);
+        if (!$page) {
+            $this->flash('error', '页面不存在');
+            $this->redirect('/admin.php/page');
+            return;
+        }
+
+        $this->assign('page', $page);
+        $this->assign('csrfToken', $this->csrfToken());
+        $this->render('page/form', '编辑 - ' . $page['page_title']);
+    }
+
+    /**
+     * 处理编辑
+     */
+    public function doEdit(int $id): void
+    {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+
+        $page = $this->pageModel->find($id);
+        if (!$page) {
             $this->error('页面不存在');
         }
 
-        $db = XpkDatabase::getInstance();
-        $configName = 'page_' . $key;
+        $slug = trim($this->post('page_slug', ''));
+        $title = trim($this->post('page_title', ''));
+        $content = $this->post('page_content', '');
+        $sort = (int)$this->post('page_sort', 0);
+        $status = (int)$this->post('page_status', 1);
+        $footer = (int)$this->post('page_footer', 1);
 
-        $exists = $db->queryOne(
-            "SELECT config_id FROM " . DB_PREFIX . "config WHERE config_name = ?",
-            [$configName]
-        );
-
-        if ($exists) {
-            $db->execute(
-                "UPDATE " . DB_PREFIX . "config SET config_value = ? WHERE config_name = ?",
-                [$content, $configName]
-            );
-        } else {
-            $db->execute(
-                "INSERT INTO " . DB_PREFIX . "config (config_name, config_value) VALUES (?, ?)",
-                [$configName, $content]
-            );
+        if (empty($slug) || empty($title)) {
+            $this->error('标识和标题不能为空');
         }
 
-        $this->log('修改', '单页', $this->pages[$key]);
+        // 验证slug格式
+        if (!preg_match('/^[a-zA-Z0-9_-]+$/', $slug)) {
+            $this->error('标识只能包含字母、数字、下划线和横线');
+        }
+
+        // 检查slug是否已存在（排除当前记录）
+        if ($this->pageModel->slugExists($slug, $id)) {
+            $this->error('该标识已存在');
+        }
+
+        $this->pageModel->update($id, [
+            'page_slug' => $slug,
+            'page_title' => $title,
+            'page_content' => $content,
+            'page_sort' => $sort,
+            'page_status' => $status,
+            'page_footer' => $footer
+        ]);
+
+        $this->log('编辑', '单页', $title);
         $this->success('保存成功');
+    }
+
+    /**
+     * 删除页面
+     */
+    public function delete(): void
+    {
+        $id = (int)$this->post('id', 0);
+        
+        $page = $this->pageModel->find($id);
+        if (!$page) {
+            $this->error('页面不存在');
+        }
+
+        $this->pageModel->delete($id);
+        $this->log('删除', '单页', $page['page_title']);
+        $this->success('删除成功');
+    }
+
+    /**
+     * 初始化默认页面
+     */
+    public function init(): void
+    {
+        $added = $this->pageModel->initDefaults();
+        $this->log('初始化', '单页', "添加{$added}个默认页面");
+        $this->success("初始化完成，添加了 {$added} 个默认页面");
     }
 }

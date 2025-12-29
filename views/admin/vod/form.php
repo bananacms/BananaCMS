@@ -97,6 +97,70 @@
                     <option value="0" <?= ($vod['vod_status'] ?? 1) == 0 ? 'selected' : '' ?>>草稿</option>
                 </select>
             </div>
+
+            <div>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" name="vod_lock" value="1" <?= !empty($vod['vod_lock']) ? 'checked' : '' ?> class="w-4 h-4 rounded">
+                    <span class="text-sm font-medium text-gray-700">🔒 锁定视频</span>
+                </label>
+                <p class="text-xs text-gray-400 mt-1">锁定后采集时将跳过此视频，防止手动编辑的内容被覆盖</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 扩展信息 -->
+    <div class="mt-6 space-y-4">
+        <h3 class="font-bold text-gray-700 border-b pb-2">扩展信息</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">标签</label>
+                <input type="text" name="vod_tag" value="<?= htmlspecialchars($vod['vod_tag'] ?? '') ?>"
+                    class="w-full border rounded px-3 py-2" placeholder="多个用逗号分隔">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">扩展分类</label>
+                <input type="text" name="vod_class" value="<?= htmlspecialchars($vod['vod_class'] ?? '') ?>"
+                    class="w-full border rounded px-3 py-2" placeholder="如：古装,武侠">
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">是否完结</label>
+                <select name="vod_isend" class="w-full border rounded px-3 py-2">
+                    <option value="0" <?= ($vod['vod_isend'] ?? 0) == 0 ? 'selected' : '' ?>>连载中</option>
+                    <option value="1" <?= ($vod['vod_isend'] ?? 0) == 1 ? 'selected' : '' ?>>已完结</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">连载集数</label>
+                <input type="text" name="vod_serial" value="<?= htmlspecialchars($vod['vod_serial'] ?? '') ?>"
+                    class="w-full border rounded px-3 py-2" placeholder="如：更新至第10集">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">总集数</label>
+                <input type="number" name="vod_total" value="<?= $vod['vod_total'] ?? 0 ?>" min="0"
+                    class="w-full border rounded px-3 py-2" placeholder="0表示未知">
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">更新日</label>
+                <input type="text" name="vod_weekday" value="<?= htmlspecialchars($vod['vod_weekday'] ?? '') ?>"
+                    class="w-full border rounded px-3 py-2" placeholder="如：每周一">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">资源状态</label>
+                <input type="text" name="vod_state" value="<?= htmlspecialchars($vod['vod_state'] ?? '') ?>"
+                    class="w-full border rounded px-3 py-2" placeholder="如：蓝光,抢先版">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">版本</label>
+                <input type="text" name="vod_version" value="<?= htmlspecialchars($vod['vod_version'] ?? '') ?>"
+                    class="w-full border rounded px-3 py-2" placeholder="如：国语,粤语">
+            </div>
         </div>
     </div>
 
@@ -115,6 +179,24 @@
             <textarea name="vod_play_url" rows="4" class="w-full border rounded px-3 py-2"
                 placeholder="格式：第1集$url#第2集$url&#10;多个来源用$$$分隔"><?= htmlspecialchars($vod['vod_play_url'] ?? '') ?></textarea>
             <p class="text-xs text-gray-400 mt-1">格式说明：集名$播放地址，多集用#分隔，多来源用$$$分隔</p>
+        </div>
+    </div>
+
+    <!-- 下载信息 -->
+    <div class="mt-6 space-y-4">
+        <h3 class="font-bold text-gray-700 border-b pb-2">下载信息</h3>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">下载来源</label>
+            <input type="text" name="vod_down_from" value="<?= htmlspecialchars($vod['vod_down_from'] ?? '') ?>"
+                class="w-full border rounded px-3 py-2" placeholder="多个来源用$$$分隔，如：迅雷$$$百度网盘">
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">下载地址</label>
+            <textarea name="vod_down_url" rows="3" class="w-full border rounded px-3 py-2"
+                placeholder="格式：第1集$url#第2集$url&#10;多个来源用$$$分隔"><?= htmlspecialchars($vod['vod_down_url'] ?? '') ?></textarea>
+            <p class="text-xs text-gray-400 mt-1">格式说明：集名$下载地址，多集用#分隔，多来源用$$$分隔</p>
         </div>
     </div>
 

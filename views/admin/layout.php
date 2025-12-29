@@ -50,6 +50,9 @@
                 <a href="/admin.php/collect" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/collect') !== false ? 'active' : '' ?>">
                     📥 采集管理
                 </a>
+                <a href="/admin.php/player" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/player') !== false ? 'active' : '' ?>">
+                    ▶️ 播放器管理
+                </a>
                 <a href="/admin.php/link" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/link') !== false ? 'active' : '' ?>">
                     🔗 友链管理
                 </a>

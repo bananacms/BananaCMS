@@ -59,6 +59,60 @@
         </div>
     </div>
 
+    <!-- 播放列表 -->
+    <?php if (!empty($vod['play_list'])): ?>
+    <div class="mb-8 bg-white rounded-lg p-6 shadow-sm">
+        <h2 class="text-lg font-bold mb-4">播放列表</h2>
+        <?php foreach ($vod['play_list'] as $source): ?>
+        <div class="mb-4 last:mb-0">
+            <div class="flex items-center mb-3">
+                <span class="bg-red-600 text-white text-xs px-2 py-1 rounded"><?php echo htmlspecialchars($source['from']); ?></span>
+                <span class="text-gray-400 text-sm ml-2">共<?php echo $source['count']; ?>集</span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <?php foreach ($source['episodes'] as $ep): ?>
+                <a href="<?php echo xpk_page_url('vod_play', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug'], 'sid' => $source['sid'], 'nid' => $ep['nid']]); ?>" 
+                   class="inline-block px-3 py-1.5 text-sm bg-gray-100 hover:bg-red-600 hover:text-white rounded transition-colors">
+                    <?php echo htmlspecialchars($ep['name']); ?>
+                </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
+
+    <!-- 下载列表 -->
+    <?php if (!empty($vod['down_list'])): ?>
+    <div class="mb-8 bg-white rounded-lg p-6 shadow-sm">
+        <h2 class="text-lg font-bold mb-4">
+            <svg class="w-5 h-5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            下载地址
+        </h2>
+        <?php foreach ($vod['down_list'] as $source): ?>
+        <div class="mb-4 last:mb-0">
+            <div class="flex items-center mb-3">
+                <span class="bg-green-600 text-white text-xs px-2 py-1 rounded"><?php echo htmlspecialchars($source['from']); ?></span>
+                <span class="text-gray-400 text-sm ml-2">共<?php echo $source['count']; ?>个</span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <?php foreach ($source['episodes'] as $ep): ?>
+                <a href="<?php echo htmlspecialchars($ep['url']); ?>" target="_blank" rel="nofollow"
+                   class="inline-flex items-center px-3 py-1.5 text-sm bg-gray-100 hover:bg-green-600 hover:text-white rounded transition-colors">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    <?php echo htmlspecialchars($ep['name']); ?>
+                </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
+
     <!-- 评分区 -->
     <div class="mb-8 bg-white rounded-lg p-6 shadow-sm">
         <div id="scoreBox"></div>

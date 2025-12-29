@@ -9,14 +9,18 @@ class AdminCollectController extends AdminBaseController
     private XpkCollect $collectModel;
     private XpkVod $vodModel;
     private XpkType $typeModel;
+    private XpkPlayer $playerModel;
 
     public function __construct()
     {
         parent::__construct();
         require_once MODEL_PATH . 'Collect.php';
+        require_once MODEL_PATH . 'CollectBind.php';
+        require_once MODEL_PATH . 'Player.php';
         $this->collectModel = new XpkCollect();
         $this->vodModel = new XpkVod();
         $this->typeModel = new XpkType();
+        $this->playerModel = new XpkPlayer();
     }
 
     /**
@@ -48,14 +52,7 @@ class AdminCollectController extends AdminBaseController
             $this->error('非法请求');
         }
 
-        $data = [
-            'collect_name' => trim($this->post('collect_name', '')),
-            'collect_api' => trim($this->post('collect_api', '')),
-            'collect_type' => trim($this->post('collect_type', 'json')),
-            'collect_status' => (int)$this->post('collect_status', 1),
-            'collect_filter' => trim($this->post('collect_filter', '')),
-            'collect_param' => trim($this->post('collect_param', ''))
-        ];
+        $data = $this->getCollectFormData();
 
         if (empty($data['collect_name']) || empty($data['collect_api'])) {
             $this->error('名称和API地址不能为空');
@@ -65,6 +62,34 @@ class AdminCollectController extends AdminBaseController
         $this->log('添加', '采集', $data['collect_name']);
         $this->flash('success', '添加成功');
         $this->redirect('/admin.php/collect');
+    }
+
+    /**
+     * 获取采集站表单数据
+     */
+    private function getCollectFormData(): array
+    {
+        // 处理更新字段复选框
+        $updateFields = $this->post('collect_opt_update_fields', []);
+        if (is_array($updateFields)) {
+            $updateFields = implode(',', $updateFields);
+        }
+
+        return [
+            'collect_name' => trim($this->post('collect_name', '')),
+            'collect_api' => trim($this->post('collect_api', '')),
+            'collect_type' => trim($this->post('collect_type', 'json')),
+            'collect_status' => (int)$this->post('collect_status', 1),
+            'collect_filter' => trim($this->post('collect_filter', '')),
+            'collect_param' => trim($this->post('collect_param', '')),
+            'collect_opt_hits_start' => (int)$this->post('collect_opt_hits_start', 0),
+            'collect_opt_hits_end' => (int)$this->post('collect_opt_hits_end', 0),
+            'collect_opt_score_start' => (float)$this->post('collect_opt_score_start', 0),
+            'collect_opt_score_end' => (float)$this->post('collect_opt_score_end', 0),
+            'collect_opt_dup_rule' => trim($this->post('collect_opt_dup_rule', 'name')),
+            'collect_opt_update_fields' => $updateFields ?: 'remarks,content,play',
+            'collect_opt_play_merge' => (int)$this->post('collect_opt_play_merge', 0)
+        ];
     }
 
     /**
@@ -92,14 +117,7 @@ class AdminCollectController extends AdminBaseController
             $this->error('非法请求');
         }
 
-        $data = [
-            'collect_name' => trim($this->post('collect_name', '')),
-            'collect_api' => trim($this->post('collect_api', '')),
-            'collect_type' => trim($this->post('collect_type', 'json')),
-            'collect_status' => (int)$this->post('collect_status', 1),
-            'collect_filter' => trim($this->post('collect_filter', '')),
-            'collect_param' => trim($this->post('collect_param', ''))
-        ];
+        $data = $this->getCollectFormData();
 
         $this->collectModel->update($id, $data);
         $this->log('编辑', '采集', "ID:{$id} {$data['collect_name']}");
@@ -143,22 +161,30 @@ class AdminCollectController extends AdminBaseController
         // 获取本地分类
         $localTypes = $this->typeModel->getTree();
 
-        // 获取已绑定关系
-        $binds = [];
-        if (!empty($collect['collect_bind'])) {
-            $binds = json_decode($collect['collect_bind'], true) ?: [];
-        }
+        // 获取绑定关系（使用新模型）
+        $bindModel = new XpkCollectBind();
+        $binds = $bindModel->getBinds($id);
+        
+        // 获取全局绑定
+        $globalBinds = $bindModel->getGlobalBinds();
+        
+        // 获取所有采集站（用于复制绑定）
+        $allCollects = $this->collectModel->getAll();
 
         $this->assign('collect', $collect);
         $this->assign('remoteCategories', $remoteCategories);
         $this->assign('localTypes', $localTypes);
         $this->assign('binds', $binds);
+        $this->assign('globalBinds', $globalBinds);
+        $this->assign('allCollects', $allCollects);
         $this->assign('csrfToken', $this->csrfToken());
         $this->render('collect/bind', '分类绑定');
     }
 
     /**
      * 同步远程分类到本地 (AJAX)
+     * 
+     * 直接使用远程分类ID作为本地分类ID，避免绑定问题
      */
     public function syncCategories(): void
     {
@@ -175,30 +201,26 @@ class AdminCollectController extends AdminBaseController
             $this->error('获取远程分类失败');
         }
 
-        // 获取本地已有分类名称
+        // 获取本地已有分类ID
         $localTypes = $this->typeModel->getAll();
-        $localNames = array_column($localTypes, 'type_name');
+        $localIds = array_column($localTypes, 'type_id');
 
         $added = 0;
         $skipped = 0;
-        $bindData = [];
+        $db = XpkDatabase::getInstance();
+        $bindModel = new XpkCollectBind();
+        $remoteNames = [];
 
-        // 先处理一级分类
-        $parentMap = []; // 远程父ID => 本地ID
+        // 先处理一级分类（pid=0）
         foreach ($remoteCategories as $cat) {
             $pid = $cat['pid'] ?? 0;
-            if ($pid != 0) continue; // 跳过子分类，后面处理
+            if ($pid != 0) continue;
             
+            $remoteId = (int)$cat['id'];
             $name = trim($cat['name']);
-            if (in_array($name, $localNames)) {
-                // 已存在，找到对应ID用于绑定
-                foreach ($localTypes as $lt) {
-                    if ($lt['type_name'] === $name) {
-                        $bindData[$cat['id']] = $lt['type_id'];
-                        $parentMap[$cat['id']] = $lt['type_id'];
-                        break;
-                    }
-                }
+            $remoteNames[$remoteId] = $name;
+            
+            if (in_array($remoteId, $localIds)) {
                 $skipped++;
                 continue;
             }
@@ -207,68 +229,54 @@ class AdminCollectController extends AdminBaseController
             require_once CORE_PATH . 'Slug.php';
             $slug = xpk_slug_unique($name, 'type', 'type_en');
 
-            // 新增分类
-            $newId = $this->typeModel->insert([
-                'type_pid' => 0,
-                'type_name' => $name,
-                'type_en' => $slug,
-                'type_sort' => $cat['id'],
-                'type_status' => 1
-            ]);
-
-            if ($newId) {
-                $bindData[$cat['id']] = $newId;
-                $parentMap[$cat['id']] = $newId;
-                $localNames[] = $name;
-                $added++;
-            }
+            // 直接使用远程ID插入
+            $db->execute(
+                "INSERT INTO " . DB_PREFIX . "type (type_id, type_pid, type_name, type_en, type_sort, type_status) VALUES (?, 0, ?, ?, ?, 1)",
+                [$remoteId, $name, $slug, $remoteId]
+            );
+            $localIds[] = $remoteId;
+            $added++;
         }
 
-        // 再处理子分类
+        // 再处理子分类（pid!=0）
         foreach ($remoteCategories as $cat) {
             $pid = $cat['pid'] ?? 0;
-            if ($pid == 0) continue; // 跳过一级分类
+            if ($pid == 0) continue;
             
+            $remoteId = (int)$cat['id'];
             $name = trim($cat['name']);
-            $localPid = $parentMap[$pid] ?? 0;
+            $remotePid = (int)$pid;
+            $remoteNames[$remoteId] = $name;
             
-            // 检查是否已存在同名子分类
-            $exists = false;
-            foreach ($localTypes as $lt) {
-                if ($lt['type_name'] === $name && $lt['type_pid'] == $localPid) {
-                    $bindData[$cat['id']] = $lt['type_id'];
-                    $exists = true;
-                    $skipped++;
-                    break;
-                }
+            if (in_array($remoteId, $localIds)) {
+                $skipped++;
+                continue;
             }
-            if ($exists) continue;
+
+            // 检查父分类是否存在
+            if (!in_array($remotePid, $localIds)) {
+                continue;
+            }
 
             // 生成slug
             require_once CORE_PATH . 'Slug.php';
             $slug = xpk_slug_unique($name, 'type', 'type_en');
 
-            // 新增子分类
-            $newId = $this->typeModel->insert([
-                'type_pid' => $localPid,
-                'type_name' => $name,
-                'type_en' => $slug,
-                'type_sort' => $cat['id'],
-                'type_status' => 1
-            ]);
-
-            if ($newId) {
-                $bindData[$cat['id']] = $newId;
-                $added++;
-            }
+            // 直接使用远程ID插入
+            $db->execute(
+                "INSERT INTO " . DB_PREFIX . "type (type_id, type_pid, type_name, type_en, type_sort, type_status) VALUES (?, ?, ?, ?, ?, 1)",
+                [$remoteId, $remotePid, $name, $slug, $remoteId]
+            );
+            $localIds[] = $remoteId;
+            $added++;
         }
 
-        // 自动保存绑定关系
-        if (!empty($bindData)) {
-            $this->collectModel->update($id, [
-                'collect_bind' => json_encode($bindData)
-            ]);
+        // 绑定关系就是 1:1，保存到绑定表
+        $bindData = [];
+        foreach ($remoteCategories as $cat) {
+            $bindData[$cat['id']] = (int)$cat['id'];
         }
+        $bindModel->saveBinds($id, $bindData, $remoteNames);
 
         $this->log('同步分类', '采集', "ID:{$id} 新增{$added}个，跳过{$skipped}个");
         $this->success("同步完成！新增 {$added} 个分类，跳过 {$skipped} 个已存在");
@@ -284,20 +292,48 @@ class AdminCollectController extends AdminBaseController
         }
 
         $binds = $this->post('bind', []);
+        $remoteNames = $this->post('remote_name', []);
+        $saveAsGlobal = (int)$this->post('save_as_global', 0);
+        
         $bindData = [];
+        $nameData = [];
         
         foreach ($binds as $remoteId => $localId) {
-            if ($localId > 0) {
-                $bindData[$remoteId] = (int)$localId;
-            }
+            $bindData[$remoteId] = (int)$localId;
+            $nameData[$remoteId] = $remoteNames[$remoteId] ?? '';
         }
 
-        $this->collectModel->update($id, [
-            'collect_bind' => json_encode($bindData)
-        ]);
+        $bindModel = new XpkCollectBind();
+        
+        // 保存到指定采集站
+        $bindModel->saveBinds($id, $bindData, $nameData);
+        
+        // 如果选择同时保存为全局绑定
+        if ($saveAsGlobal) {
+            $bindModel->saveGlobalBinds($bindData, $nameData);
+        }
 
         $this->flash('success', '绑定保存成功');
         $this->redirect('/admin.php/collect');
+    }
+
+    /**
+     * 从其他采集站复制绑定
+     */
+    public function copyBind(): void
+    {
+        $fromId = (int)$this->post('from_id', 0);
+        $toId = (int)$this->post('to_id', 0);
+        
+        if ($fromId <= 0 || $toId <= 0) {
+            $this->error('参数错误');
+        }
+        
+        $bindModel = new XpkCollectBind();
+        $count = $bindModel->copyBinds($fromId, $toId);
+        
+        $this->log('复制绑定', '采集', "从ID:{$fromId}复制到ID:{$toId}，共{$count}条");
+        $this->success("已复制 {$count} 条绑定关系");
     }
 
     /**
@@ -317,6 +353,8 @@ class AdminCollectController extends AdminBaseController
         $this->assign('collect', $collect);
         $this->assign('remoteCategories', $remoteCategories ?: []);
         $this->assign('csrfToken', $this->csrfToken());
+        
+        // 传递绑定模型类供视图使用
         $this->render('collect/run', '执行采集');
     }
 
@@ -342,21 +380,30 @@ class AdminCollectController extends AdminBaseController
                 $this->error('采集站不存在');
             }
 
-            // 获取绑定关系
-            $binds = [];
-            if (!empty($collect['collect_bind'])) {
-                $binds = json_decode($collect['collect_bind'], true) ?: [];
-            }
+            // 获取绑定关系（使用新模型）
+            $bindModel = new XpkCollectBind();
+            $binds = $bindModel->getBinds($id);
 
             // 检查是否有绑定
             if (empty($binds)) {
                 $this->error('请先绑定分类后再采集');
             }
 
+            // 获取采集配置
+            $opts = [
+                'hits_start' => (int)($collect['collect_opt_hits_start'] ?? 0),
+                'hits_end' => (int)($collect['collect_opt_hits_end'] ?? 0),
+                'score_start' => (float)($collect['collect_opt_score_start'] ?? 0),
+                'score_end' => (float)($collect['collect_opt_score_end'] ?? 0),
+                'dup_rule' => $collect['collect_opt_dup_rule'] ?? 'name',
+                'update_fields' => explode(',', $collect['collect_opt_update_fields'] ?? 'remarks,content,play'),
+                'play_merge' => (int)($collect['collect_opt_play_merge'] ?? 0)
+            ];
+
             // 获取视频列表
             $listResult = $this->collectModel->getVideoList($collect, $page, $typeId, $hours);
             if (!$listResult || empty($listResult['list'])) {
-                $this->success('采集完成', ['done' => true, 'page' => $page, 'added' => 0, 'updated' => 0]);
+                $this->success('采集完成', ['done' => true, 'page' => $page, 'added' => 0, 'updated' => 0, 'skipped' => 0]);
                 return;
             }
 
@@ -371,12 +418,16 @@ class AdminCollectController extends AdminBaseController
 
             $added = 0;
             $updated = 0;
+            $skipped = 0;
             $db = XpkDatabase::getInstance();
 
         foreach ($videos as $video) {
             // 检查分类绑定
             $localTypeId = $binds[$video['type_id']] ?? 0;
-            if (!$localTypeId) continue;
+            if (!$localTypeId) {
+                $skipped++;
+                continue;
+            }
 
             // 过滤关键词
             if (!empty($collect['collect_filter'])) {
@@ -388,7 +439,10 @@ class AdminCollectController extends AdminBaseController
                         break;
                     }
                 }
-                if ($skip) continue;
+                if ($skip) {
+                    $skipped++;
+                    continue;
+                }
             }
 
             // 下载图片（如果开启）
@@ -400,78 +454,67 @@ class AdminCollectController extends AdminBaseController
                 }
             }
 
-            // 检查是否已存在
-            $exists = $db->queryOne(
-                "SELECT vod_id FROM " . DB_PREFIX . "vod WHERE vod_name = ? LIMIT 1",
-                [$video['vod_name']]
-            );
+            // 验证并过滤播放器
+            $filteredPlay = $this->filterPlaySources($video['vod_play_from'], $video['vod_play_url']);
+            if (empty($filteredPlay['from'])) {
+                // 没有有效的播放源，跳过此视频
+                $skipped++;
+                continue;
+            }
+            $video['vod_play_from'] = $filteredPlay['from'];
+            $video['vod_play_url'] = $filteredPlay['url'];
+
+            // 根据重复规则检查是否已存在
+            $exists = $this->checkDuplicate($video, $localTypeId, $opts['dup_rule'], $db);
 
             if ($exists) {
-                if ($mode === 'add') continue;
-                
-                // 更新（包含简介内容）
-                $updateSql = "UPDATE " . DB_PREFIX . "vod SET 
-                    vod_remarks = ?, vod_content = ?, vod_play_from = ?, vod_play_url = ?, vod_time = ?
-                 WHERE vod_id = ?";
-                $updateData = [
-                    $video['vod_remarks'],
-                    $video['vod_content'],
-                    $video['vod_play_from'],
-                    $video['vod_play_url'],
-                    time(),
-                    $exists['vod_id']
-                ];
-                
-                // 如果下载了新图片也更新
-                if ($downloadPic && $picUrl !== $video['vod_pic']) {
-                    $updateSql = "UPDATE " . DB_PREFIX . "vod SET 
-                        vod_pic = ?, vod_remarks = ?, vod_content = ?, vod_play_from = ?, vod_play_url = ?, vod_time = ?
-                     WHERE vod_id = ?";
-                    array_unshift($updateData, $picUrl);
+                if ($mode === 'add') {
+                    $skipped++;
+                    continue;
                 }
                 
-                $db->execute($updateSql, $updateData);
+                // 检查是否锁定
+                if (!empty($exists['vod_lock'])) {
+                    $skipped++; // 跳过锁定的视频
+                    continue;
+                }
+                
+                // 更新已有视频
+                $this->updateExistingVideo($exists, $video, $picUrl, $downloadPic, $opts, $db);
                 $updated++;
             } else {
-                if ($mode === 'update') continue;
+                if ($mode === 'update') {
+                    $skipped++;
+                    continue;
+                }
                 
-                // 自动生成 slug
-                require_once CORE_PATH . 'Slug.php';
-                $vodSlug = xpk_slug_unique($video['vod_name'], 'vod', 'vod_slug');
-                
-                // 新增
-                $db->execute(
-                    "INSERT INTO " . DB_PREFIX . "vod 
-                        (vod_type_id, vod_name, vod_sub, vod_en, vod_slug, vod_pic, vod_actor, vod_director, 
-                         vod_year, vod_area, vod_lang, vod_score, vod_remarks, vod_content, 
-                         vod_play_from, vod_play_url, vod_status, vod_time, vod_time_add)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)",
-                    [
-                        $localTypeId,
-                        $video['vod_name'],
-                        $video['vod_sub'],
-                        $video['vod_en'],
-                        $vodSlug,
-                        $picUrl,
-                        $video['vod_actor'],
-                        $video['vod_director'],
-                        $video['vod_year'],
-                        $video['vod_area'],
-                        $video['vod_lang'],
-                        $video['vod_score'],
-                        $video['vod_remarks'],
-                        $video['vod_content'],
-                        $video['vod_play_from'],
-                        $video['vod_play_url'],
-                        time(),
-                        time()
-                    ]
-                );
+                // 新增视频
+                $this->insertNewVideo($video, $localTypeId, $picUrl, $opts, $db);
                 $added++;
             }
         }
 
         $done = $page >= $listResult['pagecount'];
+        
+        // 累计统计
+        $totalAdded = (int)$this->post('total_added', 0) + $added;
+        $totalUpdated = (int)$this->post('total_updated', 0) + $updated;
+        $totalSkipped = (int)$this->post('total_skipped', 0) + $skipped;
+        $logId = (int)$this->post('log_id', 0);
+        
+        // 第一页时创建日志
+        if ($page == 1 && !$logId) {
+            require_once MODEL_PATH . 'CollectLog.php';
+            $logModel = new XpkCollectLog();
+            $logId = $logModel->start($id, $collect['collect_name'], 'manual', $mode);
+        }
+        
+        // 采集完成时更新日志
+        if ($done && $logId) {
+            require_once MODEL_PATH . 'CollectLog.php';
+            $logModel = new XpkCollectLog();
+            $logModel->finish($logId, $page, $totalAdded, $totalUpdated, $totalSkipped);
+        }
         
         // 保存采集进度（用于断点续采）
         $this->collectModel->update($id, [
@@ -479,7 +522,15 @@ class AdminCollectController extends AdminBaseController
                 'page' => $done ? 1 : $page + 1,
                 'pagecount' => $listResult['pagecount'],
                 'done' => $done,
-                'time' => time()
+                'time' => time(),
+                'type_id' => $typeId,
+                'mode' => $mode,
+                'hours' => $hours,
+                'download_pic' => $downloadPic,
+                'total_added' => $totalAdded,
+                'total_updated' => $totalUpdated,
+                'total_skipped' => $totalSkipped,
+                'log_id' => $logId
             ])
         ]);
         
@@ -488,13 +539,257 @@ class AdminCollectController extends AdminBaseController
             'page' => $page,
             'pagecount' => $listResult['pagecount'],
             'added' => $added,
-            'updated' => $updated
+            'updated' => $updated,
+            'skipped' => $skipped,
+            'log_id' => $logId
         ]);
         } catch (Exception $e) {
             $this->error('采集出错: ' . $e->getMessage());
         } catch (Error $e) {
             $this->error('采集出错: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * 根据重复规则检查视频是否已存在
+     */
+    private function checkDuplicate(array $video, int $localTypeId, string $rule, XpkDatabase $db): ?array
+    {
+        $sql = "SELECT vod_id, vod_play_from, vod_play_url, vod_down_from, vod_down_url, vod_lock FROM " . DB_PREFIX . "vod WHERE vod_name = ?";
+        $params = [$video['vod_name']];
+
+        switch ($rule) {
+            case 'name_type':
+                $sql .= " AND vod_type_id = ?";
+                $params[] = $localTypeId;
+                break;
+            case 'name_year':
+                $sql .= " AND vod_year = ?";
+                $params[] = $video['vod_year'];
+                break;
+            case 'name_type_year':
+                $sql .= " AND vod_type_id = ? AND vod_year = ?";
+                $params[] = $localTypeId;
+                $params[] = $video['vod_year'];
+                break;
+        }
+
+        $sql .= " LIMIT 1";
+        return $db->queryOne($sql, $params);
+    }
+
+    /**
+     * 更新已有视频
+     */
+    private function updateExistingVideo(array $exists, array $video, string $picUrl, bool $downloadPic, array $opts, XpkDatabase $db): void
+    {
+        $updateData = [];
+        $allowedFields = $opts['update_fields'];
+
+        // 备注/集数
+        if (in_array('remarks', $allowedFields)) {
+            $updateData['vod_remarks'] = $video['vod_remarks'];
+        }
+
+        // 简介内容
+        if (in_array('content', $allowedFields)) {
+            $updateData['vod_content'] = $video['vod_content'];
+        }
+
+        // 播放地址
+        if (in_array('play', $allowedFields)) {
+            if ($opts['play_merge']) {
+                // 合并播放地址
+                $merged = $this->mergePlaySources(
+                    $exists['vod_play_from'], $exists['vod_play_url'],
+                    $video['vod_play_from'], $video['vod_play_url']
+                );
+                $updateData['vod_play_from'] = $merged['from'];
+                $updateData['vod_play_url'] = $merged['url'];
+            } else {
+                // 覆盖播放地址
+                $updateData['vod_play_from'] = $video['vod_play_from'];
+                $updateData['vod_play_url'] = $video['vod_play_url'];
+            }
+        }
+
+        // 下载地址
+        if (in_array('down', $allowedFields) && !empty($video['vod_down_from'])) {
+            if ($opts['play_merge']) {
+                // 合并下载地址
+                $merged = $this->mergePlaySources(
+                    $exists['vod_down_from'] ?? '', $exists['vod_down_url'] ?? '',
+                    $video['vod_down_from'], $video['vod_down_url']
+                );
+                $updateData['vod_down_from'] = $merged['from'];
+                $updateData['vod_down_url'] = $merged['url'];
+            } else {
+                $updateData['vod_down_from'] = $video['vod_down_from'];
+                $updateData['vod_down_url'] = $video['vod_down_url'];
+            }
+        }
+
+        // 封面图片
+        if (in_array('pic', $allowedFields) && $downloadPic && $picUrl !== $video['vod_pic']) {
+            $updateData['vod_pic'] = $picUrl;
+        }
+
+        // 演员
+        if (in_array('actor', $allowedFields) && !empty($video['vod_actor'])) {
+            $updateData['vod_actor'] = $video['vod_actor'];
+        }
+
+        // 导演
+        if (in_array('director', $allowedFields) && !empty($video['vod_director'])) {
+            $updateData['vod_director'] = $video['vod_director'];
+        }
+
+        // 评分
+        if (in_array('score', $allowedFields) && $video['vod_score'] > 0) {
+            $updateData['vod_score'] = $video['vod_score'];
+        }
+
+        // 扩展字段
+        if (in_array('extend', $allowedFields)) {
+            if (!empty($video['vod_tag'])) {
+                $updateData['vod_tag'] = $video['vod_tag'];
+            }
+            if (!empty($video['vod_class'])) {
+                $updateData['vod_class'] = $video['vod_class'];
+            }
+            if (isset($video['vod_isend'])) {
+                $updateData['vod_isend'] = $video['vod_isend'];
+            }
+            if (!empty($video['vod_serial'])) {
+                $updateData['vod_serial'] = $video['vod_serial'];
+            }
+            if (!empty($video['vod_total'])) {
+                $updateData['vod_total'] = $video['vod_total'];
+            }
+            if (!empty($video['vod_weekday'])) {
+                $updateData['vod_weekday'] = $video['vod_weekday'];
+            }
+            if (!empty($video['vod_state'])) {
+                $updateData['vod_state'] = $video['vod_state'];
+            }
+            if (!empty($video['vod_version'])) {
+                $updateData['vod_version'] = $video['vod_version'];
+            }
+            if (!empty($video['vod_letter'])) {
+                $updateData['vod_letter'] = $video['vod_letter'];
+            }
+        }
+
+        if (empty($updateData)) return;
+
+        $updateData['vod_time'] = time();
+
+        $setParts = [];
+        $params = [];
+        foreach ($updateData as $field => $value) {
+            $setParts[] = "{$field} = ?";
+            $params[] = $value;
+        }
+        $params[] = $exists['vod_id'];
+
+        $sql = "UPDATE " . DB_PREFIX . "vod SET " . implode(', ', $setParts) . " WHERE vod_id = ?";
+        $db->execute($sql, $params);
+    }
+
+    /**
+     * 新增视频
+     */
+    private function insertNewVideo(array $video, int $localTypeId, string $picUrl, array $opts, XpkDatabase $db): void
+    {
+        // 生成随机点击量
+        $hits = 0;
+        if ($opts['hits_start'] > 0 && $opts['hits_end'] > 0) {
+            $hits = rand(min($opts['hits_start'], $opts['hits_end']), max($opts['hits_start'], $opts['hits_end']));
+        }
+
+        // 生成随机评分或使用资源站评分
+        $score = $video['vod_score'];
+        if ($opts['score_start'] > 0 && $opts['score_end'] > 0) {
+            $min = min($opts['score_start'], $opts['score_end']);
+            $max = max($opts['score_start'], $opts['score_end']);
+            $score = round($min + mt_rand() / mt_getrandmax() * ($max - $min), 1);
+        }
+
+        // 获取一级分类ID
+        $topLevelId = $this->typeModel->getTopLevelId($localTypeId);
+
+        // 自动生成 slug
+        require_once CORE_PATH . 'Slug.php';
+        $vodSlug = xpk_slug_unique($video['vod_name'], 'vod', 'vod_slug');
+
+        $db->execute(
+            "INSERT INTO " . DB_PREFIX . "vod 
+                (vod_type_id, vod_type_id_1, vod_name, vod_sub, vod_en, vod_slug, vod_pic, vod_actor, vod_director, 
+                 vod_year, vod_area, vod_lang, vod_letter, vod_tag, vod_class, vod_isend, vod_serial, vod_total, 
+                 vod_weekday, vod_state, vod_version, vod_score, vod_hits, vod_remarks, vod_content, 
+                 vod_play_from, vod_play_url, vod_down_from, vod_down_url, vod_status, vod_time, vod_time_add)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)",
+            [
+                $localTypeId,
+                $topLevelId,
+                $video['vod_name'],
+                $video['vod_sub'],
+                $video['vod_en'],
+                $vodSlug,
+                $picUrl,
+                $video['vod_actor'],
+                $video['vod_director'],
+                $video['vod_year'],
+                $video['vod_area'],
+                $video['vod_lang'],
+                $video['vod_letter'] ?? '',
+                $video['vod_tag'] ?? '',
+                $video['vod_class'] ?? '',
+                $video['vod_isend'] ?? 0,
+                $video['vod_serial'] ?? '',
+                $video['vod_total'] ?? 0,
+                $video['vod_weekday'] ?? '',
+                $video['vod_state'] ?? '',
+                $video['vod_version'] ?? '',
+                $score,
+                $hits,
+                $video['vod_remarks'],
+                $video['vod_content'],
+                $video['vod_play_from'],
+                $video['vod_play_url'],
+                $video['vod_down_from'] ?? '',
+                $video['vod_down_url'] ?? '',
+                time(),
+                time()
+            ]
+        );
+    }
+
+    /**
+     * 合并播放源
+     */
+    private function mergePlaySources(string $oldFrom, string $oldUrl, string $newFrom, string $newUrl): array
+    {
+        $oldFromArr = array_filter(explode('$$$', $oldFrom));
+        $oldUrlArr = array_filter(explode('$$$', $oldUrl));
+        $newFromArr = array_filter(explode('$$$', $newFrom));
+        $newUrlArr = array_filter(explode('$$$', $newUrl));
+
+        // 构建旧数据的映射
+        $merged = [];
+        foreach ($oldFromArr as $i => $from) {
+            $merged[$from] = $oldUrlArr[$i] ?? '';
+        }
+
+        // 合并新数据（同名播放源用新的覆盖）
+        foreach ($newFromArr as $i => $from) {
+            $merged[$from] = $newUrlArr[$i] ?? '';
+        }
+
+        return [
+            'from' => implode('$$$', array_keys($merged)),
+            'url' => implode('$$$', array_values($merged))
+        ];
     }
 
     /**
@@ -561,5 +856,199 @@ class AdminCollectController extends AdminBaseController
         }
 
         $this->success('连接成功', ['categories' => $categories]);
+    }
+
+    /**
+     * 清除采集进度
+     */
+    public function clearProgress(): void
+    {
+        $id = (int)$this->post('id', 0);
+        
+        if ($id <= 0) {
+            $this->error('参数错误');
+        }
+
+        $this->collectModel->update($id, [
+            'collect_progress' => json_encode(['done' => true, 'page' => 1])
+        ]);
+
+        $this->success('进度已清除');
+    }
+
+    /**
+     * 定时采集配置页面
+     */
+    public function cron(): void
+    {
+        $db = XpkDatabase::getInstance();
+        
+        // 获取配置
+        $configRow = $db->queryOne("SELECT config_value FROM " . DB_PREFIX . "config WHERE config_name = 'cron_collect'");
+        $config = $configRow ? json_decode($configRow['config_value'], true) : [];
+        
+        // 获取上次执行时间
+        $lastRunRow = $db->queryOne("SELECT config_value FROM " . DB_PREFIX . "config WHERE config_name = 'cron_last_run'");
+        $lastRun = $lastRunRow ? (int)$lastRunRow['config_value'] : 0;
+        
+        // 获取所有采集站
+        $collects = $this->collectModel->getAll();
+        
+        $this->assign('config', $config);
+        $this->assign('lastRun', $lastRun);
+        $this->assign('collects', $collects);
+        $this->assign('csrfToken', $this->csrfToken());
+        $this->assign('flash', $this->getFlash());
+        $this->render('collect/cron', '定时采集');
+    }
+
+    /**
+     * 保存定时采集配置
+     */
+    public function saveCron(): void
+    {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+
+        $config = [
+            'enabled' => (int)$this->post('enabled', 0),
+            'interval' => (int)$this->post('interval', 60),
+            'mode' => $this->post('mode', 'add'),
+            'hours' => $this->post('hours', ''),
+            'collect_ids' => $this->post('collect_ids', [])
+        ];
+
+        $db = XpkDatabase::getInstance();
+        $exists = $db->queryOne("SELECT config_id FROM " . DB_PREFIX . "config WHERE config_name = 'cron_collect'");
+        
+        if ($exists) {
+            $db->execute(
+                "UPDATE " . DB_PREFIX . "config SET config_value = ? WHERE config_name = 'cron_collect'",
+                [json_encode($config)]
+            );
+        } else {
+            $db->execute(
+                "INSERT INTO " . DB_PREFIX . "config (config_name, config_value) VALUES ('cron_collect', ?)",
+                [json_encode($config)]
+            );
+        }
+
+        $this->log('修改', '配置', '定时采集配置');
+        $this->success('保存成功');
+    }
+
+    /**
+     * 手动执行定时采集
+     */
+    public function runCron(): void
+    {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+
+        // 在后台执行采集脚本
+        $phpBin = PHP_BINARY ?: 'php';
+        $script = ROOT_PATH . 'cron.php';
+        $logFile = ROOT_PATH . 'runtime/cron.log';
+        
+        // 确保runtime目录存在
+        if (!is_dir(ROOT_PATH . 'runtime')) {
+            mkdir(ROOT_PATH . 'runtime', 0755, true);
+        }
+        
+        // Windows和Linux使用不同的后台执行方式
+        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+            pclose(popen("start /B {$phpBin} {$script} auto >> {$logFile} 2>&1", 'r'));
+        } else {
+            exec("{$phpBin} {$script} auto >> {$logFile} 2>&1 &");
+        }
+
+        $this->log('执行', '采集', '手动触发定时采集');
+        $this->success('采集任务已在后台启动，请查看日志了解进度');
+    }
+
+    /**
+     * 采集日志页面
+     */
+    public function log(): void
+    {
+        require_once MODEL_PATH . 'CollectLog.php';
+        $logModel = new XpkCollectLog();
+        
+        $page = (int)($this->get('page', 1));
+        $collectId = (int)($this->get('collect_id', 0)) ?: null;
+        
+        $logs = $logModel->getList($page, 20, $collectId);
+        $stats = $logModel->getStats($collectId);
+        $collects = $this->collectModel->getAll();
+        
+        $this->assign('logs', $logs);
+        $this->assign('stats', $stats);
+        $this->assign('collects', $collects);
+        $this->assign('collectId', $collectId);
+        $this->assign('csrfToken', $this->csrfToken());
+        $this->render('collect/log', '采集日志');
+    }
+
+    /**
+     * 清理采集日志
+     */
+    public function cleanLog(): void
+    {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+
+        require_once MODEL_PATH . 'CollectLog.php';
+        $logModel = new XpkCollectLog();
+        $count = $logModel->clean(30);
+        
+        $this->log('清理', '采集日志', "清理了{$count}条记录");
+        $this->success("已清理 {$count} 条日志");
+    }
+
+    /**
+     * 过滤播放源，只保留系统中已配置的播放器
+     * 
+     * @param string $playFrom 播放源标识，多个用$$$分隔
+     * @param string $playUrl 播放地址，多个用$$$分隔
+     * @return array ['from' => string, 'url' => string]
+     */
+    private function filterPlaySources(string $playFrom, string $playUrl): array
+    {
+        if (empty($playFrom) || empty($playUrl)) {
+            return ['from' => '', 'url' => ''];
+        }
+
+        // 获取系统中启用的播放器标识
+        $enabledCodes = $this->playerModel->getEnabledCodes();
+        
+        // 如果没有配置任何播放器，则不过滤（兼容未配置播放器的情况）
+        if (empty($enabledCodes)) {
+            return ['from' => $playFrom, 'url' => $playUrl];
+        }
+
+        $fromArr = explode('$$$', $playFrom);
+        $urlArr = explode('$$$', $playUrl);
+        
+        $filteredFrom = [];
+        $filteredUrl = [];
+        
+        foreach ($fromArr as $index => $from) {
+            $from = trim($from);
+            if (empty($from)) continue;
+            
+            // 检查播放器是否在启用列表中
+            if (in_array($from, $enabledCodes)) {
+                $filteredFrom[] = $from;
+                $filteredUrl[] = $urlArr[$index] ?? '';
+            }
+        }
+        
+        return [
+            'from' => implode('$$$', $filteredFrom),
+            'url' => implode('$$$', $filteredUrl)
+        ];
     }
 }

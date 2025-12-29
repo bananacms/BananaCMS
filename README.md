@@ -1,5 +1,9 @@
 # 🍌 BananaCMS
 
+<div align="right">
+  <a href="README.en.md">English</a> | <strong>中文</strong>
+</div>
+
 轻量级影视内容管理系统，原生 PHP 开发，无框架依赖，开箱即用。
 
 ## ✨ 特性
@@ -104,13 +108,7 @@
 0 * * * * php /www/site/cron.php collect --hours=6
 ```
 
-### 常用资源站
-
-| 名称 | API地址 |
-|------|---------|
-| 红牛资源 | https://www.hongniuzy2.com/api.php/provide/vod/ |
-| 光速资源 | https://api.guangsuapi.com/api.php/provide/vod/ |
-| 量子资源 | https://cj.lziapi.com/api.php/provide/vod/ |
+### 资源站合作
 
 > 📢 资源站合作内置联系 Telegram: [@ddys_io](https://t.me/ddys_io)
 
@@ -284,4 +282,4 @@ MIT License
 
 **BananaCMS** - 比苹果更轻量 🍌
 
-Powered by [XPornKit](https://xpornkit.com)
+Powered by [XPornKit成人导航](https://xpornkit.com/zh)

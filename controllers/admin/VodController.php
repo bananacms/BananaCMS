@@ -207,13 +207,72 @@ class AdminVodController extends AdminBaseController
     }
 
     /**
+     * 切换锁定状态
+     */
+    public function lock(): void
+    {
+        $id = (int)$this->post('id', 0);
+        
+        if ($id <= 0) {
+            $this->error('参数错误');
+        }
+
+        $vod = $this->vodModel->find($id);
+        if (!$vod) {
+            $this->error('视频不存在');
+        }
+
+        $newLock = $vod['vod_lock'] ? 0 : 1;
+        $this->vodModel->update($id, ['vod_lock' => $newLock]);
+        
+        $this->log($newLock ? '锁定' : '解锁', '视频', "ID:{$id} {$vod['vod_name']}");
+        $this->success($newLock ? '已锁定，采集时将跳过此视频' : '已解锁');
+    }
+
+    /**
+     * 批量锁定/解锁
+     */
+    public function batchLock(): void
+    {
+        $ids = $_POST['ids'] ?? [];
+        $lock = (int)$this->post('lock', 1);
+        
+        if (empty($ids) || !is_array($ids)) {
+            $this->error('请选择视频');
+        }
+
+        $db = XpkDatabase::getInstance();
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $db->execute(
+            "UPDATE " . DB_PREFIX . "vod SET vod_lock = ? WHERE vod_id IN ({$placeholders})",
+            array_merge([$lock], array_map('intval', $ids))
+        );
+
+        $this->log($lock ? '批量锁定' : '批量解锁', '视频', "IDs:" . implode(',', $ids));
+        $this->success($lock ? '已锁定' : '已解锁');
+    }
+
+    /**
      * 获取表单数据
      */
     private function getFormData(): array
     {
+        $typeId = (int)$this->post('vod_type_id', 0);
+        $topLevelId = $typeId > 0 ? $this->typeModel->getTopLevelId($typeId) : 0;
+        
+        // 自动生成首字母
+        $vodName = trim($this->post('vod_name', ''));
+        $firstLetter = '';
+        if (!empty($vodName)) {
+            require_once CORE_PATH . 'Pinyin.php';
+            $pinyin = new XpkPinyin();
+            $firstLetter = $pinyin->getFirstLetter(mb_substr($vodName, 0, 1, 'UTF-8'));
+        }
+        
         return [
-            'vod_type_id' => (int)$this->post('vod_type_id', 0),
-            'vod_name' => trim($this->post('vod_name', '')),
+            'vod_type_id' => $typeId,
+            'vod_type_id_1' => $topLevelId,
+            'vod_name' => $vodName,
             'vod_sub' => trim($this->post('vod_sub', '')),
             'vod_en' => trim($this->post('vod_en', '')),
             'vod_slug' => trim($this->post('vod_slug', '')),
@@ -223,12 +282,24 @@ class AdminVodController extends AdminBaseController
             'vod_year' => trim($this->post('vod_year', '')),
             'vod_area' => trim($this->post('vod_area', '')),
             'vod_lang' => trim($this->post('vod_lang', '')),
+            'vod_letter' => strtoupper($firstLetter),
+            'vod_tag' => trim($this->post('vod_tag', '')),
+            'vod_class' => trim($this->post('vod_class', '')),
+            'vod_isend' => (int)$this->post('vod_isend', 0),
+            'vod_serial' => trim($this->post('vod_serial', '')),
+            'vod_total' => (int)$this->post('vod_total', 0),
+            'vod_weekday' => trim($this->post('vod_weekday', '')),
+            'vod_state' => trim($this->post('vod_state', '')),
+            'vod_version' => trim($this->post('vod_version', '')),
             'vod_score' => (float)$this->post('vod_score', 0),
             'vod_remarks' => trim($this->post('vod_remarks', '')),
             'vod_content' => trim($this->post('vod_content', '')),
             'vod_play_from' => trim($this->post('vod_play_from', '')),
             'vod_play_url' => trim($this->post('vod_play_url', '')),
+            'vod_down_from' => trim($this->post('vod_down_from', '')),
+            'vod_down_url' => trim($this->post('vod_down_url', '')),
             'vod_status' => (int)$this->post('vod_status', 1),
+            'vod_lock' => (int)$this->post('vod_lock', 0),
         ];
     }
 }

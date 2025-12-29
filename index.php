@@ -41,6 +41,7 @@ require_once MODEL_PATH . 'Actor.php';
 require_once MODEL_PATH . 'Art.php';
 require_once MODEL_PATH . 'User.php';
 require_once MODEL_PATH . 'Stats.php';
+require_once MODEL_PATH . 'Page.php';
 
 // 加载控制器
 require_once CTRL_PATH . 'BaseController.php';
@@ -124,11 +125,18 @@ $router->get('article/{slug}.html', fn($slug) => (new ArtController())->detailBy
 $router->get('hot', fn() => (new VodController())->hot());
 $router->get('hot/page/{page}', fn($page) => (new VodController())->hot((int)$page));
 
+// 一级分类筛选
+$router->get('vod/top-type/{id}', fn($id) => (new VodController())->topType((int)$id));
+$router->get('vod/top-type/{id}/page/{page}', fn($id, $page) => (new VodController())->topType((int)$id, (int)$page));
+
 // 搜索
 $router->get('search', fn() => (new SearchController())->index());
 $router->get('search/page/{page}', fn($page) => (new SearchController())->index((int)$page));
 $router->get('search/{keyword}', fn($keyword) => (new SearchController())->index(1, $keyword));
 $router->get('search/{keyword}/page/{page}', fn($keyword, $page) => (new SearchController())->index((int)$page, $keyword));
+
+// 搜索建议API
+$router->get('api/search/suggest', fn() => (new SearchController())->suggest());
 
 // 用户
 $router->get('user/login', fn() => (new UserController())->login());

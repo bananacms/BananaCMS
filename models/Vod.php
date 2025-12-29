@@ -211,6 +211,92 @@ class XpkVod extends XpkModel
     }
 
     /**
+     * 解析播放列表
+     * 将 vod_play_from 和 vod_play_url 解析成结构化数据
+     * 
+     * @param string $playFrom 播放源，多个用$$$分隔
+     * @param string $playUrl 播放地址，多个用$$$分隔，每个源内集数用#分隔，集名和地址用$分隔
+     * @return array 结构化的播放列表
+     */
+    public static function parsePlayList(string $playFrom, string $playUrl): array
+    {
+        if (empty($playFrom) || empty($playUrl)) {
+            return [];
+        }
+
+        $fromArr = explode('$$$', $playFrom);
+        $urlArr = explode('$$$', $playUrl);
+        
+        $playList = [];
+        
+        foreach ($fromArr as $index => $from) {
+            $from = trim($from);
+            if (empty($from)) continue;
+            
+            $urls = $urlArr[$index] ?? '';
+            $episodes = [];
+            
+            if (!empty($urls)) {
+                $items = explode('#', $urls);
+                $episodeNum = 1;
+                
+                foreach ($items as $item) {
+                    $item = trim($item);
+                    if (empty($item)) continue;
+                    
+                    if (strpos($item, '$') !== false) {
+                        [$name, $url] = explode('$', $item, 2);
+                    } else {
+                        $name = '第' . $episodeNum . '集';
+                        $url = $item;
+                    }
+                    
+                    $episodes[] = [
+                        'name' => trim($name),
+                        'url' => trim($url),
+                        'nid' => $episodeNum
+                    ];
+                    $episodeNum++;
+                }
+            }
+            
+            if (!empty($episodes)) {
+                $playList[] = [
+                    'from' => $from,
+                    'sid' => $index + 1,
+                    'episodes' => $episodes,
+                    'count' => count($episodes)
+                ];
+            }
+        }
+        
+        return $playList;
+    }
+
+    /**
+     * 获取视频详情（包含解析后的播放列表）
+     */
+    public function getDetailWithPlayList(int $id): ?array
+    {
+        $vod = $this->getDetail($id);
+        if (!$vod) return null;
+        
+        // 解析播放列表
+        $vod['play_list'] = self::parsePlayList(
+            $vod['vod_play_from'] ?? '',
+            $vod['vod_play_url'] ?? ''
+        );
+        
+        // 解析下载列表
+        $vod['down_list'] = self::parsePlayList(
+            $vod['vod_down_from'] ?? '',
+            $vod['vod_down_url'] ?? ''
+        );
+        
+        return $vod;
+    }
+
+    /**
      * 按分类获取视频（包含子分类）
      */
     public function getByType(int $typeId, int $page = 1, int $pageSize = 20): array
@@ -254,5 +340,83 @@ class XpkVod extends XpkModel
             "SELECT * FROM {$this->table} WHERE vod_status = 1 AND vod_actor LIKE ? ORDER BY vod_time DESC LIMIT ?",
             [$keyword, $num]
         );
+    }
+
+    /**
+     * 按一级分类获取视频（分页）
+     */
+    public function getByTopLevelType(int $topLevelTypeId, int $page = 1, int $pageSize = 20): array
+    {
+        $offset = ($page - 1) * $pageSize;
+        
+        $sql = "SELECT * FROM {$this->table} 
+                WHERE vod_status = 1 AND vod_type_id_1 = ?
+                ORDER BY vod_time DESC LIMIT {$pageSize} OFFSET {$offset}";
+        
+        $countSql = "SELECT COUNT(*) as total FROM {$this->table} 
+                     WHERE vod_status = 1 AND vod_type_id_1 = ?";
+        
+        $list = $this->db->query($sql, [$topLevelTypeId]);
+        $total = $this->db->queryOne($countSql, [$topLevelTypeId])['total'] ?? 0;
+        
+        return [
+            'list' => $list,
+            'total' => (int)$total,
+            'page' => $page,
+            'pageSize' => $pageSize,
+            'totalPages' => ceil($total / $pageSize),
+        ];
+    }
+
+    /**
+     * 按首字母筛选视频
+     */
+    public function getByLetter(string $letter, int $page = 1, int $pageSize = 20): array
+    {
+        $offset = ($page - 1) * $pageSize;
+        
+        $sql = "SELECT * FROM {$this->table} 
+                WHERE vod_status = 1 AND vod_letter = ?
+                ORDER BY vod_time DESC LIMIT {$pageSize} OFFSET {$offset}";
+        
+        $countSql = "SELECT COUNT(*) as total FROM {$this->table} 
+                     WHERE vod_status = 1 AND vod_letter = ?";
+        
+        $list = $this->db->query($sql, [$letter]);
+        $total = $this->db->queryOne($countSql, [$letter])['total'] ?? 0;
+        
+        return [
+            'list' => $list,
+            'total' => (int)$total,
+            'page' => $page,
+            'pageSize' => $pageSize,
+            'totalPages' => ceil($total / $pageSize),
+        ];
+    }
+
+    /**
+     * 按完结状态筛选视频
+     */
+    public function getByEndStatus(int $isEnd, int $page = 1, int $pageSize = 20): array
+    {
+        $offset = ($page - 1) * $pageSize;
+        
+        $sql = "SELECT * FROM {$this->table} 
+                WHERE vod_status = 1 AND vod_isend = ?
+                ORDER BY vod_time DESC LIMIT {$pageSize} OFFSET {$offset}";
+        
+        $countSql = "SELECT COUNT(*) as total FROM {$this->table} 
+                     WHERE vod_status = 1 AND vod_isend = ?";
+        
+        $list = $this->db->query($sql, [$isEnd]);
+        $total = $this->db->queryOne($countSql, [$isEnd])['total'] ?? 0;
+        
+        return [
+            'list' => $list,
+            'total' => (int)$total,
+            'page' => $page,
+            'pageSize' => $pageSize,
+            'totalPages' => ceil($total / $pageSize),
+        ];
     }
 }

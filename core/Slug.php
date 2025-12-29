@@ -119,3 +119,39 @@ function xpk_slug_unique(string $text, string $table, string $field, int $exclud
 {
     return XpkSlug::unique($text, $table, $field, $excludeId);
 }
+
+/**
+ * 生成唯一slug（带自定义后缀）
+ * 用于分类同步时，使用远程ID作为后缀确保唯一性
+ */
+function xpk_slug_unique_with_suffix(string $baseSlug, string $table, string $field, int $suffix): string
+{
+    $db = XpkDatabase::getInstance();
+    
+    // 先检查基础slug是否存在
+    $result = $db->queryOne(
+        "SELECT COUNT(*) as cnt FROM " . DB_PREFIX . $table . " WHERE {$field} = ?",
+        [$baseSlug]
+    );
+    
+    // 不存在则直接使用
+    if ($result['cnt'] == 0) {
+        return $baseSlug;
+    }
+    
+    // 存在则追加后缀
+    $slug = $baseSlug . '-' . $suffix;
+    
+    // 再次检查带后缀的slug
+    $result = $db->queryOne(
+        "SELECT COUNT(*) as cnt FROM " . DB_PREFIX . $table . " WHERE {$field} = ?",
+        [$slug]
+    );
+    
+    // 如果还是重复，继续追加随机数
+    if ($result['cnt'] > 0) {
+        $slug = $baseSlug . '-' . $suffix . '-' . mt_rand(100, 999);
+    }
+    
+    return $slug;
+}

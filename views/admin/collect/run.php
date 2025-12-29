@@ -1,9 +1,12 @@
 <h1 class="text-2xl font-bold mb-6">执行采集 - <?= htmlspecialchars($collect['collect_name']) ?></h1>
 
 <?php 
-$binds = !empty($collect['collect_bind']) ? json_decode($collect['collect_bind'], true) : [];
-$bindCount = count($binds);
+require_once MODEL_PATH . 'CollectBind.php';
+$bindModel = new XpkCollectBind();
+$binds = $bindModel->getBinds($collect['collect_id']);
+$bindCount = count(array_filter($binds));
 $lastProgress = !empty($collect['collect_progress']) ? json_decode($collect['collect_progress'], true) : null;
+$canResume = $lastProgress && !empty($lastProgress['page']) && $lastProgress['page'] > 1 && empty($lastProgress['done']);
 ?>
 
 <?php if ($bindCount == 0): ?>
@@ -14,6 +17,36 @@ $lastProgress = !empty($collect['collect_progress']) ? json_decode($collect['col
 <?php else: ?>
 <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
     <p class="text-green-800">✅ 已绑定 <?= $bindCount ?> 个分类，可以开始采集</p>
+</div>
+<?php endif; ?>
+
+<?php if ($canResume): ?>
+<div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <p class="text-yellow-800 font-medium">📌 检测到未完成的采集任务</p>
+            <p class="text-yellow-700 text-sm mt-1">
+                上次采集到第 <?= $lastProgress['page'] ?>/<?= $lastProgress['pagecount'] ?? '?' ?> 页
+                <?php if (!empty($lastProgress['time'])): ?>
+                （<?= date('Y-m-d H:i', $lastProgress['time']) ?>）
+                <?php endif; ?>
+                <?php if (!empty($lastProgress['type_id'])): ?>
+                ，分类ID: <?= $lastProgress['type_id'] ?>
+                <?php endif; ?>
+                <?php if (!empty($lastProgress['mode'])): ?>
+                ，模式: <?= $lastProgress['mode'] == 'add' ? '只采新' : ($lastProgress['mode'] == 'update' ? '只更新' : '全部') ?>
+                <?php endif; ?>
+            </p>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="resumeCollect()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded font-bold">
+                ▶️ 继续采集
+            </button>
+            <button onclick="clearProgress()" class="bg-gray-400 hover:bg-gray-500 text-white px-3 py-2 rounded text-sm">
+                清除进度
+            </button>
+        </div>
+    </div>
 </div>
 <?php endif; ?>
 
@@ -29,7 +62,8 @@ $lastProgress = !empty($collect['collect_progress']) ? json_decode($collect['col
                     <option value="0">全部分类</option>
                     <?php foreach ($remoteCategories as $cat): ?>
                     <?php $isBound = isset($binds[$cat['id']]); ?>
-                    <option value="<?= $cat['id'] ?>" <?= !$isBound ? 'disabled' : '' ?>>
+                    <option value="<?= $cat['id'] ?>" <?= !$isBound ? 'disabled' : '' ?>
+                        <?= ($lastProgress['type_id'] ?? 0) == $cat['id'] ? 'selected' : '' ?>>
                         <?= htmlspecialchars($cat['name']) ?><?= !$isBound ? ' (未绑定)' : '' ?>
                     </option>
                     <?php endforeach; ?>
@@ -39,42 +73,36 @@ $lastProgress = !empty($collect['collect_progress']) ? json_decode($collect['col
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">采集模式</label>
                 <select id="mode" class="w-full border rounded px-3 py-2">
-                    <option value="add">只采新数据</option>
-                    <option value="update">只更新已有</option>
-                    <option value="all">全部采集</option>
+                    <option value="add" <?= ($lastProgress['mode'] ?? 'add') == 'add' ? 'selected' : '' ?>>只采新数据</option>
+                    <option value="update" <?= ($lastProgress['mode'] ?? '') == 'update' ? 'selected' : '' ?>>只更新已有</option>
+                    <option value="all" <?= ($lastProgress['mode'] ?? '') == 'all' ? 'selected' : '' ?>>全部采集</option>
                 </select>
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">时间范围</label>
                 <select id="hours" class="w-full border rounded px-3 py-2">
-                    <option value="">不限</option>
-                    <option value="1">1小时内</option>
-                    <option value="6">6小时内</option>
-                    <option value="12">12小时内</option>
-                    <option value="24">24小时内</option>
-                    <option value="72">3天内</option>
-                    <option value="168">7天内</option>
+                    <option value="" <?= empty($lastProgress['hours']) ? 'selected' : '' ?>>不限</option>
+                    <option value="1" <?= ($lastProgress['hours'] ?? '') == '1' ? 'selected' : '' ?>>1小时内</option>
+                    <option value="6" <?= ($lastProgress['hours'] ?? '') == '6' ? 'selected' : '' ?>>6小时内</option>
+                    <option value="12" <?= ($lastProgress['hours'] ?? '') == '12' ? 'selected' : '' ?>>12小时内</option>
+                    <option value="24" <?= ($lastProgress['hours'] ?? '') == '24' ? 'selected' : '' ?>>24小时内</option>
+                    <option value="72" <?= ($lastProgress['hours'] ?? '') == '72' ? 'selected' : '' ?>>3天内</option>
+                    <option value="168" <?= ($lastProgress['hours'] ?? '') == '168' ? 'selected' : '' ?>>7天内</option>
                 </select>
             </div>
 
             <div>
                 <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" id="downloadPic" class="w-4 h-4 rounded">
+                    <input type="checkbox" id="downloadPic" class="w-4 h-4 rounded" <?= !empty($lastProgress['download_pic']) ? 'checked' : '' ?>>
                     <span class="text-sm font-medium text-gray-700">下载图片到本地</span>
                 </label>
                 <p class="text-xs text-gray-500 mt-1">勾选后会下载海报图片到服务器，速度较慢</p>
             </div>
 
             <button onclick="startCollect()" id="startBtn" class="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded font-bold <?= $bindCount == 0 ? 'opacity-50 cursor-not-allowed' : '' ?>" <?= $bindCount == 0 ? 'disabled' : '' ?>>
-                🚀 开始采集
+                🚀 从头开始采集
             </button>
-
-            <?php if ($lastProgress && $lastProgress['page'] > 1 && !$lastProgress['done']): ?>
-            <button onclick="resumeCollect()" id="resumeBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-bold">
-                ▶️ 继续采集 (从第 <?= $lastProgress['page'] ?> 页)
-            </button>
-            <?php endif; ?>
             
             <button onclick="stopCollect()" id="stopBtn" class="w-full bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded font-bold hidden">
                 ⏹ 停止采集
@@ -96,7 +124,7 @@ $lastProgress = !empty($collect['collect_progress']) ? json_decode($collect['col
             </div>
         </div>
 
-        <div class="grid grid-cols-4 gap-4 mb-4">
+        <div class="grid grid-cols-5 gap-3 mb-4">
             <div class="bg-blue-50 rounded p-3 text-center">
                 <p class="text-2xl font-bold text-blue-600" id="statPage">0</p>
                 <p class="text-xs text-gray-500">当前页</p>
@@ -108,6 +136,10 @@ $lastProgress = !empty($collect['collect_progress']) ? json_decode($collect['col
             <div class="bg-orange-50 rounded p-3 text-center">
                 <p class="text-2xl font-bold text-orange-600" id="statUpdated">0</p>
                 <p class="text-xs text-gray-500">更新</p>
+            </div>
+            <div class="bg-gray-50 rounded p-3 text-center">
+                <p class="text-2xl font-bold text-gray-600" id="statSkipped">0</p>
+                <p class="text-xs text-gray-500">跳过</p>
             </div>
             <div class="bg-purple-50 rounded p-3 text-center">
                 <p class="text-2xl font-bold text-purple-600" id="statEta">--</p>
@@ -125,10 +157,14 @@ $lastProgress = !empty($collect['collect_progress']) ? json_decode($collect['col
 let collecting = false;
 let totalAdded = 0;
 let totalUpdated = 0;
+let totalSkipped = 0;
 let startTime = 0;
 let startPage = 1;
 let totalPages = 0;
 let abortController = null;
+let currentLogId = 0;
+
+const lastProgress = <?= json_encode($lastProgress) ?>;
 
 function log(msg, type = 'info') {
     const box = document.getElementById('logBox');
@@ -167,25 +203,68 @@ function startCollect() {
 }
 
 function resumeCollect() {
-    const lastPage = <?= $lastProgress['page'] ?? 1 ?>;
-    beginCollect(lastPage);
+    if (!lastProgress || !lastProgress.page) {
+        startCollect();
+        return;
+    }
+    
+    // 恢复上次的设置
+    if (lastProgress.type_id) document.getElementById('typeId').value = lastProgress.type_id;
+    if (lastProgress.mode) document.getElementById('mode').value = lastProgress.mode;
+    if (lastProgress.hours) document.getElementById('hours').value = lastProgress.hours;
+    if (lastProgress.download_pic) document.getElementById('downloadPic').checked = true;
+    
+    // 恢复统计数据
+    totalAdded = lastProgress.total_added || 0;
+    totalUpdated = lastProgress.total_updated || 0;
+    totalSkipped = lastProgress.total_skipped || 0;
+    
+    beginCollect(lastProgress.page);
+}
+
+function clearProgress() {
+    xpkConfirm('确定要清除采集进度吗？', function() {
+        fetch('/admin.php/collect/clearProgress', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'id=<?= $collect['collect_id'] ?>'
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.code === 0) {
+                xpkToast('进度已清除', 'success');
+                location.reload();
+            } else {
+                xpkToast(data.msg, 'error');
+            }
+        });
+    });
 }
 
 function beginCollect(fromPage) {
     if (collecting) return;
     collecting = true;
-    totalAdded = 0;
-    totalUpdated = 0;
+    
+    if (fromPage === 1) {
+        totalAdded = 0;
+        totalUpdated = 0;
+        totalSkipped = 0;
+        currentLogId = 0;
+    } else {
+        currentLogId = lastProgress?.log_id || 0;
+    }
+    
     startTime = Date.now();
     startPage = fromPage;
-    totalPages = 0;
+    totalPages = lastProgress?.pagecount || 0;
     
     document.getElementById('startBtn').classList.add('hidden');
-    const resumeBtn = document.getElementById('resumeBtn');
-    if (resumeBtn) resumeBtn.classList.add('hidden');
     document.getElementById('stopBtn').classList.remove('hidden');
     document.getElementById('logBox').innerHTML = '';
     document.getElementById('statEta').textContent = '计算中...';
+    document.getElementById('statAdded').textContent = totalAdded;
+    document.getElementById('statUpdated').textContent = totalUpdated;
+    document.getElementById('statSkipped').textContent = totalSkipped;
     
     log(fromPage > 1 ? `从第 ${fromPage} 页继续采集...` : '开始采集...', 'info');
     doCollect(fromPage);
@@ -193,23 +272,19 @@ function beginCollect(fromPage) {
 
 function stopCollect() {
     collecting = false;
-    // 中断正在进行的请求
     if (abortController) {
         abortController.abort();
         abortController = null;
     }
     document.getElementById('startBtn').classList.remove('hidden');
-    const resumeBtn = document.getElementById('resumeBtn');
-    if (resumeBtn) resumeBtn.classList.remove('hidden');
     document.getElementById('stopBtn').classList.add('hidden');
     document.getElementById('statEta').textContent = '--';
-    log('采集已停止', 'warning');
+    log('采集已停止，可点击"继续采集"恢复', 'warning');
 }
 
 function doCollect(page) {
     if (!collecting) return;
     
-    // 创建新的 AbortController
     abortController = new AbortController();
     
     const data = new URLSearchParams({
@@ -218,7 +293,11 @@ function doCollect(page) {
         type_id: document.getElementById('typeId').value,
         mode: document.getElementById('mode').value,
         hours: document.getElementById('hours').value,
-        download_pic: document.getElementById('downloadPic').checked ? 1 : 0
+        download_pic: document.getElementById('downloadPic').checked ? 1 : 0,
+        total_added: totalAdded,
+        total_updated: totalUpdated,
+        total_skipped: totalSkipped,
+        log_id: currentLogId
     });
     
     fetch('/admin.php/collect/docollect', {
@@ -229,7 +308,7 @@ function doCollect(page) {
     })
     .then(r => r.json())
     .then(res => {
-        if (!collecting) return; // 双重检查
+        if (!collecting) return;
         
         if (res.code !== 0) {
             log(res.msg, 'error');
@@ -240,11 +319,14 @@ function doCollect(page) {
         const d = res.data;
         totalAdded += d.added;
         totalUpdated += d.updated;
+        totalSkipped += d.skipped || 0;
         if (d.pagecount > 0) totalPages = d.pagecount;
+        if (d.log_id) currentLogId = d.log_id;
         
         document.getElementById('statPage').textContent = d.page + '/' + (totalPages || '?');
         document.getElementById('statAdded').textContent = totalAdded;
         document.getElementById('statUpdated').textContent = totalUpdated;
+        document.getElementById('statSkipped').textContent = totalSkipped;
         
         const progress = totalPages > 0 ? Math.round(d.page / totalPages * 100) : 0;
         document.getElementById('progressBar').style.width = progress + '%';
@@ -252,25 +334,21 @@ function doCollect(page) {
         
         updateEta(d.page, totalPages);
         
-        log(`第 ${d.page}/${totalPages || '?'} 页，新增 ${d.added}，更新 ${d.updated}`, 'success');
+        log(`第 ${d.page}/${totalPages || '?'} 页，新增 ${d.added}，更新 ${d.updated}，跳过 ${d.skipped || 0}`, 'success');
         
         if (d.done) {
             const elapsed = formatTime((Date.now() - startTime) / 1000);
-            log(`采集完成！共新增 ${totalAdded}，更新 ${totalUpdated}，耗时 ${elapsed}`, 'success');
+            log(`采集完成！共新增 ${totalAdded}，更新 ${totalUpdated}，跳过 ${totalSkipped}，耗时 ${elapsed}`, 'success');
             document.getElementById('statEta').textContent = '完成';
-            stopCollect();
-            // 移除继续按钮
-            const resumeBtn = document.getElementById('resumeBtn');
-            if (resumeBtn) resumeBtn.remove();
+            collecting = false;
+            document.getElementById('startBtn').classList.remove('hidden');
+            document.getElementById('stopBtn').classList.add('hidden');
         } else {
             setTimeout(() => doCollect(page + 1), 500);
         }
     })
     .catch(err => {
-        if (err.name === 'AbortError') {
-            // 请求被中断，正常情况
-            return;
-        }
+        if (err.name === 'AbortError') return;
         log('请求失败: ' + err, 'error');
         stopCollect();
     });

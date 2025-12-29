@@ -4,13 +4,15 @@
  * Powered by https://xpornkit.com
  * 
  * 使用方法：
- * php cron.php collect           # 采集所有启用的采集站（只采新数据）
- * php cron.php collect --all     # 采集所有（新增+更新）
- * php cron.php collect --hours=24  # 只采24小时内更新的
- * php cron.php collect --id=1    # 只采集指定采集站
+ * php cron.php collect              # 采集所有启用的采集站（只采新数据）
+ * php cron.php collect --all        # 采集所有（新增+更新）
+ * php cron.php collect --hours=24   # 只采24小时内更新的
+ * php cron.php collect --id=1       # 只采集指定采集站
+ * php cron.php collect --type=6     # 只采集指定分类
+ * php cron.php auto                 # 执行自动采集任务（根据后台配置）
  * 
  * 定时任务示例（每小时执行）：
- * 0 * * * * php /www/bananacms/cron.php collect --hours=6 >> /www/bananacms/runtime/cron.log 2>&1
+ * 0 * * * * php /www/bananacms/cron.php auto >> /www/bananacms/runtime/cron.log 2>&1
  */
 
 // 只允许命令行运行
@@ -23,8 +25,12 @@ require_once __DIR__ . '/config/config.php';
 
 // 加载核心
 require_once CORE_PATH . 'Database.php';
+require_once CORE_PATH . 'Slug.php';
 require_once MODEL_PATH . 'Model.php';
 require_once MODEL_PATH . 'Collect.php';
+require_once MODEL_PATH . 'CollectBind.php';
+require_once MODEL_PATH . 'CollectLog.php';
+require_once MODEL_PATH . 'Player.php';
 require_once MODEL_PATH . 'Vod.php';
 require_once MODEL_PATH . 'Type.php';
 
@@ -42,10 +48,47 @@ function clog(string $msg): void {
     echo '[' . date('Y-m-d H:i:s') . '] ' . $msg . PHP_EOL;
 }
 
-// 执行采集
+/**
+ * 过滤播放源
+ */
+function filterPlaySources(string $playFrom, string $playUrl, array $enabledCodes): array {
+    if (empty($playFrom) || empty($playUrl) || empty($enabledCodes)) {
+        return ['from' => $playFrom, 'url' => $playUrl];
+    }
+    
+    $fromArr = explode('$$$', $playFrom);
+    $urlArr = explode('$$$', $playUrl);
+    
+    $filteredFrom = [];
+    $filteredUrl = [];
+    
+    foreach ($fromArr as $index => $from) {
+        $from = trim($from);
+        if (empty($from)) continue;
+        
+        if (in_array($from, $enabledCodes)) {
+            $filteredFrom[] = $from;
+            $filteredUrl[] = $urlArr[$index] ?? '';
+        }
+    }
+    
+    return [
+        'from' => implode('$$$', $filteredFrom),
+        'url' => implode('$$$', $filteredUrl)
+    ];
+}
+
+/**
+ * 执行采集
+ */
 function runCollect(array $options): void {
     $collectModel = new XpkCollect();
+    $bindModel = new XpkCollectBind();
+    $playerModel = new XpkPlayer();
     $db = XpkDatabase::getInstance();
+    
+    // 获取启用的播放器
+    $enabledCodes = $playerModel->getEnabledCodes();
     
     // 获取采集站
     if (!empty($options['id'])) {
@@ -60,29 +103,43 @@ function runCollect(array $options): void {
         return;
     }
     
-    $mode = isset($options['all']) ? 'all' : 'add';
+    $mode = isset($options['all']) ? 'all' : (isset($options['update']) ? 'update' : 'add');
     $hours = $options['hours'] ?? null;
+    $typeId = isset($options['type']) ? (int)$options['type'] : null;
     
     foreach ($collects as $collect) {
         clog("开始采集: {$collect['collect_name']}");
         
-        // 获取绑定关系
-        $binds = [];
-        if (!empty($collect['collect_bind'])) {
-            $binds = json_decode($collect['collect_bind'], true) ?: [];
-        }
+        // 获取绑定关系（使用新模型）
+        $binds = $bindModel->getBinds($collect['collect_id']);
         
         if (empty($binds)) {
             clog("  跳过: 未绑定分类");
             continue;
         }
         
+        // 创建采集日志
+        $logModel = new XpkCollectLog();
+        $logId = $logModel->start($collect['collect_id'], $collect['collect_name'], 'cron', $mode);
+        
+        // 获取采集配置
+        $opts = [
+            'hits_start' => (int)($collect['collect_opt_hits_start'] ?? 0),
+            'hits_end' => (int)($collect['collect_opt_hits_end'] ?? 0),
+            'score_start' => (float)($collect['collect_opt_score_start'] ?? 0),
+            'score_end' => (float)($collect['collect_opt_score_end'] ?? 0),
+            'dup_rule' => $collect['collect_opt_dup_rule'] ?? 'name',
+            'update_fields' => explode(',', $collect['collect_opt_update_fields'] ?? 'remarks,content,play'),
+            'play_merge' => (int)($collect['collect_opt_play_merge'] ?? 0)
+        ];
+        
         $page = 1;
         $totalAdded = 0;
         $totalUpdated = 0;
+        $totalSkipped = 0;
         
         while (true) {
-            $listResult = $collectModel->getVideoList($collect, $page, null, $hours);
+            $listResult = $collectModel->getVideoList($collect, $page, $typeId, $hours);
             
             if (!$listResult || empty($listResult['list'])) {
                 break;
@@ -99,12 +156,16 @@ function runCollect(array $options): void {
             
             $added = 0;
             $updated = 0;
+            $skipped = 0;
             
             foreach ($videos as $video) {
                 $localTypeId = $binds[$video['type_id']] ?? 0;
-                if (!$localTypeId) continue;
+                if (!$localTypeId) {
+                    $skipped++;
+                    continue;
+                }
                 
-                // 过滤
+                // 过滤关键词
                 if (!empty($collect['collect_filter'])) {
                     $skip = false;
                     foreach (explode(',', $collect['collect_filter']) as $filter) {
@@ -113,29 +174,128 @@ function runCollect(array $options): void {
                             break;
                         }
                     }
-                    if ($skip) continue;
+                    if ($skip) {
+                        $skipped++;
+                        continue;
+                    }
                 }
                 
-                // 检查是否存在
-                $exists = $db->queryOne(
-                    "SELECT vod_id FROM " . DB_PREFIX . "vod WHERE vod_name = ? LIMIT 1",
-                    [$video['vod_name']]
-                );
+                // 过滤播放器
+                if (!empty($enabledCodes)) {
+                    $filtered = filterPlaySources($video['vod_play_from'], $video['vod_play_url'], $enabledCodes);
+                    if (empty($filtered['from'])) {
+                        $skipped++;
+                        continue;
+                    }
+                    $video['vod_play_from'] = $filtered['from'];
+                    $video['vod_play_url'] = $filtered['url'];
+                }
+                
+                // 检查是否存在（根据重复规则）
+                $sql = "SELECT vod_id, vod_lock, vod_play_from, vod_play_url FROM " . DB_PREFIX . "vod WHERE vod_name = ?";
+                $params = [$video['vod_name']];
+                
+                switch ($opts['dup_rule']) {
+                    case 'name_type':
+                        $sql .= " AND vod_type_id = ?";
+                        $params[] = $localTypeId;
+                        break;
+                    case 'name_year':
+                        $sql .= " AND vod_year = ?";
+                        $params[] = $video['vod_year'];
+                        break;
+                    case 'name_type_year':
+                        $sql .= " AND vod_type_id = ? AND vod_year = ?";
+                        $params[] = $localTypeId;
+                        $params[] = $video['vod_year'];
+                        break;
+                }
+                
+                $exists = $db->queryOne($sql . " LIMIT 1", $params);
                 
                 if ($exists) {
-                    if ($mode === 'add') continue;
+                    if ($mode === 'add') {
+                        $skipped++;
+                        continue;
+                    }
                     
-                    $db->execute(
-                        "UPDATE " . DB_PREFIX . "vod SET vod_remarks = ?, vod_play_from = ?, vod_play_url = ?, vod_time = ? WHERE vod_id = ?",
-                        [$video['vod_remarks'], $video['vod_play_from'], $video['vod_play_url'], time(), $exists['vod_id']]
-                    );
-                    $updated++;
+                    // 检查锁定
+                    if (!empty($exists['vod_lock'])) {
+                        $skipped++;
+                        continue;
+                    }
+                    
+                    // 更新
+                    $updateData = [];
+                    $allowedFields = $opts['update_fields'];
+                    
+                    if (in_array('remarks', $allowedFields)) {
+                        $updateData['vod_remarks'] = $video['vod_remarks'];
+                    }
+                    if (in_array('content', $allowedFields)) {
+                        $updateData['vod_content'] = $video['vod_content'];
+                    }
+                    if (in_array('play', $allowedFields)) {
+                        if ($opts['play_merge']) {
+                            // 合并播放地址
+                            $oldFrom = explode('$$$', $exists['vod_play_from']);
+                            $oldUrl = explode('$$$', $exists['vod_play_url']);
+                            $newFrom = explode('$$$', $video['vod_play_from']);
+                            $newUrl = explode('$$$', $video['vod_play_url']);
+                            
+                            $merged = [];
+                            foreach ($oldFrom as $i => $f) {
+                                if ($f) $merged[$f] = $oldUrl[$i] ?? '';
+                            }
+                            foreach ($newFrom as $i => $f) {
+                                if ($f) $merged[$f] = $newUrl[$i] ?? '';
+                            }
+                            
+                            $updateData['vod_play_from'] = implode('$$$', array_keys($merged));
+                            $updateData['vod_play_url'] = implode('$$$', array_values($merged));
+                        } else {
+                            $updateData['vod_play_from'] = $video['vod_play_from'];
+                            $updateData['vod_play_url'] = $video['vod_play_url'];
+                        }
+                    }
+                    
+                    if (!empty($updateData)) {
+                        $updateData['vod_time'] = time();
+                        $sets = [];
+                        $vals = [];
+                        foreach ($updateData as $k => $v) {
+                            $sets[] = "{$k} = ?";
+                            $vals[] = $v;
+                        }
+                        $vals[] = $exists['vod_id'];
+                        $db->execute("UPDATE " . DB_PREFIX . "vod SET " . implode(', ', $sets) . " WHERE vod_id = ?", $vals);
+                        $updated++;
+                    }
                 } else {
-                    if ($mode === 'update') continue;
+                    if ($mode === 'update') {
+                        $skipped++;
+                        continue;
+                    }
+                    
+                    // 生成随机数据
+                    $hits = 0;
+                    if ($opts['hits_start'] > 0 && $opts['hits_end'] > 0) {
+                        $hits = rand(min($opts['hits_start'], $opts['hits_end']), max($opts['hits_start'], $opts['hits_end']));
+                    }
+                    
+                    $score = $video['vod_score'];
+                    if ($opts['score_start'] > 0 && $opts['score_end'] > 0) {
+                        $min = min($opts['score_start'], $opts['score_end']);
+                        $max = max($opts['score_start'], $opts['score_end']);
+                        $score = round($min + mt_rand() / mt_getrandmax() * ($max - $min), 1);
+                    }
+                    
+                    // 生成slug
+                    $slug = xpk_slug_unique($video['vod_name'], 'vod', 'vod_slug');
                     
                     $db->execute(
-                        "INSERT INTO " . DB_PREFIX . "vod (vod_type_id, vod_name, vod_sub, vod_en, vod_pic, vod_actor, vod_director, vod_year, vod_area, vod_lang, vod_score, vod_remarks, vod_content, vod_play_from, vod_play_url, vod_status, vod_time, vod_time_add) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)",
-                        [$localTypeId, $video['vod_name'], $video['vod_sub'], $video['vod_en'], $video['vod_pic'], $video['vod_actor'], $video['vod_director'], $video['vod_year'], $video['vod_area'], $video['vod_lang'], $video['vod_score'], $video['vod_remarks'], $video['vod_content'], $video['vod_play_from'], $video['vod_play_url'], time(), time()]
+                        "INSERT INTO " . DB_PREFIX . "vod (vod_type_id, vod_name, vod_sub, vod_en, vod_slug, vod_pic, vod_actor, vod_director, vod_year, vod_area, vod_lang, vod_score, vod_hits, vod_remarks, vod_content, vod_play_from, vod_play_url, vod_status, vod_time, vod_time_add) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)",
+                        [$localTypeId, $video['vod_name'], $video['vod_sub'], $video['vod_en'], $slug, $video['vod_pic'], $video['vod_actor'], $video['vod_director'], $video['vod_year'], $video['vod_area'], $video['vod_lang'], $score, $hits, $video['vod_remarks'], $video['vod_content'], $video['vod_play_from'], $video['vod_play_url'], time(), time()]
                     );
                     $added++;
                 }
@@ -143,7 +303,8 @@ function runCollect(array $options): void {
             
             $totalAdded += $added;
             $totalUpdated += $updated;
-            clog("  第{$page}/{$listResult['pagecount']}页: 新增{$added} 更新{$updated}");
+            $totalSkipped += $skipped;
+            clog("  第{$page}/{$listResult['pagecount']}页: 新增{$added} 更新{$updated} 跳过{$skipped}");
             
             if ($page >= $listResult['pagecount']) {
                 break;
@@ -152,10 +313,75 @@ function runCollect(array $options): void {
             usleep(500000); // 0.5秒延迟
         }
         
-        clog("  完成: 共新增{$totalAdded} 更新{$totalUpdated}");
+        clog("  完成: 共新增{$totalAdded} 更新{$totalUpdated} 跳过{$totalSkipped}");
+        
+        // 完成采集日志
+        $logModel->finish($logId, $page - 1, $totalAdded, $totalUpdated, $totalSkipped);
     }
     
     clog('采集任务结束');
+}
+
+/**
+ * 执行自动采集（根据后台配置）
+ */
+function runAuto(): void {
+    $db = XpkDatabase::getInstance();
+    
+    // 获取自动采集配置
+    $config = $db->queryOne("SELECT config_value FROM " . DB_PREFIX . "config WHERE config_name = 'cron_collect'");
+    
+    if (!$config || empty($config['config_value'])) {
+        clog('未配置自动采集任务');
+        return;
+    }
+    
+    $settings = json_decode($config['config_value'], true);
+    
+    if (empty($settings['enabled'])) {
+        clog('自动采集已禁用');
+        return;
+    }
+    
+    // 检查执行间隔
+    $lastRun = $db->queryOne("SELECT config_value FROM " . DB_PREFIX . "config WHERE config_name = 'cron_last_run'");
+    $lastTime = $lastRun ? (int)$lastRun['config_value'] : 0;
+    $interval = (int)($settings['interval'] ?? 60) * 60; // 转换为秒
+    
+    if (time() - $lastTime < $interval) {
+        clog('未到执行时间，跳过');
+        return;
+    }
+    
+    // 更新最后执行时间
+    if ($lastRun) {
+        $db->execute("UPDATE " . DB_PREFIX . "config SET config_value = ? WHERE config_name = 'cron_last_run'", [time()]);
+    } else {
+        $db->execute("INSERT INTO " . DB_PREFIX . "config (config_name, config_value) VALUES ('cron_last_run', ?)", [time()]);
+    }
+    
+    // 构建采集参数
+    $options = [];
+    
+    if (!empty($settings['mode'])) {
+        if ($settings['mode'] === 'all') $options['all'] = true;
+        if ($settings['mode'] === 'update') $options['update'] = true;
+    }
+    
+    if (!empty($settings['hours'])) {
+        $options['hours'] = $settings['hours'];
+    }
+    
+    if (!empty($settings['collect_ids'])) {
+        // 逐个采集指定的采集站
+        foreach ($settings['collect_ids'] as $id) {
+            $options['id'] = $id;
+            runCollect($options);
+        }
+    } else {
+        // 采集所有启用的采集站
+        runCollect($options);
+    }
 }
 
 // 主逻辑
@@ -163,12 +389,18 @@ switch ($action) {
     case 'collect':
         runCollect($options);
         break;
+    case 'auto':
+        runAuto();
+        break;
     default:
         echo "香蕉CMS 定时任务\n";
         echo "用法:\n";
-        echo "  php cron.php collect           采集所有启用的采集站\n";
-        echo "  php cron.php collect --all     采集全部（新增+更新）\n";
-        echo "  php cron.php collect --hours=24  只采24小时内更新的\n";
-        echo "  php cron.php collect --id=1    只采集指定采集站\n";
+        echo "  php cron.php collect              采集所有启用的采集站\n";
+        echo "  php cron.php collect --all        采集全部（新增+更新）\n";
+        echo "  php cron.php collect --update     只更新已有视频\n";
+        echo "  php cron.php collect --hours=24   只采24小时内更新的\n";
+        echo "  php cron.php collect --id=1       只采集指定采集站\n";
+        echo "  php cron.php collect --type=6     只采集指定分类\n";
+        echo "  php cron.php auto                 执行自动采集（根据后台配置）\n";
         break;
 }

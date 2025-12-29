@@ -86,6 +86,8 @@ $router->get('admin.php/vod/edit/{id}', fn($id) => (new AdminVodController())->e
 $router->post('admin.php/vod/edit/{id}', fn($id) => (new AdminVodController())->doEdit((int)$id));
 $router->post('admin.php/vod/delete', fn() => (new AdminVodController())->delete());
 $router->post('admin.php/vod/status', fn() => (new AdminVodController())->status());
+$router->post('admin.php/vod/lock', fn() => (new AdminVodController())->lock());
+$router->post('admin.php/vod/batchLock', fn() => (new AdminVodController())->batchLock());
 
 // 分类管理
 $router->get('admin.php/type', fn() => (new AdminTypeController())->index());
@@ -144,20 +146,47 @@ $router->post('admin.php/collect/edit/{id}', fn($id) => (new AdminCollectControl
 $router->post('admin.php/collect/delete', fn() => (new AdminCollectController())->delete());
 $router->get('admin.php/collect/bind/{id}', fn($id) => (new AdminCollectController())->bind((int)$id));
 $router->post('admin.php/collect/savebind/{id}', fn($id) => (new AdminCollectController())->saveBind((int)$id));
+$router->post('admin.php/collect/copyBind', fn() => (new AdminCollectController())->copyBind());
 $router->post('admin.php/collect/syncCategories', fn() => (new AdminCollectController())->syncCategories());
 $router->get('admin.php/collect/run/{id}', fn($id) => (new AdminCollectController())->run((int)$id));
 $router->post('admin.php/collect/docollect', fn() => (new AdminCollectController())->doCollect());
 $router->post('admin.php/collect/test', fn() => (new AdminCollectController())->test());
+$router->post('admin.php/collect/clearProgress', fn() => (new AdminCollectController())->clearProgress());
+$router->get('admin.php/collect/cron', fn() => (new AdminCollectController())->cron());
+$router->post('admin.php/collect/saveCron', fn() => (new AdminCollectController())->saveCron());
+$router->post('admin.php/collect/runCron', fn() => (new AdminCollectController())->runCron());
+$router->get('admin.php/collect/log', fn() => (new AdminCollectController())->log());
+$router->post('admin.php/collect/cleanLog', fn() => (new AdminCollectController())->cleanLog());
 
 // 操作日志
 $router->get('admin.php/log', fn() => (new AdminLogController())->index());
 $router->post('admin.php/log/clean', fn() => (new AdminLogController())->clean());
 
+// 搜索管理
+require_once CTRL_PATH . 'admin/SearchController.php';
+$router->get('admin.php/search', fn() => (new AdminSearchController())->index());
+$router->get('admin.php/search/log', fn() => (new AdminSearchController())->log());
+$router->post('admin.php/search/cleanLog', fn() => (new AdminSearchController())->cleanLog());
+
+// 播放器管理
+require_once CTRL_PATH . 'admin/PlayerController.php';
+$router->get('admin.php/player', fn() => (new AdminPlayerController())->index());
+$router->get('admin.php/player/add', fn() => (new AdminPlayerController())->add());
+$router->post('admin.php/player/add', fn() => (new AdminPlayerController())->doAdd());
+$router->get('admin.php/player/edit/{id}', fn($id) => (new AdminPlayerController())->edit((int)$id));
+$router->post('admin.php/player/edit/{id}', fn($id) => (new AdminPlayerController())->doEdit((int)$id));
+$router->post('admin.php/player/delete', fn() => (new AdminPlayerController())->delete());
+$router->post('admin.php/player/toggle', fn() => (new AdminPlayerController())->toggle());
+
 // 单页管理
 require_once CTRL_PATH . 'admin/PageController.php';
 $router->get('admin.php/page', fn() => (new AdminPageController())->index());
-$router->get('admin.php/page/edit/{key}', fn($key) => (new AdminPageController())->edit($key));
-$router->post('admin.php/page/save', fn() => (new AdminPageController())->save());
+$router->get('admin.php/page/add', fn() => (new AdminPageController())->add());
+$router->post('admin.php/page/add', fn() => (new AdminPageController())->doAdd());
+$router->get('admin.php/page/edit/{id}', fn($id) => (new AdminPageController())->edit((int)$id));
+$router->post('admin.php/page/edit/{id}', fn($id) => (new AdminPageController())->doEdit((int)$id));
+$router->post('admin.php/page/delete', fn() => (new AdminPageController())->delete());
+$router->post('admin.php/page/init', fn() => (new AdminPageController())->init());
 
 // 友链管理
 require_once CTRL_PATH . 'admin/LinkController.php';

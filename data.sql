@@ -62,6 +62,7 @@ DROP TABLE IF EXISTS `xpk_vod`;
 CREATE TABLE `xpk_vod` (
   `vod_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `vod_type_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '分类ID',
+  `vod_type_id_1` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '一级分类ID',
   `vod_name` varchar(255) NOT NULL DEFAULT '' COMMENT '名称',
   `vod_sub` varchar(255) NOT NULL DEFAULT '' COMMENT '副标题',
   `vod_en` varchar(255) NOT NULL DEFAULT '' COMMENT '英文名',
@@ -74,6 +75,15 @@ CREATE TABLE `xpk_vod` (
   `vod_year` varchar(10) NOT NULL DEFAULT '' COMMENT '年份',
   `vod_area` varchar(50) NOT NULL DEFAULT '' COMMENT '地区',
   `vod_lang` varchar(50) NOT NULL DEFAULT '' COMMENT '语言',
+  `vod_letter` varchar(1) NOT NULL DEFAULT '' COMMENT '首字母',
+  `vod_tag` varchar(255) NOT NULL DEFAULT '' COMMENT '标签',
+  `vod_class` varchar(255) NOT NULL DEFAULT '' COMMENT '扩展分类',
+  `vod_isend` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否完结:0连载,1完结',
+  `vod_serial` varchar(20) NOT NULL DEFAULT '' COMMENT '连载集数',
+  `vod_total` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '总集数',
+  `vod_weekday` varchar(10) NOT NULL DEFAULT '' COMMENT '更新日',
+  `vod_state` varchar(50) NOT NULL DEFAULT '' COMMENT '资源状态',
+  `vod_version` varchar(50) NOT NULL DEFAULT '' COMMENT '版本',
   `vod_score` decimal(3,1) NOT NULL DEFAULT 0.0 COMMENT '评分',
   `vod_hits` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '点击量',
   `vod_hits_day` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '日点击',
@@ -88,11 +98,15 @@ CREATE TABLE `xpk_vod` (
   `vod_down_from` varchar(255) NOT NULL DEFAULT '' COMMENT '下载来源',
   `vod_down_url` text COMMENT '下载地址',
   `vod_status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态',
+  `vod_lock` tinyint(1) NOT NULL DEFAULT 0 COMMENT '锁定:0未锁,1已锁',
   `vod_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '更新时间',
   `vod_time_add` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '添加时间',
   PRIMARY KEY (`vod_id`),
   UNIQUE KEY `vod_slug` (`vod_slug`),
   KEY `vod_type_id` (`vod_type_id`),
+  KEY `vod_type_id_1` (`vod_type_id_1`),
+  KEY `vod_letter` (`vod_letter`),
+  KEY `vod_isend` (`vod_isend`),
   KEY `vod_time` (`vod_time`),
   KEY `vod_hits` (`vod_hits`),
   KEY `vod_status` (`vod_status`),
@@ -201,10 +215,52 @@ CREATE TABLE `xpk_collect` (
   `collect_status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态',
   `collect_filter` varchar(500) NOT NULL DEFAULT '' COMMENT '过滤关键词',
   `collect_param` varchar(255) NOT NULL DEFAULT '' COMMENT '附加参数',
-  `collect_bind` text COMMENT '分类绑定JSON',
   `collect_progress` text COMMENT '采集进度JSON',
+  `collect_opt_hits_start` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '随机点击量起始',
+  `collect_opt_hits_end` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '随机点击量结束',
+  `collect_opt_score_start` decimal(3,1) NOT NULL DEFAULT 0.0 COMMENT '随机评分起始',
+  `collect_opt_score_end` decimal(3,1) NOT NULL DEFAULT 0.0 COMMENT '随机评分结束',
+  `collect_opt_dup_rule` varchar(50) NOT NULL DEFAULT 'name' COMMENT '重复判断规则:name/name_type/name_year',
+  `collect_opt_update_fields` varchar(255) NOT NULL DEFAULT 'remarks,content,play' COMMENT '允许更新的字段',
+  `collect_opt_play_merge` tinyint(1) NOT NULL DEFAULT 0 COMMENT '播放地址合并:0覆盖,1合并',
   PRIMARY KEY (`collect_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='采集站表';
+
+-- 采集分类绑定表
+DROP TABLE IF EXISTS `xpk_collect_bind`;
+CREATE TABLE `xpk_collect_bind` (
+  `bind_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `collect_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '采集站ID(0为全局)',
+  `remote_type_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '远程分类ID',
+  `remote_type_name` varchar(100) NOT NULL DEFAULT '' COMMENT '远程分类名称',
+  `local_type_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '本地分类ID',
+  PRIMARY KEY (`bind_id`),
+  UNIQUE KEY `collect_remote` (`collect_id`, `remote_type_id`),
+  KEY `remote_type_id` (`remote_type_id`),
+  KEY `local_type_id` (`local_type_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='采集分类绑定表';
+
+-- 采集日志表
+DROP TABLE IF EXISTS `xpk_collect_log`;
+CREATE TABLE `xpk_collect_log` (
+  `log_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `collect_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '采集站ID',
+  `collect_name` varchar(100) NOT NULL DEFAULT '' COMMENT '采集站名称',
+  `log_type` varchar(20) NOT NULL DEFAULT 'manual' COMMENT '类型:manual手动/cron定时',
+  `log_mode` varchar(20) NOT NULL DEFAULT 'add' COMMENT '模式:add/update/all',
+  `log_pages` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '采集页数',
+  `log_added` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '新增数量',
+  `log_updated` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '更新数量',
+  `log_skipped` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '跳过数量',
+  `log_duration` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '耗时(秒)',
+  `log_status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态:0失败,1成功,2进行中',
+  `log_message` varchar(500) NOT NULL DEFAULT '' COMMENT '消息/错误信息',
+  `log_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '开始时间',
+  PRIMARY KEY (`log_id`),
+  KEY `collect_id` (`collect_id`),
+  KEY `log_time` (`log_time`),
+  KEY `log_type` (`log_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='采集日志表';
 
 -- 操作日志表
 DROP TABLE IF EXISTS `xpk_admin_log`;
@@ -421,5 +477,57 @@ CREATE TABLE `xpk_search_log` (
   KEY `keyword` (`keyword`),
   KEY `search_time` (`search_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='搜索日志表';
+
+-- 单页面表
+DROP TABLE IF EXISTS `xpk_page`;
+CREATE TABLE `xpk_page` (
+  `page_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `page_slug` varchar(50) NOT NULL DEFAULT '' COMMENT '页面标识',
+  `page_title` varchar(100) NOT NULL DEFAULT '' COMMENT '页面标题',
+  `page_content` mediumtext COMMENT '页面内容',
+  `page_sort` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '排序',
+  `page_status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态:0禁用,1启用',
+  `page_footer` tinyint(1) NOT NULL DEFAULT 1 COMMENT '底部显示:0不显示,1显示',
+  PRIMARY KEY (`page_id`),
+  UNIQUE KEY `page_slug` (`page_slug`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='单页面表';
+
+-- 默认单页数据
+INSERT INTO `xpk_page` (`page_slug`, `page_title`, `page_content`, `page_sort`, `page_status`, `page_footer`) VALUES
+('about', '关于我们', '<h2>关于我们</h2><p>欢迎访问本站！我们致力于为用户提供优质的视频内容服务。</p><p>如有任何问题或建议，欢迎联系我们。</p>', 1, 1, 1),
+('contact', '联系方式', '<h2>联系方式</h2><p>如需联系我们，请通过以下方式：</p><ul><li>邮箱：admin@example.com</li></ul><p>我们会尽快回复您的消息。</p>', 2, 1, 1),
+('disclaimer', '免责声明', '<h2>免责声明</h2><p>本站所有内容均来自互联网，仅供学习交流使用。</p><p>本站不存储任何视频文件，所有视频均由第三方提供。</p><p>如有侵权，请联系我们删除。</p>', 3, 1, 1);
+
+-- 播放器表
+DROP TABLE IF EXISTS `xpk_player`;
+CREATE TABLE `xpk_player` (
+  `player_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `player_name` varchar(50) NOT NULL DEFAULT '' COMMENT '播放器名称(中文)',
+  `player_code` varchar(50) NOT NULL DEFAULT '' COMMENT '播放器标识(英文)',
+  `player_parse` varchar(500) NOT NULL DEFAULT '' COMMENT '解析接口地址',
+  `player_sort` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '排序',
+  `player_status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态:0禁用,1启用',
+  `player_tip` varchar(255) NOT NULL DEFAULT '' COMMENT '提示信息',
+  PRIMARY KEY (`player_id`),
+  UNIQUE KEY `player_code` (`player_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='播放器表';
+
+-- 默认播放器数据
+INSERT INTO `xpk_player` (`player_name`, `player_code`, `player_parse`, `player_sort`, `player_status`, `player_tip`) VALUES
+('M3U8播放器', 'm3u8', '', 1, 1, '支持m3u8格式视频'),
+('MP4播放器', 'mp4', '', 2, 1, '支持mp4格式视频'),
+('iframe嵌入', 'iframe', '', 3, 1, '直接嵌入播放页面'),
+('量子资源', 'lzm3u8', '', 10, 1, '量子资源m3u8'),
+('红牛资源', 'hnm3u8', '', 11, 1, '红牛资源m3u8'),
+('光速资源', 'gsm3u8', '', 12, 1, '光速资源m3u8'),
+('暴风资源', 'bfzym3u8', '', 13, 1, '暴风资源m3u8'),
+('无尽资源', 'wjm3u8', '', 14, 1, '无尽资源m3u8'),
+('酷点资源', 'kdm3u8', '', 15, 1, '酷点资源m3u8'),
+('新浪资源', 'xlm3u8', '', 16, 1, '新浪资源m3u8'),
+('优酷', 'youku', '', 20, 1, '优酷视频'),
+('爱奇艺', 'iqiyi', '', 21, 1, '爱奇艺视频'),
+('腾讯', 'qq', '', 22, 1, '腾讯视频'),
+('芒果', 'mgtv', '', 23, 1, '芒果TV'),
+('哔哩哔哩', 'bilibili', '', 24, 1, 'B站视频');
 
 SET FOREIGN_KEY_CHECKS = 1;
