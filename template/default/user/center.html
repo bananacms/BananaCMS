@@ -1,0 +1,46 @@
+<?php include VIEW_PATH . 'layouts/header.php'; ?>
+
+<div class="max-w-4xl mx-auto py-8">
+    <div class="bg-white rounded-lg shadow-sm border p-6 mb-6">
+        <div class="flex items-center">
+            <div class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                <?php echo mb_substr($user['user_nick_name'], 0, 1); ?>
+            </div>
+            <div class="ml-4">
+                <h1 class="text-xl font-bold"><?php echo htmlspecialchars($user['user_nick_name']); ?></h1>
+                <p class="text-gray-500 text-sm">ID: <?php echo $user['user_id']; ?></p>
+            </div>
+            <div class="ml-auto">
+                <a href="/user/logout" class="text-gray-500 hover:text-red-600">退出登录</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white rounded-lg shadow-sm border p-6">
+            <h3 class="font-medium mb-4">账号信息</h3>
+            <div class="space-y-3 text-sm">
+                <p><span class="text-gray-500">用户名：</span><?php echo htmlspecialchars($user['user_name']); ?></p>
+                <p><span class="text-gray-500">邮箱：</span><?php echo htmlspecialchars($user['user_email'] ?: '未绑定'); ?></p>
+                <p><span class="text-gray-500">注册时间：</span><?php echo date('Y-m-d', $user['user_reg_time']); ?></p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border p-6">
+            <h3 class="font-medium mb-4">观看统计</h3>
+            <div class="space-y-3 text-sm">
+                <p><span class="text-gray-500">登录次数：</span><?php echo $user['user_login_num'] ?? 0; ?></p>
+                <p><span class="text-gray-500">最后登录：</span><?php echo date('Y-m-d H:i', $user['user_login_time'] ?? time()); ?></p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border p-6">
+            <h3 class="font-medium mb-4">快捷操作</h3>
+            <div class="space-y-2">
+                <a href="/" class="block text-red-600 hover:underline">&lt; 返回首页</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{xpk:footer}

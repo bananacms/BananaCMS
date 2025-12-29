@@ -1,0 +1,141 @@
+<?php
+/**
+ * 后台文章分类管理控制器
+ * Powered by https://xpornkit.com
+ */
+
+class AdminArtTypeController extends AdminBaseController
+{
+    private XpkArtType $artTypeModel;
+
+    public function __construct()
+    {
+        parent::__construct();
+        require_once MODEL_PATH . 'ArtType.php';
+        $this->artTypeModel = new XpkArtType();
+    }
+
+    /**
+     * 分类列表
+     */
+    public function index(): void
+    {
+        $list = $this->artTypeModel->getAll();
+        
+        $this->assign('list', $list);
+        $this->assign('flash', $this->getFlash());
+        $this->render('art_type/index', '文章分类管理');
+    }
+
+    /**
+     * 添加分类
+     */
+    public function add(): void
+    {
+        $this->assign('csrfToken', $this->csrfToken());
+        $this->render('art_type/form', '添加文章分类');
+    }
+
+    /**
+     * 处理添加
+     */
+    public function doAdd(): void
+    {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+
+        $data = [
+            'type_name' => trim($this->post('type_name', '')),
+            'type_pid' => (int)$this->post('type_pid', 0),
+            'type_sort' => (int)$this->post('type_sort', 0),
+            'type_status' => (int)$this->post('type_status', 1),
+        ];
+
+        if (empty($data['type_name'])) {
+            $this->error('分类名称不能为空');
+        }
+
+        $id = $this->artTypeModel->insert($data);
+
+        if ($id) {
+            $this->flash('success', '添加成功');
+            $this->redirect('/admin.php/art_type');
+        } else {
+            $this->error('添加失败');
+        }
+    }
+
+    /**
+     * 编辑分类
+     */
+    public function edit(int $id): void
+    {
+        $type = $this->artTypeModel->find($id);
+        if (!$type) {
+            $this->flash('error', '分类不存在');
+            $this->redirect('/admin.php/art_type');
+        }
+
+        $this->assign('type', $type);
+        $this->assign('csrfToken', $this->csrfToken());
+        $this->render('art_type/form', '编辑文章分类');
+    }
+
+    /**
+     * 处理编辑
+     */
+    public function doEdit(int $id): void
+    {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+
+        $type = $this->artTypeModel->find($id);
+        if (!$type) {
+            $this->error('分类不存在');
+        }
+
+        $data = [
+            'type_name' => trim($this->post('type_name', '')),
+            'type_pid' => (int)$this->post('type_pid', 0),
+            'type_sort' => (int)$this->post('type_sort', 0),
+            'type_status' => (int)$this->post('type_status', 1),
+        ];
+
+        if (empty($data['type_name'])) {
+            $this->error('分类名称不能为空');
+        }
+
+        $this->artTypeModel->update($id, $data);
+
+        $this->flash('success', '保存成功');
+        $this->redirect('/admin.php/art_type');
+    }
+
+    /**
+     * 删除分类
+     */
+    public function delete(): void
+    {
+        $id = (int)$this->post('id', 0);
+
+        if ($id <= 0) {
+            $this->error('参数错误');
+        }
+
+        // 检查是否有文章使用此分类
+        $db = XpkDatabase::getInstance();
+        $count = $db->queryOne(
+            "SELECT COUNT(*) as cnt FROM " . DB_PREFIX . "art WHERE art_type_id = ?",
+            [$id]
+        )['cnt'] ?? 0;
+
+        if ($count > 0) {
+            $this->error("该分类下有 {$count} 篇文章，无法删除");
+        }
+
+        $this->artTypeModel->delete($id);
+        $this->success('删除成功');
+    }
+}

@@ -1,0 +1,533 @@
+/* 香蕉CMS 公共样式 - Powered by xpornkit.com */
+
+/* 隐藏滚动条 */
+.scroll-hide::-webkit-scrollbar { display: none; }
+.scroll-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* 播放按钮 */
+.play-btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 48px;
+    height: 48px;
+    background: rgba(0,0,0,0.7);
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+.play-btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 55%;
+    transform: translate(-50%, -50%);
+    border-left: 16px solid white;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+}
+.group:hover .play-btn { opacity: 1; }
+
+/* 卡片悬停效果 */
+.card-hover { transition: transform 0.2s; }
+.card-hover:hover { transform: translateY(-4px); }
+
+/* 播放器容器 */
+.player-container {
+    position: relative;
+    padding-bottom: 56.25%;
+    background: #000;
+}
+.player-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* 分页 */
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+}
+.pagination a, .pagination span {
+    padding: 0.5rem 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+}
+.pagination a:hover { background: #f3f4f6; }
+.pagination .active {
+    background: #dc2626;
+    color: white;
+    border-color: #dc2626;
+}
+
+/* 文字截断 */
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Toast 提示 */
+.xpk-toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 24px;
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    z-index: 9999;
+    animation: fadeInOut 3s ease;
+}
+.xpk-toast.success { background: #10b981; }
+.xpk-toast.error { background: #ef4444; }
+.xpk-toast.warning { background: #f59e0b; }
+
+@keyframes fadeInOut {
+    0%, 100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+    10%, 90% { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* Modal 弹窗 */
+.xpk-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9998;
+}
+.xpk-modal-content {
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    max-width: 400px;
+    width: 90%;
+}
+
+/* ========== 广告样式 ========== */
+
+/* 广告容器 */
+.xpk-ad {
+    position: relative;
+    margin: 10px 0;
+}
+
+.xpk-ad-image img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+.xpk-ad-text a {
+    color: #3b82f6;
+    text-decoration: underline;
+}
+
+/* 悬浮广告 */
+.xpk-ad-float {
+    position: fixed;
+    z-index: 1000;
+}
+.xpk-ad-float.left { left: 10px; top: 50%; transform: translateY(-50%); }
+.xpk-ad-float.right { right: 10px; top: 50%; transform: translateY(-50%); }
+.xpk-ad-float.bottom { bottom: 10px; left: 50%; transform: translateX(-50%); }
+
+.xpk-ad-float .xpk-ad-close {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 24px;
+    height: 24px;
+    background: #ef4444;
+    color: white;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+/* 弹窗广告 */
+.xpk-ad-popup {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+.xpk-ad-popup-content {
+    position: relative;
+    max-width: 90%;
+    max-height: 90%;
+}
+.xpk-ad-popup-close {
+    position: absolute;
+    top: -15px;
+    right: -15px;
+    width: 30px;
+    height: 30px;
+    background: #ef4444;
+    color: white;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+/* 视频广告 */
+.xpk-ad-video {
+    position: relative;
+    background: #000;
+}
+.xpk-ad-video video {
+    width: 100%;
+    display: block;
+}
+.xpk-ad-skip {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+.xpk-ad-skip:hover {
+    background: rgba(0,0,0,0.9);
+}
+.xpk-ad-countdown {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+/* 播放器暂停广告 */
+.xpk-ad-pause {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 100;
+    display: none;
+}
+.player-paused .xpk-ad-pause {
+    display: block;
+}
+
+/* ========== 评论样式 ========== */
+
+.xpk-comment-box {
+    margin-top: 2rem;
+}
+
+.xpk-comment-form textarea:focus {
+    outline: none;
+    border-color: #ef4444;
+}
+
+.comment-item {
+    padding-bottom: 1rem;
+}
+
+.comment-item:last-child {
+    border-bottom: none;
+}
+
+.reply-item {
+    padding: 0.5rem 0;
+}
+
+.reply-form-box textarea:focus {
+    outline: none;
+    border-color: #ef4444;
+}
+
+/* 评论加载动画 */
+.comment-loading {
+    display: flex;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.comment-loading::after {
+    content: '';
+    width: 24px;
+    height: 24px;
+    border: 2px solid #e5e7eb;
+    border-top-color: #ef4444;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ========== 评分样式 ========== */
+
+.xpk-score-box {
+    padding: 1rem;
+    background: #fafafa;
+    border-radius: 0.5rem;
+}
+
+.xpk-score-stars .score-star {
+    user-select: none;
+}
+
+.xpk-score-stars .score-star:hover ~ .score-star {
+    color: #d1d5db !important;
+}
+
+/* 评分分布条 */
+.xpk-score-dist .bg-yellow-400 {
+    transition: width 0.3s ease;
+}
+
+/* 小型评分显示 */
+.xpk-score-mini {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.xpk-score-mini .star {
+    font-size: 0.875rem;
+}
+
+/* ========== 短视频样式 ========== */
+
+.xpk-short-wrapper {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    overflow: hidden;
+}
+
+.xpk-short-slides {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.xpk-short-slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+}
+
+.xpk-short-slide video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #000;
+}
+
+.xpk-short-play-btn {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    color: white;
+    cursor: pointer;
+}
+
+/* 侧边操作栏 */
+.xpk-short-sidebar {
+    position: absolute;
+    right: 16px;
+    bottom: 150px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    z-index: 10;
+}
+
+.xpk-short-action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: white;
+    cursor: pointer;
+}
+
+.xpk-short-action .icon {
+    font-size: 28px;
+}
+
+.xpk-short-action .count {
+    font-size: 12px;
+}
+
+.xpk-short-action.liked .icon {
+    color: #ef4444;
+}
+
+/* 底部信息 */
+.xpk-short-info {
+    position: absolute;
+    left: 16px;
+    right: 80px;
+    bottom: 60px;
+    color: white;
+    z-index: 10;
+}
+
+.xpk-short-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.xpk-short-desc {
+    font-size: 14px;
+    opacity: 0.9;
+    margin-bottom: 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.xpk-short-tags .tag {
+    display: inline-block;
+    font-size: 13px;
+    color: #60a5fa;
+    margin-right: 8px;
+}
+
+/* 进度条 */
+.xpk-short-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: rgba(255,255,255,0.2);
+    z-index: 10;
+}
+
+.xpk-short-progress-bar {
+    height: 100%;
+    background: #ef4444;
+    width: 0;
+    transition: width 0.1s linear;
+}
+
+/* 滑动提示 */
+.xpk-short-hint {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(255,255,255,0.5);
+    font-size: 12px;
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(-5px); }
+}
+
+/* 短剧列表 */
+.xpk-drama-card {
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.xpk-drama-card img {
+    width: 80px;
+    height: 107px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.xpk-drama-info {
+    flex: 1;
+}
+
+.xpk-drama-title {
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.xpk-drama-meta {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+/* 剧集选择 */
+.xpk-episode-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 8px;
+}
+
+.xpk-episode-item {
+    padding: 8px;
+    text-align: center;
+    background: #f3f4f6;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.xpk-episode-item:hover {
+    background: #e5e7eb;
+}
+
+.xpk-episode-item.active {
+    background: #ef4444;
+    color: white;
+}
+
+.xpk-episode-item.locked {
+    opacity: 0.5;
+    position: relative;
+}
+
+.xpk-episode-item.locked::after {
+    content: '🔒';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 10px;
+}

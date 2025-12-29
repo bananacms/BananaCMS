@@ -1,0 +1,77 @@
+<?php include VIEW_PATH . 'layouts/header.php'; ?>
+
+<!-- 面包屑导航 -->
+<nav class="text-sm text-gray-500 mb-4">
+    <a href="/" class="hover:text-red-600">首页</a>
+    <span class="mx-2">/</span>
+    <?php if (!empty($type['parent_name'])): ?>
+    <a href="/type/<?= $type['type_pid'] ?>" class="hover:text-red-600"><?= htmlspecialchars($type['parent_name']) ?></a>
+    <span class="mx-2">/</span>
+    <?php endif; ?>
+    <span class="text-gray-700"><?= htmlspecialchars($type['type_name']) ?></span>
+</nav>
+
+<div class="mb-6">
+    <div class="flex items-center justify-between mb-4">
+        <h1 class="text-2xl font-bold"><?= htmlspecialchars($type['type_name']) ?></h1>
+        <?php if ($type['type_des']): ?>
+        <p class="text-gray-500 text-sm"><?= htmlspecialchars($type['type_des']) ?></p>
+        <?php endif; ?>
+    </div>
+    
+    <?php if (!empty($subTypes)): ?>
+    <div class="flex flex-wrap gap-2 mb-4">
+        <a href="/type/<?= $type['type_id'] ?>" class="px-3 py-1 bg-red-600 text-white rounded-full text-sm">全部</a>
+        <?php foreach ($subTypes as $sub): ?>
+        <a href="/type/<?= $sub['type_id'] ?>" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-sm"><?= htmlspecialchars($sub['type_name']) ?></a>
+        <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
+</div>
+
+<?php if (!empty($vodList)): ?>
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 mb-6">
+    <?php foreach ($vodList as $vod): ?>
+    <a href="/vod/detail/<?= $vod['vod_id'] ?>" class="group">
+        <div class="relative aspect-[2/3] bg-gray-100 rounded-lg overflow-hidden">
+            <img src="<?= $vod['vod_pic'] ?: '/static/images/no-image.svg' ?>" 
+                 alt="<?= htmlspecialchars($vod['vod_name']) ?>" 
+                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                 loading="lazy">
+            <?php if ($vod['vod_remarks']): ?>
+            <span class="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded"><?= htmlspecialchars($vod['vod_remarks']) ?></span>
+            <?php endif; ?>
+            <?php if ($vod['vod_score'] > 0): ?>
+            <span class="absolute bottom-2 right-2 bg-black/70 text-yellow-400 text-xs px-2 py-0.5 rounded"><?= $vod['vod_score'] ?>分</span>
+            <?php endif; ?>
+        </div>
+        <h3 class="mt-2 text-sm truncate group-hover:text-red-600"><?= htmlspecialchars($vod['vod_name']) ?></h3>
+        <p class="text-xs text-gray-500 truncate"><?= htmlspecialchars($vod['vod_year'] . ' ' . $vod['vod_area']) ?></p>
+    </a>
+    <?php endforeach; ?>
+</div>
+
+<?php if ($totalPages > 1): ?>
+<div class="flex justify-center items-center space-x-2">
+    <?php if ($page > 1): ?>
+    <a href="/type/<?= $type['type_id'] ?>/page/<?= $page - 1 ?>" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded">上一页</a>
+    <?php endif; ?>
+    
+    <span class="px-4 py-2 text-gray-600">第 <?= $page ?> / <?= $totalPages ?> 页</span>
+    
+    <?php if ($page < $totalPages): ?>
+    <a href="/type/<?= $type['type_id'] ?>/page/<?= $page + 1 ?>" class="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded">下一页</a>
+    <?php endif; ?>
+</div>
+<?php endif; ?>
+
+<?php else: ?>
+<div class="text-center py-20 text-gray-500">
+    <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"></path>
+    </svg>
+    <p>该分类暂无视频</p>
+</div>
+<?php endif; ?>
+
+{xpk:footer}

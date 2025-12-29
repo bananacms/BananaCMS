@@ -1,0 +1,59 @@
+<?php include VIEW_PATH . 'layouts/header.php'; ?>
+
+<!-- 面包屑导航 -->
+<nav class="text-sm text-gray-500 mb-4 max-w-5xl mx-auto">
+    <a href="/" class="hover:text-red-600">首页</a>
+    <span class="mx-2">/</span>
+    <a href="/actor" class="hover:text-red-600">演员</a>
+    <span class="mx-2">/</span>
+    <span class="text-gray-700"><?= htmlspecialchars($actor['actor_name']) ?></span>
+</nav>
+
+<div class="max-w-5xl mx-auto">
+    <div class="flex flex-col md:flex-row gap-6 mb-8">
+        <div class="w-40 flex-shrink-0 mx-auto md:mx-0">
+            <?php if ($actor['actor_pic']): ?>
+            <img src="<?= htmlspecialchars($actor['actor_pic']) ?>" alt="<?= htmlspecialchars($actor['actor_name']) ?>" class="w-40 h-40 object-cover rounded-full">
+            <?php else: ?>
+            <div class="w-40 h-40 rounded-full bg-gradient-to-br from-red-400 to-orange-400 flex items-center justify-center text-white text-5xl font-bold">
+                <?= mb_substr($actor['actor_name'], 0, 1) ?>
+            </div>
+            <?php endif; ?>
+        </div>
+        <div class="flex-1 text-center md:text-left">
+            <h1 class="text-2xl font-bold mb-2"><?= htmlspecialchars($actor['actor_name']) ?></h1>
+            <?php if ($actor['actor_en']): ?>
+            <p class="text-gray-500 mb-4"><?= htmlspecialchars($actor['actor_en']) ?></p>
+            <?php endif; ?>
+            <div class="flex flex-wrap gap-4 justify-center md:justify-start text-sm text-gray-600">
+                <?php if ($actor['actor_sex']): ?><span>性别：<?= htmlspecialchars($actor['actor_sex']) ?></span><?php endif; ?>
+                <?php if ($actor['actor_area']): ?><span>地区：<?= htmlspecialchars($actor['actor_area']) ?></span><?php endif; ?>
+                <?php if ($actor['actor_birthday']): ?><span>生日：<?= htmlspecialchars($actor['actor_birthday']) ?></span><?php endif; ?>
+                <?php if ($actor['actor_height']): ?><span>身高：<?= htmlspecialchars($actor['actor_height']) ?></span><?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    <?php if ($actor['actor_content']): ?>
+    <div class="mb-8">
+        <h2 class="text-lg font-bold mb-3">简介</h2>
+        <p class="text-gray-600 leading-relaxed"><?= nl2br(htmlspecialchars($actor['actor_content'])) ?></p>
+    </div>
+    <?php endif; ?>
+
+    <?php if (!empty($vodList)): ?>
+    <div class="mb-8">
+        <h2 class="text-lg font-bold mb-4">相关作品</h2>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            <?php foreach ($vodList as $vod): ?>
+            <a href="/vod/detail/<?= $vod['vod_id'] ?>" class="group card-hover">
+                <img src="<?= $vod['vod_pic'] ?: '/static/images/no-image.svg' ?>" alt="<?= htmlspecialchars($vod['vod_name']) ?>" class="w-full aspect-[2/3] object-cover rounded-lg bg-gray-100">
+                <h3 class="mt-2 text-sm truncate group-hover:text-red-600"><?= htmlspecialchars($vod['vod_name']) ?></h3>
+            </a>
+            <?php endforeach; ?>
+        </div>
+    </div>
+    <?php endif; ?>
+</div>
+
+{xpk:footer}

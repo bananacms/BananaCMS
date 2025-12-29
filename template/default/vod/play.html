@@ -1,0 +1,119 @@
+<?php include VIEW_PATH . 'layouts/header.php'; ?>
+
+<!-- 面包屑导航 -->
+<nav class="text-sm text-gray-500 mb-4 max-w-5xl mx-auto">
+    <a href="/" class="hover:text-red-600">首页</a>
+    <span class="mx-2">/</span>
+    <?php if (!empty($vod['type_id'])): ?>
+    <a href="/type/<?php echo $vod['type_id']; ?>" class="hover:text-red-600"><?php echo htmlspecialchars($vod['type_name'] ?? '分类'); ?></a>
+    <span class="mx-2">/</span>
+    <?php endif; ?>
+    <a href="/vod/detail/<?php echo $vod['vod_id']; ?>" class="hover:text-red-600"><?php echo htmlspecialchars($vod['vod_name']); ?></a>
+    <span class="mx-2">/</span>
+    <span class="text-gray-700">播放</span>
+</nav>
+
+<div class="max-w-5xl mx-auto">
+    <!-- 播放器 -->
+    <div class="mb-6">
+        <div class="player-container rounded-lg overflow-hidden">
+            <?php if (!empty($currentUrl) && (strpos($currentUrl, 'http://') === 0 || strpos($currentUrl, 'https://') === 0 || strpos($currentUrl, '//') === 0)): ?>
+                <iframe src="<?php echo htmlspecialchars($currentUrl); ?>" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"></iframe>
+            <?php else: ?>
+                <div class="absolute inset-0 flex items-center justify-center bg-gray-900 text-white">
+                    <p>暂无播放源</p>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- 视频标题 -->
+    <div class="mb-6">
+        <h1 class="text-xl font-bold"><?php echo htmlspecialchars($vod['vod_name']); ?></h1>
+        <p class="text-gray-500 text-sm mt-1"><?php echo $vod['vod_hits']; ?>次播放 · <?php echo $vod['vod_remarks'] ?: '更新中'; ?></p>
+    </div>
+
+    <!-- 播放列表 -->
+    <?php if (!empty($playUrls)): ?>
+        <div class="mb-6">
+            <h2 class="text-lg font-bold mb-3">播放列表</h2>
+            <?php foreach ($playUrls as $sIndex => $episodes): ?>
+                <div class="mb-4">
+                    <p class="text-sm text-gray-500 mb-2">播放源 <?php echo $sIndex + 1; ?></p>
+                    <div class="flex flex-wrap gap-2">
+                        <?php foreach ($episodes as $nIndex => $ep): ?>
+                            <?php 
+                                $isActive = ($sIndex + 1 == $sid && $nIndex + 1 == $nid);
+                                $btnClass = $isActive ? 'bg-red-600 text-white' : 'bg-gray-100 hover:bg-gray-200';
+                            ?>
+                            <a href="/vod/play/<?php echo $vod['vod_id']; ?>/<?php echo $sIndex + 1; ?>/<?php echo $nIndex + 1; ?>" class="px-4 py-2 rounded text-sm <?php echo $btnClass; ?>">
+                                <?php echo htmlspecialchars($ep['name']); ?>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+
+    <!-- 视频信息 -->
+    <div class="bg-gray-50 rounded-lg p-4 mb-6">
+        <div class="flex items-start gap-4">
+            <img src="<?php echo $vod['vod_pic'] ?: '/static/images/no-image.svg'; ?>" alt="" class="w-20 h-28 object-cover rounded">
+            <div class="flex-1">
+                <h3 class="font-medium"><?php echo htmlspecialchars($vod['vod_name']); ?></h3>
+                <p class="text-gray-500 text-sm mt-1"><?php echo htmlspecialchars($vod['vod_actor'] ?? ''); ?></p>
+                <p class="text-gray-400 text-sm mt-2 line-clamp-2"><?php echo htmlspecialchars($vod['vod_content'] ?? ''); ?></p>
+                <a href="/vod/detail/<?php echo $vod['vod_id']; ?>" class="text-red-600 text-sm mt-2 inline-block hover:underline">查看详情 &gt;</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 自动连播脚本 -->
+<script>
+(function() {
+    var nextUrl = '<?php 
+        $nextNid = $nid + 1;
+        $nextSid = $sid;
+        $hasNext = false;
+        if (!empty($playUrls[$sid - 1]) && isset($playUrls[$sid - 1][$nextNid - 1])) {
+            $hasNext = true;
+        } elseif (!empty($playUrls[$sid]) && isset($playUrls[$sid][0])) {
+            $nextSid = $sid + 1;
+            $nextNid = 1;
+            $hasNext = true;
+        }
+        echo $hasNext ? "/vod/play/{$vod['vod_id']}/{$nextSid}/{$nextNid}" : "";
+    ?>';
+    
+    if (!nextUrl) return;
+    
+    // 监听 iframe 消息（部分播放器支持）
+    window.addEventListener('message', function(e) {
+        if (e.data === 'ended' || e.data.event === 'ended') {
+            if (confirm('播放结束，是否播放下一集？')) {
+                location.href = nextUrl;
+            }
+        }
+    });
+    
+    // 添加下一集按钮
+    var container = document.querySelector('.player-container');
+    if (container) {
+        var btn = document.createElement('a');
+        btn.href = nextUrl;
+        btn.className = 'absolute top-4 right-4 bg-black/50 text-white px-3 py-1 rounded text-sm hover:bg-black/70 z-10';
+        btn.textContent = '下一集 >';
+        btn.style.display = 'none';
+        container.style.position = 'relative';
+        container.appendChild(btn);
+        
+        // 鼠标悬停显示
+        container.addEventListener('mouseenter', function() { btn.style.display = 'block'; });
+        container.addEventListener('mouseleave', function() { btn.style.display = 'none'; });
+    }
+})();
+</script>
+
+{xpk:footer}

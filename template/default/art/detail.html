@@ -1,0 +1,24 @@
+<?php include VIEW_PATH . 'layouts/header.php'; ?>
+
+<article class="max-w-3xl mx-auto">
+    <h1 class="text-2xl font-bold mb-4"><?= htmlspecialchars($art['art_name']) ?></h1>
+    <div class="flex items-center text-gray-500 text-sm mb-6 space-x-4">
+        <?php if ($art['art_author']): ?><span>作者：<?= htmlspecialchars($art['art_author']) ?></span><?php endif; ?>
+        <span><?= date('Y-m-d H:i', $art['art_time']) ?></span>
+        <span><?= $art['art_hits'] ?>次阅读</span>
+    </div>
+    
+    <?php if ($art['art_pic']): ?>
+    <img src="<?= htmlspecialchars($art['art_pic']) ?>" alt="" class="w-full rounded-lg mb-6">
+    <?php endif; ?>
+    
+    <div class="prose max-w-none text-gray-700 leading-relaxed">
+        <?= nl2br(htmlspecialchars($art['art_content'])) ?>
+    </div>
+    
+    <div class="mt-8 pt-6 border-t">
+        <a href="/art" class="text-red-600 hover:underline">&lt; 返回列表</a>
+    </div>
+</article>
+
+{xpk:footer}

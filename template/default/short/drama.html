@@ -1,0 +1,48 @@
+{include file="public/header"}
+
+<div class="container mx-auto px-4 py-6">
+    <h1 class="text-2xl font-bold mb-6">📺 短剧</h1>
+
+    <!-- 短剧列表 -->
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        {foreach $list as $item}
+        <a href="/short/detail/{$item.short_id}" class="group">
+            <div class="relative aspect-[3/4] rounded-lg overflow-hidden bg-gray-200">
+                {if $item.short_pic}
+                <img src="{$item.short_pic}" alt="{$item.short_name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform">
+                {else}
+                <div class="w-full h-full flex items-center justify-center text-gray-400">暂无封面</div>
+                {/if}
+                <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3">
+                    <div class="text-white text-sm font-medium line-clamp-2">{$item.short_name}</div>
+                    <div class="text-white/70 text-xs mt-1">共 {$item.episode_count} 集</div>
+                </div>
+                <div class="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+                    ▶ {$item.short_hits}
+                </div>
+            </div>
+        </a>
+        {/foreach}
+    </div>
+
+    {if empty($list)}
+    <div class="text-center py-20 text-gray-400">
+        暂无短剧
+    </div>
+    {/if}
+
+    <!-- 分页 -->
+    {if $totalPages > 1}
+    <div class="flex justify-center gap-2 mt-8">
+        {if $page > 1}
+        <a href="/short/drama/page/{$page-1}" class="px-4 py-2 bg-white border rounded hover:bg-gray-50">上一页</a>
+        {/if}
+        <span class="px-4 py-2 text-gray-500">{$page} / {$totalPages}</span>
+        {if $page < $totalPages}
+        <a href="/short/drama/page/{$page+1}" class="px-4 py-2 bg-white border rounded hover:bg-gray-50">下一页</a>
+        {/if}
+    </div>
+    {/if}
+</div>
+
+{include file="public/footer"}

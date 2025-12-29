@@ -1,0 +1,49 @@
+<?php include VIEW_PATH . 'layouts/header.php'; ?>
+
+<div class="mb-6">
+    <h1 class="text-2xl font-bold"><?php echo htmlspecialchars($type['type_name']); ?></h1>
+    <p class="text-gray-500 text-sm mt-1">共 <?php echo $total; ?> 部</p>
+</div>
+
+<!-- 视频列表 -->
+<?php if (!empty($vodList)): ?>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-8">
+        <?php foreach ($vodList as $vod): ?>
+            <a href="/vod/detail/<?php echo $vod['vod_id']; ?>" class="group cursor-pointer card-hover">
+                <div class="relative">
+                    <img src="<?php echo $vod['vod_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full aspect-[2/3] object-cover rounded-lg bg-gray-100">
+                    <div class="absolute bottom-1 right-1 bg-black/80 text-white text-xs px-1 rounded"><?php echo $vod['vod_remarks'] ?: '更新中'; ?></div>
+                </div>
+                <h3 class="mt-2 text-sm truncate group-hover:text-red-600"><?php echo htmlspecialchars($vod['vod_name']); ?></h3>
+                <p class="text-gray-400 text-xs"><?php echo $vod['vod_hits']; ?>次播放</p>
+            </a>
+        <?php endforeach; ?>
+    </div>
+
+    <!-- 分页 -->
+    <?php if ($totalPages > 1): ?>
+        <div class="flex justify-center items-center space-x-2">
+            <?php if ($page > 1): ?>
+                <a href="/vod/type/<?php echo $type['type_id']; ?>/page/<?php echo $page - 1; ?>" class="px-4 py-2 bg-gray-100 rounded hover:bg-gray-200">上一页</a>
+            <?php endif; ?>
+            
+            <?php for ($i = max(1, $page - 2); $i <= min($totalPages, $page + 2); $i++): ?>
+                <?php if ($i == $page): ?>
+                    <span class="px-4 py-2 bg-red-600 text-white rounded"><?php echo $i; ?></span>
+                <?php else: ?>
+                    <a href="/vod/type/<?php echo $type['type_id']; ?>/page/<?php echo $i; ?>" class="px-4 py-2 bg-gray-100 rounded hover:bg-gray-200"><?php echo $i; ?></a>
+                <?php endif; ?>
+            <?php endfor; ?>
+            
+            <?php if ($page < $totalPages): ?>
+                <a href="/vod/type/<?php echo $type['type_id']; ?>/page/<?php echo $page + 1; ?>" class="px-4 py-2 bg-gray-100 rounded hover:bg-gray-200">下一页</a>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
+<?php else: ?>
+    <div class="text-center py-12 text-gray-500">
+        <p>暂无视频</p>
+    </div>
+<?php endif; ?>
+
+{xpk:footer}

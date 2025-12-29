@@ -1,0 +1,167 @@
+<?php
+/**
+ * 视频控制器
+ * Powered by https://xpornkit.com
+ */
+
+class VodController extends BaseController
+{
+    private XpkVod $vodModel;
+    private XpkType $typeModel;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->vodModel = new XpkVod();
+        $this->typeModel = new XpkType();
+    }
+
+    /**
+     * 分类列表
+     */
+    public function type(int $typeId, int $page = 1): void
+    {
+        $type = $this->typeModel->getById($typeId);
+        if (!$type) {
+            $this->redirect(xpk_url());
+            return;
+        }
+
+        $result = $this->vodModel->getByType($typeId, $page, PAGE_SIZE);
+        
+        $this->assign('type', $type);
+        $this->assign('vodList', $result['list']);
+        $this->assign('page', $result['page']);
+        $this->assign('totalPages', $result['totalPages']);
+        $this->assign('total', $result['total']);
+        
+        // SEO
+        $this->assign('title', $type['type_name'] . ' - ' . SITE_NAME);
+        
+        $this->render('vod/type');
+    }
+
+    /**
+     * 视频详情
+     */
+    public function detail(int $id): void
+    {
+        $vod = $this->vodModel->getDetail($id);
+        if (!$vod) {
+            $this->redirect(xpk_url());
+            return;
+        }
+
+        // 增加点击量
+        $this->vodModel->incHits($id);
+        
+        // 相关视频
+        $relatedList = $this->vodModel->getRelated($vod['vod_type_id'], $id, 6);
+        
+        $this->assign('vod', $vod);
+        $this->assign('relatedList', $relatedList);
+        
+        // SEO
+        $seoVars = ['name' => $vod['vod_name'], 'actor' => $vod['vod_actor'] ?? '', 'type' => $vod['type_name'] ?? '', 'year' => $vod['vod_year'] ?? '', 'area' => $vod['vod_area'] ?? ''];
+        $this->assign('title', $this->seoTitle('vod_detail', $seoVars));
+        $this->assign('keywords', $this->seoKeywords('vod_detail', $seoVars));
+        $this->assign('description', $this->seoDescription('vod_detail', array_merge($seoVars, ['description' => mb_substr(strip_tags($vod['vod_content'] ?? ''), 0, 150)])));
+        
+        $this->render('vod/detail');
+    }
+
+    /**
+     * 视频播放
+     */
+    public function play(int $id, int $sid = 1, int $nid = 1): void
+    {
+        $vod = $this->vodModel->getDetail($id);
+        if (!$vod) {
+            $this->redirect(xpk_url());
+            return;
+        }
+
+        // 增加点击量
+        $this->vodModel->incHits($id);
+        
+        // 解析播放地址
+        $playUrls = $this->parsePlayUrl($vod['vod_play_url'] ?? '');
+        
+        $this->assign('vod', $vod);
+        $this->assign('playUrls', $playUrls);
+        $this->assign('sid', $sid);
+        $this->assign('nid', $nid);
+        $this->assign('currentUrl', $playUrls[$sid - 1][$nid - 1]['url'] ?? '');
+        
+        // SEO
+        $this->assign('title', $vod['vod_name'] . ' 播放 - ' . $this->data['siteName']);
+        
+        $this->render('vod/play');
+    }
+
+    /**
+     * 通过 slug 访问详情
+     */
+    public function detailBySlug(string $slug): void
+    {
+        $vod = $this->vodModel->findBySlug($slug);
+        if (!$vod) {
+            $this->redirect(xpk_url());
+            return;
+        }
+        $this->detail($vod['vod_id']);
+    }
+
+    /**
+     * 通过 slug 播放
+     */
+    public function playBySlug(string $slug, int $sid = 1, int $nid = 1): void
+    {
+        $vod = $this->vodModel->findBySlug($slug);
+        if (!$vod) {
+            $this->redirect(xpk_url());
+            return;
+        }
+        $this->play($vod['vod_id'], $sid, $nid);
+    }
+
+    /**
+     * 解析播放地址
+     * 格式: 播放源1$$$播放源2  源内集数用#分隔  集名和地址用$分隔
+     */
+    private function parsePlayUrl(string $playUrl): array
+    {
+        if (empty($playUrl)) {
+            return [];
+        }
+        
+        $result = [];
+        $groups = explode('$$$', $playUrl);
+        
+        foreach ($groups as $group) {
+            if (empty(trim($group))) {
+                continue;
+            }
+            $episodes = [];
+            $items = explode('#', $group);
+            foreach ($items as $item) {
+                $item = trim($item);
+                if (empty($item)) {
+                    continue;
+                }
+                if (strpos($item, '$') !== false) {
+                    [$name, $url] = explode('$', $item, 2);
+                } else {
+                    $name = '播放';
+                    $url = $item;
+                }
+                $episodes[] = ['name' => $name, 'url' => $url];
+            }
+            if (!empty($episodes)) {
+                $result[] = $episodes;
+            }
+        }
+        
+        return $result;
+    }
+}

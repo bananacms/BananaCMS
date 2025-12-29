@@ -1,0 +1,89 @@
+<?php include VIEW_PATH . 'layouts/header.php'; ?>
+
+<!-- 分类标签 -->
+<div class="flex space-x-3 mb-6 overflow-x-auto pb-2 scroll-hide">
+    <a href="/" class="bg-gray-900 text-white px-4 py-1.5 rounded-lg text-sm whitespace-nowrap">全部</a>
+    <?php foreach ($navTypes as $type): ?>
+        <a href="/type/<?php echo $type['type_id']; ?>" class="bg-gray-100 px-4 py-1.5 rounded-lg text-sm whitespace-nowrap hover:bg-gray-200"><?php echo htmlspecialchars($type['type_name']); ?></a>
+    <?php endforeach; ?>
+</div>
+
+<!-- 最新视频 -->
+<section class="mb-8">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold">最新更新</h2>
+        <a href="/search?wd=" class="text-gray-500 text-sm hover:text-red-600">查看更多 &gt;</a>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <?php foreach ($newList as $vod): ?>
+            <a href="/vod/detail/<?php echo $vod['vod_id']; ?>" class="group cursor-pointer">
+                <div class="relative">
+                    <img src="<?php echo $vod['vod_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full aspect-video object-cover rounded-xl bg-gray-100">
+                    <div class="absolute bottom-1 right-1 bg-black/80 text-white text-xs px-1 rounded"><?php echo $vod['vod_remarks'] ?: '更新中'; ?></div>
+                    <div class="play-btn"></div>
+                </div>
+                <div class="flex mt-3">
+                    <div class="w-9 h-9 bg-red-500 rounded-full flex-shrink-0 flex items-center justify-center text-white text-sm font-bold">
+                        <?php echo mb_substr($vod['vod_name'], 0, 1); ?>
+                    </div>
+                    <div class="ml-3 flex-1 min-w-0">
+                        <h3 class="font-medium line-clamp-2 group-hover:text-red-600"><?php echo htmlspecialchars($vod['vod_name']); ?></h3>
+                        <p class="text-gray-500 text-sm mt-1"><?php echo $vod['vod_hits']; ?>次播放</p>
+                    </div>
+                </div>
+            </a>
+        <?php endforeach; ?>
+    </div>
+</section>
+
+<!-- 热门视频 -->
+<section class="mb-8">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold">🔥 热门推荐</h2>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <?php foreach ($hotList as $vod): ?>
+            <a href="/vod/detail/<?php echo $vod['vod_id']; ?>" class="group cursor-pointer">
+                <div class="relative">
+                    <img src="<?php echo $vod['vod_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full aspect-video object-cover rounded-xl bg-gray-100">
+                    <div class="absolute top-1 left-1 bg-red-600 text-white text-xs px-2 py-0.5 rounded">热门</div>
+                    <div class="play-btn"></div>
+                </div>
+                <div class="flex mt-3">
+                    <div class="w-9 h-9 bg-orange-500 rounded-full flex-shrink-0 flex items-center justify-center text-white text-sm font-bold">
+                        <?php echo mb_substr($vod['vod_name'], 0, 1); ?>
+                    </div>
+                    <div class="ml-3 flex-1 min-w-0">
+                        <h3 class="font-medium line-clamp-2 group-hover:text-red-600"><?php echo htmlspecialchars($vod['vod_name']); ?></h3>
+                        <p class="text-gray-500 text-sm mt-1"><?php echo $vod['vod_hits']; ?>次播放</p>
+                    </div>
+                </div>
+            </a>
+        <?php endforeach; ?>
+    </div>
+</section>
+
+<!-- 分类视频 -->
+<?php foreach ($typeVods as $typeId => $item): ?>
+    <?php if (!empty($item['vods'])): ?>
+        <section class="mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold"><?php echo htmlspecialchars($item['type']['type_name']); ?></h2>
+                <a href="/type/<?php echo $typeId; ?>" class="text-gray-500 text-sm hover:text-red-600">更多 &gt;</a>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+                <?php foreach ($item['vods'] as $vod): ?>
+                    <a href="/vod/detail/<?php echo $vod['vod_id']; ?>" class="group cursor-pointer card-hover">
+                        <div class="relative">
+                            <img src="<?php echo $vod['vod_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full aspect-[2/3] object-cover rounded-lg bg-gray-100">
+                            <div class="absolute bottom-1 right-1 bg-black/80 text-white text-xs px-1 rounded"><?php echo $vod['vod_remarks'] ?: '更新中'; ?></div>
+                        </div>
+                        <h3 class="mt-2 text-sm truncate group-hover:text-red-600"><?php echo htmlspecialchars($vod['vod_name']); ?></h3>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        </section>
+    <?php endif; ?>
+<?php endforeach; ?>
+
+{xpk:footer}

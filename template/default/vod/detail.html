@@ -1,0 +1,81 @@
+<?php include VIEW_PATH . 'layouts/header.php'; ?>
+
+<!-- 面包屑导航 -->
+<nav class="text-sm text-gray-500 mb-4">
+    <a href="/" class="hover:text-red-600">首页</a>
+    <span class="mx-2">/</span>
+    <?php if (!empty($vod['type_id'])): ?>
+    <a href="/type/<?php echo $vod['type_id']; ?>" class="hover:text-red-600"><?php echo htmlspecialchars($vod['type_name'] ?? '分类'); ?></a>
+    <span class="mx-2">/</span>
+    <?php endif; ?>
+    <span class="text-gray-700"><?php echo htmlspecialchars($vod['vod_name']); ?></span>
+</nav>
+
+<div class="max-w-5xl mx-auto">
+    <!-- 视频信息 -->
+    <div class="flex flex-col md:flex-row gap-6 mb-8">
+        <div class="w-full md:w-64 flex-shrink-0">
+            <img src="<?php echo $vod['vod_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full aspect-[2/3] object-cover rounded-lg">
+        </div>
+        <div class="flex-1">
+            <h1 class="text-2xl font-bold mb-2"><?php echo htmlspecialchars($vod['vod_name']); ?></h1>
+            <?php if (!empty($vod['vod_sub'])): ?>
+                <p class="text-gray-500 mb-4"><?php echo htmlspecialchars($vod['vod_sub']); ?></p>
+            <?php endif; ?>
+            
+            <div class="space-y-2 text-sm text-gray-600">
+                <?php if (!empty($vod['type_name'])): ?>
+                    <p><span class="text-gray-400">分类：</span><?php echo htmlspecialchars($vod['type_name']); ?></p>
+                <?php endif; ?>
+                <?php if (!empty($vod['vod_year'])): ?>
+                    <p><span class="text-gray-400">年份：</span><?php echo htmlspecialchars($vod['vod_year']); ?></p>
+                <?php endif; ?>
+                <?php if (!empty($vod['vod_area'])): ?>
+                    <p><span class="text-gray-400">地区：</span><?php echo htmlspecialchars($vod['vod_area']); ?></p>
+                <?php endif; ?>
+                <?php if (!empty($vod['vod_director'])): ?>
+                    <p><span class="text-gray-400">导演：</span><?php echo htmlspecialchars($vod['vod_director']); ?></p>
+                <?php endif; ?>
+                <?php if (!empty($vod['vod_actor'])): ?>
+                    <p><span class="text-gray-400">演员：</span><?php echo htmlspecialchars($vod['vod_actor']); ?></p>
+                <?php endif; ?>
+                <p><span class="text-gray-400">播放：</span><?php echo $vod['vod_hits']; ?>次</p>
+                <p><span class="text-gray-400">更新：</span><?php echo $vod['vod_remarks'] ?: '更新中'; ?></p>
+            </div>
+
+            <div class="mt-6">
+                <a href="/vod/play/<?php echo $vod['vod_id']; ?>/1/1" class="inline-flex items-center bg-red-600 text-white px-6 py-2 rounded-full hover:bg-red-700">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    立即播放
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 剧情简介 -->
+    <?php if (!empty($vod['vod_content'])): ?>
+        <div class="mb-8">
+            <h2 class="text-lg font-bold mb-3">剧情简介</h2>
+            <p class="text-gray-600 leading-relaxed"><?php echo nl2br(htmlspecialchars($vod['vod_content'])); ?></p>
+        </div>
+    <?php endif; ?>
+
+    <!-- 相关推荐 -->
+    <?php if (!empty($relatedList)): ?>
+        <div class="mb-8">
+            <h2 class="text-lg font-bold mb-4">相关推荐</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                <?php foreach ($relatedList as $item): ?>
+                    <a href="/vod/detail/<?php echo $item['vod_id']; ?>" class="group cursor-pointer card-hover">
+                        <div class="relative">
+                            <img src="<?php echo $item['vod_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($item['vod_name']); ?>" class="w-full aspect-[2/3] object-cover rounded-lg bg-gray-100">
+                        </div>
+                        <h3 class="mt-2 text-sm truncate group-hover:text-red-600"><?php echo htmlspecialchars($item['vod_name']); ?></h3>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    <?php endif; ?>
+</div>
+
+{xpk:footer}

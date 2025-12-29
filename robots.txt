@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+Disallow: /admin.php
+Disallow: /api.php
+Disallow: /install.php
+Disallow: /search
+Disallow: /search/
+Disallow: /user/
+Disallow: /config/
+Disallow: /runtime/
+Disallow: /controllers/
+Disallow: /models/
+Disallow: /core/
+Disallow: /views/
+Disallow: /tests/
+
+Sitemap: /sitemap.xml
