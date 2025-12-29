@@ -202,7 +202,7 @@ $envPass = !in_array(false, array_column($envChecks, 3));
                 <div class="grid grid-cols-2 gap-4">
                     <div><label class="block text-sm mb-1">主机</label><input type="text" name="db_host" value="localhost" class="w-full border rounded px-3 py-2"></div>
                     <div><label class="block text-sm mb-1">端口</label><input type="text" name="db_port" value="3306" class="w-full border rounded px-3 py-2"></div>
-                    <div><label class="block text-sm mb-1">数据库名 *</label><input type="text" name="db_name" value="bananacms" required class="w-full border rounded px-3 py-2"></div>
+                    <div><label class="block text-sm mb-1">数据库名 *</label><input type="text" name="db_name" value="" required class="w-full border rounded px-3 py-2" placeholder="请输入数据库名"></div>
                     <div><label class="block text-sm mb-1">表前缀</label><input type="text" name="db_prefix" value="xpk_" class="w-full border rounded px-3 py-2"></div>
                     <div><label class="block text-sm mb-1">用户名 *</label><input type="text" name="db_user" required class="w-full border rounded px-3 py-2"></div>
                     <div><label class="block text-sm mb-1">密码</label><input type="password" name="db_pass" class="w-full border rounded px-3 py-2"></div>
@@ -222,7 +222,7 @@ $envPass = !in_array(false, array_column($envChecks, 3));
                 <h3 class="font-bold text-gray-700 border-b pb-2 mb-4">站点信息</h3>
                 <div class="grid grid-cols-2 gap-4">
                     <div><label class="block text-sm mb-1">站点名称</label><input type="text" name="site_name" value="香蕉影视" class="w-full border rounded px-3 py-2"></div>
-                    <div><label class="block text-sm mb-1">站点URL</label><input type="text" name="site_url" placeholder="https://example.com" class="w-full border rounded px-3 py-2"></div>
+                    <div><label class="block text-sm mb-1">站点URL</label><input type="text" name="site_url" value="<?= (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] ?>" class="w-full border rounded px-3 py-2"></div>
                 </div>
             </div>
             <div class="flex justify-between pt-4">
