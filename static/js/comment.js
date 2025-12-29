@@ -346,7 +346,8 @@ class XpkComment {
                 const item = this.container.querySelector(`[data-id="${commentId}"]`);
                 if (item) {
                     item.querySelector('.up-count').textContent = data.data.up;
-                    item.querySelector('.down-count')?.textContent = data.data.down;
+                    const downCount = item.querySelector('.down-count');
+                    if (downCount) downCount.textContent = data.data.down;
                     
                     // 更新按钮状态
                     const upBtn = item.querySelector('.vote-btn[data-action="up"]');
