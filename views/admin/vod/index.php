@@ -72,7 +72,7 @@
                         <img src="<?= htmlspecialchars($vod['vod_pic']) ?>" class="w-12 h-16 object-cover rounded mr-3">
                         <?php endif; ?>
                         <div>
-                            <a href="/vod/detail/<?= $vod['vod_id'] ?>" target="_blank" class="text-sm font-medium hover:text-blue-600 hover:underline">
+                            <a href="<?= xpk_page_url('vod_detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]) ?>" target="_blank" class="text-sm font-medium hover:text-blue-600 hover:underline">
                                 <?= htmlspecialchars($vod['vod_name']) ?>
                             </a>
                             <?php if ($vod['vod_remarks']): ?>

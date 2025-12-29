@@ -4,7 +4,7 @@
 <div class="flex space-x-3 mb-6 overflow-x-auto pb-2 scroll-hide">
     <a href="/" class="bg-gray-900 text-white px-4 py-1.5 rounded-lg text-sm whitespace-nowrap">全部</a>
     <?php foreach ($navTypes as $type): ?>
-        <a href="/type/<?php echo $type['type_id']; ?>" class="bg-gray-100 px-4 py-1.5 rounded-lg text-sm whitespace-nowrap hover:bg-gray-200"><?php echo htmlspecialchars($type['type_name']); ?></a>
+        <a href="<?php echo xpk_page_url('type', ['id' => $type['type_id'], 'slug' => $type['type_en']]); ?>" class="bg-gray-100 px-4 py-1.5 rounded-lg text-sm whitespace-nowrap hover:bg-gray-200"><?php echo htmlspecialchars($type['type_name']); ?></a>
     <?php endforeach; ?>
 </div>
 
@@ -16,7 +16,7 @@
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         <?php foreach ($newList as $vod): ?>
-            <a href="/vod/detail/<?php echo $vod['vod_id']; ?>" class="group cursor-pointer">
+            <a href="<?php echo xpk_page_url('vod_detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="group cursor-pointer">
                 <div class="relative">
                     <img src="<?php echo $vod['vod_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full aspect-video object-cover rounded-xl bg-gray-100">
                     <div class="absolute bottom-1 right-1 bg-black/80 text-white text-xs px-1 rounded"><?php echo $vod['vod_remarks'] ?: '更新中'; ?></div>
@@ -43,7 +43,7 @@
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         <?php foreach ($hotList as $vod): ?>
-            <a href="/vod/detail/<?php echo $vod['vod_id']; ?>" class="group cursor-pointer">
+            <a href="<?php echo xpk_page_url('vod_detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="group cursor-pointer">
                 <div class="relative">
                     <img src="<?php echo $vod['vod_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full aspect-video object-cover rounded-xl bg-gray-100">
                     <div class="absolute top-1 left-1 bg-red-600 text-white text-xs px-2 py-0.5 rounded">热门</div>
@@ -69,11 +69,11 @@
         <section class="mb-8">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-bold"><?php echo htmlspecialchars($item['type']['type_name']); ?></h2>
-                <a href="/type/<?php echo $typeId; ?>" class="text-gray-500 text-sm hover:text-red-600">更多 &gt;</a>
+                <a href="<?php echo xpk_page_url('type', ['id' => $typeId, 'slug' => $item['type']['type_en'] ?? '']); ?>" class="text-gray-500 text-sm hover:text-red-600">更多 &gt;</a>
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                 <?php foreach ($item['vods'] as $vod): ?>
-                    <a href="/vod/detail/<?php echo $vod['vod_id']; ?>" class="group cursor-pointer card-hover">
+                    <a href="<?php echo xpk_page_url('vod_detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="group cursor-pointer card-hover">
                         <div class="relative">
                             <img src="<?php echo $vod['vod_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full aspect-[2/3] object-cover rounded-lg bg-gray-100">
                             <div class="absolute bottom-1 right-1 bg-black/80 text-white text-xs px-1 rounded"><?php echo $vod['vod_remarks'] ?: '更新中'; ?></div>

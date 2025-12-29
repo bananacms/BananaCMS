@@ -87,6 +87,7 @@ class XpkSlug
                 if ($table === 'vod') $pk = 'vod_id';
                 if ($table === 'actor') $pk = 'actor_id';
                 if ($table === 'art') $pk = 'art_id';
+                if ($table === 'type') $pk = 'type_id';
                 
                 $sql .= " AND {$pk} != ?";
                 $params[] = $excludeId;

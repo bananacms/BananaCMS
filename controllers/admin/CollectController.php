@@ -325,50 +325,53 @@ class AdminCollectController extends AdminBaseController
      */
     public function doCollect(): void
     {
-        // 单次请求最多执行120秒
-        set_time_limit(120);
-        
-        $id = (int)$this->post('id', 0);
-        $page = (int)$this->post('page', 1);
-        $typeId = (int)$this->post('type_id', 0) ?: null;
-        $hours = $this->post('hours', '') ?: null;
-        $mode = $this->post('mode', 'add'); // add=只采新 update=只更新 all=全部
-        $downloadPic = (int)$this->post('download_pic', 0); // 是否下载图片
+        // 捕获所有错误
+        try {
+            // 单次请求最多执行120秒
+            set_time_limit(120);
+            
+            $id = (int)$this->post('id', 0);
+            $page = (int)$this->post('page', 1);
+            $typeId = (int)$this->post('type_id', 0) ?: null;
+            $hours = $this->post('hours', '') ?: null;
+            $mode = $this->post('mode', 'add'); // add=只采新 update=只更新 all=全部
+            $downloadPic = (int)$this->post('download_pic', 0); // 是否下载图片
 
-        $collect = $this->collectModel->find($id);
-        if (!$collect) {
-            $this->error('采集站不存在');
-        }
+            $collect = $this->collectModel->find($id);
+            if (!$collect) {
+                $this->error('采集站不存在');
+            }
 
-        // 获取绑定关系
-        $binds = [];
-        if (!empty($collect['collect_bind'])) {
-            $binds = json_decode($collect['collect_bind'], true) ?: [];
-        }
+            // 获取绑定关系
+            $binds = [];
+            if (!empty($collect['collect_bind'])) {
+                $binds = json_decode($collect['collect_bind'], true) ?: [];
+            }
 
-        // 检查是否有绑定
-        if (empty($binds)) {
-            $this->error('请先绑定分类后再采集');
-        }
+            // 检查是否有绑定
+            if (empty($binds)) {
+                $this->error('请先绑定分类后再采集');
+            }
 
-        // 获取视频列表
-        $listResult = $this->collectModel->getVideoList($collect, $page, $typeId, $hours);
-        if (!$listResult || empty($listResult['list'])) {
-            $this->success('采集完成', ['done' => true, 'page' => $page, 'added' => 0, 'updated' => 0]);
-        }
+            // 获取视频列表
+            $listResult = $this->collectModel->getVideoList($collect, $page, $typeId, $hours);
+            if (!$listResult || empty($listResult['list'])) {
+                $this->success('采集完成', ['done' => true, 'page' => $page, 'added' => 0, 'updated' => 0]);
+                return;
+            }
 
-        // 获取视频ID
-        $ids = array_column($listResult['list'], 'vod_id');
-        
-        // 获取详情
-        $videos = $this->collectModel->getVideoDetail($collect, $ids);
-        if (!$videos) {
-            $this->error('获取视频详情失败');
-        }
+            // 获取视频ID
+            $ids = array_column($listResult['list'], 'vod_id');
+            
+            // 获取详情
+            $videos = $this->collectModel->getVideoDetail($collect, $ids);
+            if (!$videos) {
+                $this->error('获取视频详情失败');
+            }
 
-        $added = 0;
-        $updated = 0;
-        $db = XpkDatabase::getInstance();
+            $added = 0;
+            $updated = 0;
+            $db = XpkDatabase::getInstance();
 
         foreach ($videos as $video) {
             // 检查分类绑定
@@ -477,6 +480,11 @@ class AdminCollectController extends AdminBaseController
             'added' => $added,
             'updated' => $updated
         ]);
+        } catch (Exception $e) {
+            $this->error('采集出错: ' . $e->getMessage());
+        } catch (Error $e) {
+            $this->error('采集出错: ' . $e->getMessage());
+        }
     }
 
     /**
