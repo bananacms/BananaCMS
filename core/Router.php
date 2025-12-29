@@ -109,7 +109,6 @@ class XpkRouter
         );
         return '#^' . $pattern . '$#u';  // 添加u修饰符支持UTF-8
     }
-    }
 
     /**
      * 预加载校验 - 授权检查
