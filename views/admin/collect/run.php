@@ -140,7 +140,12 @@ function log(msg, type = 'info') {
 function formatTime(seconds) {
     if (seconds < 60) return Math.round(seconds) + '秒';
     if (seconds < 3600) return Math.round(seconds / 60) + '分钟';
-    return Math.round(seconds / 3600 * 10) / 10 + '小时';
+    const hours = seconds / 3600;
+    if (hours < 24) return Math.round(hours * 10) / 10 + '小时';
+    const days = Math.floor(hours / 24);
+    const remainHours = Math.round((hours % 24) * 10) / 10;
+    if (remainHours > 0) return days + '天' + remainHours + '小时';
+    return days + '天';
 }
 
 function updateEta(currentPage, pagecount) {
