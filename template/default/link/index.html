@@ -103,13 +103,15 @@ document.getElementById('linkForm').addEventListener('submit', function(e) {
     })
     .then(r => r.json())
     .then(data => {
-        alert(data.msg);
         if (data.code === 0) {
+            xpkToast(data.msg, 'success');
             this.reset();
-            location.reload();
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            xpkToast(data.msg || '提交失败', 'error');
         }
     })
-    .catch(() => alert('提交失败，请稍后重试'))
+    .catch(() => xpkToast('提交失败，请稍后重试', 'error'))
     .finally(() => {
         btn.disabled = false;
         btn.textContent = '提交申请';

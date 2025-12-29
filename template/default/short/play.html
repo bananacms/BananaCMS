@@ -37,11 +37,11 @@
 <body>
     <div class="player-wrapper">
         {if $currentEp}
-        <video 
+        <video
             id="player"
             class="player-video"
             src="{$currentEp.episode_url}"
-            poster="{$currentEp.episode_pic ?: $short.short_pic}"
+            poster="{:$currentEp['episode_pic'] ?: $short['short_pic']}"
             playsinline
             webkit-playsinline
             autoplay
@@ -91,9 +91,9 @@
                 </div>
                 <div class="grid grid-cols-5 gap-2">
                     {foreach $episodes as $i => $ep}
-                    <a href="/short/play/{$short.short_id}/{:$i+1}" 
+                    <a href="/short/play/{$short.short_id}/{:$i+1}"
                        class="py-2 text-center rounded {:$i == $epIndex ? 'bg-red-600 text-white' : 'bg-gray-800 text-gray-300'}">
-                        {$i+1}
+                        {:$i+1}
                     </a>
                     {/foreach}
                 </div>
@@ -117,7 +117,6 @@
     const epModal = document.getElementById('epModal');
 
     if (video) {
-        // 播放/暂停
         playBtn.addEventListener('click', () => {
             if (video.paused) {
                 video.play();
@@ -128,27 +127,21 @@
             }
         });
 
-        // 点击视频切换播放
         video.addEventListener('click', () => {
             playBtn.click();
         });
 
-        // 进度条
         video.addEventListener('timeupdate', () => {
             const progress = (video.currentTime / video.duration) * 100;
             progressBar.style.width = progress + '%';
         });
 
-        // 自动下一集
         video.addEventListener('ended', () => {
-            const nextBtn = document.querySelector('a[href*="/{:$epIndex+2}"]');
-            if (nextBtn) {
-                nextBtn.click();
-            }
+            const nextBtn = document.querySelector('a.bg-red-600');
+            if (nextBtn) nextBtn.click();
         });
     }
 
-    // 剧集弹窗
     document.getElementById('epListBtn')?.addEventListener('click', () => {
         epModal.classList.remove('hidden');
     });

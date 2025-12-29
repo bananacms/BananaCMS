@@ -135,8 +135,8 @@ $router->get('user/center', fn() => (new UserController())->center());
 
 // 友链
 require_once CTRL_PATH . 'LinkController.php';
-$router->get('link', fn() => (new XpkLinkController())->index());
-$router->post('link/apply', fn() => (new XpkLinkController())->apply());
+$router->get('link', fn() => (new LinkController())->index());
+$router->post('link/apply', fn() => (new LinkController())->apply());
 
 // 评论
 require_once CTRL_PATH . 'CommentController.php';
