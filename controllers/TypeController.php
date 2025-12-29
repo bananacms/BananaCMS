@@ -63,20 +63,6 @@ class TypeController extends BaseController
     public function indexBySlug(string $slug, int $page = 1): void
     {
         $type = $this->typeModel->findBySlug($slug);
-        
-        // 调试信息
-        if (isset($_GET['debug'])) {
-            header('Content-Type: application/json');
-            $typeIds = $type ? $this->typeModel->getChildIds($type['type_id']) : [];
-            echo json_encode([
-                'slug' => $slug,
-                'type' => $type,
-                'childIds' => $typeIds,
-                'allTypes' => $this->typeModel->getAll()
-            ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-            exit;
-        }
-        
         if (!$type) {
             $this->redirect(xpk_url());
             return;

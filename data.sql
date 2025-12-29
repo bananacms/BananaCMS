@@ -34,22 +34,11 @@ CREATE TABLE `xpk_type` (
   `type_des` varchar(255) NOT NULL DEFAULT '' COMMENT '描述',
   `type_extend` text COMMENT '扩展配置',
   PRIMARY KEY (`type_id`),
-  KEY `type_pid` (`type_pid`)
+  KEY `type_pid` (`type_pid`),
+  KEY `type_en` (`type_en`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='分类表';
 
--- 默认分类
-INSERT INTO `xpk_type` VALUES 
-(1, 0, '电影', 'movie', 1, 1, '', '', '', NULL),
-(2, 0, '电视剧', 'tv', 2, 1, '', '', '', NULL),
-(3, 0, '综艺', 'variety', 3, 1, '', '', '', NULL),
-(4, 0, '动漫', 'anime', 4, 1, '', '', '', NULL),
-(5, 1, '动作片', 'action', 1, 1, '', '', '', NULL),
-(6, 1, '喜剧片', 'comedy', 2, 1, '', '', '', NULL),
-(7, 1, '爱情片', 'romance', 3, 1, '', '', '', NULL),
-(8, 1, '科幻片', 'scifi', 4, 1, '', '', '', NULL),
-(9, 2, '国产剧', 'cn-tv', 1, 1, '', '', '', NULL),
-(10, 2, '韩剧', 'kr-tv', 2, 1, '', '', '', NULL),
-(11, 2, '美剧', 'us-tv', 3, 1, '', '', '', NULL);
+-- 分类数据由采集自动创建
 
 -- 文章分类表
 DROP TABLE IF EXISTS `xpk_art_type`;
