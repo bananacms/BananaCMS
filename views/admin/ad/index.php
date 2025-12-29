@@ -291,7 +291,7 @@ function openAdModal(id = null) {
     
     if (id) {
         title.textContent = '编辑广告';
-        fetch('/admin.php/ad/get?id=' + id)
+        fetch('/admin.php/ad/getOne?id=' + id)
             .then(r => r.json())
             .then(data => {
                 if (data.code === 0) {

@@ -186,7 +186,7 @@ function openLinkModal(id = null) {
     
     if (id) {
         title.textContent = '编辑友链';
-        fetch('/admin.php/link/get?id=' + id)
+        fetch('/admin.php/link/getOne?id=' + id)
             .then(r => r.json())
             .then(data => {
                 if (data.code === 0) {

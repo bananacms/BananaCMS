@@ -31,9 +31,9 @@ class AdminArtTypeController extends AdminBaseController
     /**
      * 获取单个分类（AJAX）
      */
-    public function get(): void
+    public function getOne(): void
     {
-        $id = (int)$this->get('id', 0);
+        $id = (int)$this->input('id', 0);
         $type = $this->artTypeModel->find($id);
         
         if (!$type) {

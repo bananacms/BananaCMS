@@ -102,7 +102,7 @@ function openArtTypeModal(id = null) {
     
     if (id) {
         title.textContent = '编辑分类';
-        fetch('/admin.php/art_type/get?id=' + id)
+        fetch('/admin.php/art_type/getOne?id=' + id)
             .then(r => r.json())
             .then(data => {
                 if (data.code === 0) {

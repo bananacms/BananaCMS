@@ -173,7 +173,7 @@ function openActorModal(id = null) {
     
     if (id) {
         title.textContent = '编辑演员';
-        fetch('/admin.php/actor/get?id=' + id)
+        fetch('/admin.php/actor/getOne?id=' + id)
             .then(r => r.json())
             .then(data => {
                 if (data.code === 0) {

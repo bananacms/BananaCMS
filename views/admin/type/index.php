@@ -135,7 +135,7 @@ function openTypeModal(id = null) {
     if (id) {
         title.textContent = '编辑分类';
         // 加载数据
-        fetch('/admin.php/type/get?id=' + id)
+        fetch('/admin.php/type/getOne?id=' + id)
             .then(r => r.json())
             .then(data => {
                 if (data.code === 0) {

@@ -44,9 +44,9 @@ class AdminAdController extends AdminBaseController
     /**
      * 获取单个广告（AJAX）
      */
-    public function get(): void
+    public function getOne(): void
     {
-        $id = (int)$this->get('id', 0);
+        $id = (int)$this->input('id', 0);
         $ad = $this->adModel->find($id);
         
         if (!$ad) {
