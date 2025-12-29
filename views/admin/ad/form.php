@@ -6,7 +6,7 @@
 </div>
 
 <form method="post" action="/admin.php/ad/<?= isset($ad) ? 'doEdit/' . $ad['ad_id'] : 'doAdd' ?>" class="bg-white rounded shadow p-6 max-w-4xl">
-    <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+    <input type="hidden" name="_token" value="<?= $csrfToken ?>">
 
     <div class="grid grid-cols-2 gap-6">
         <!-- 左列 -->

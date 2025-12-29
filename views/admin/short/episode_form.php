@@ -7,7 +7,7 @@
 </div>
 
 <form method="post" action="/admin.php/short/<?= isset($episode) ? 'doEditEpisode/' . $episode['episode_id'] : 'doAddEpisode/' . $short['short_id'] ?>" class="bg-white rounded shadow p-6 max-w-2xl">
-    <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+    <input type="hidden" name="_token" value="<?= $csrfToken ?>">
 
     <div class="space-y-4">
         <div>

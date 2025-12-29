@@ -1,7 +1,7 @@
 <div class="max-w-2xl">
     <div class="bg-white rounded-lg shadow p-6">
         <form action="/admin.php/link/<?= isset($link) ? 'doEdit/' . $link['link_id'] : 'doAdd' ?>" method="post" class="space-y-4">
-            <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+            <input type="hidden" name="_token" value="<?= $csrfToken ?>">
             
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">网站名称 <span class="text-red-500">*</span></label>

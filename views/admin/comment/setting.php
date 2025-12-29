@@ -12,7 +12,7 @@
 </div>
 
 <form method="post" action="/admin.php/comment/saveSetting" class="bg-white rounded shadow p-6 max-w-2xl">
-    <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+    <input type="hidden" name="_token" value="<?= $csrfToken ?>">
 
     <div class="space-y-6">
         <div>

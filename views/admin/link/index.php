@@ -132,7 +132,7 @@
             </button>
         </div>
         <form id="linkForm" onsubmit="saveLink(event)" class="p-6">
-            <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+            <input type="hidden" name="_token" value="<?= $csrfToken ?>">
             <input type="hidden" name="link_id" id="linkId" value="">
 
             <div class="space-y-4">

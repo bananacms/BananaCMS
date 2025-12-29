@@ -86,7 +86,7 @@ function cleanLogs() {
         fetch('/admin.php/log/clean', {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: '_token=<?= $admin['csrf_token'] ?? '' ?>&days=30'
+            body: '_token=<?= $csrfToken ?>&days=30'
         })
         .then(r => r.json())
         .then(data => {

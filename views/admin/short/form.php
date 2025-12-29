@@ -9,7 +9,7 @@
 <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
 
 <form method="post" action="/admin.php/short/<?= isset($short) ? 'doEdit/' . $short['short_id'] : 'doAdd' ?>" class="bg-white rounded shadow p-6 max-w-3xl">
-    <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+    <input type="hidden" name="_token" value="<?= $csrfToken ?>">
     <input type="hidden" name="short_type" value="<?= $type ?>">
 
     <div class="space-y-4">
@@ -94,7 +94,40 @@ const quill = new Quill('#editor', {
     }
 });
 
-document.querySelector('form').addEventListener('submit', function() {
+// 表单AJAX提交
+document.querySelector('form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // 同步编辑器内容
     document.getElementById('short_desc').value = quill.root.innerHTML;
+    
+    const form = this;
+    const btn = form.querySelector('button[type="submit"]');
+    const btnText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '保存中...';
+    
+    fetch(form.action || location.href, {
+        method: 'POST',
+        body: new FormData(form)
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.code === 0) {
+            xpkToast(data.msg, 'success');
+            setTimeout(() => {
+                location.href = '/admin.php/short';
+            }, 1000);
+        } else {
+            xpkToast(data.msg, 'error');
+            btn.disabled = false;
+            btn.textContent = btnText;
+        }
+    })
+    .catch(err => {
+        xpkToast('请求失败', 'error');
+        btn.disabled = false;
+        btn.textContent = btnText;
+    });
 });
 </script>

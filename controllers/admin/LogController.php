@@ -32,6 +32,7 @@ class AdminLogController extends AdminBaseController
         $this->assign('totalPages', $result['totalPages']);
         $this->assign('total', $result['total']);
         $this->assign('filters', $filters);
+        $this->assign('csrfToken', $this->csrfToken());
         
         $this->render('log/index', '操作日志');
     }

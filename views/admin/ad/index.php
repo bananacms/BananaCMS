@@ -144,7 +144,7 @@ include __DIR__ . '/../components/pagination.php';
             </button>
         </div>
         <form id="adForm" onsubmit="saveAd(event)" class="p-6">
-            <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+            <input type="hidden" name="_token" value="<?= $csrfToken ?>">
             <input type="hidden" name="ad_id" id="adId" value="">
 
             <div class="grid grid-cols-2 gap-6">

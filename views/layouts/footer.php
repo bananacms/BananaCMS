@@ -9,6 +9,7 @@
                     Powered by <a href="https://xpornkit.com" class="text-red-600 hover:underline" target="_blank">香蕉CMS</a>
                 </div>
                 <div class="flex space-x-6 mt-4 md:mt-0">
+                    <a href="/link" class="text-gray-500 hover:text-gray-700 text-sm">友情链接</a>
                     <a href="#" class="text-gray-500 hover:text-gray-700 text-sm">关于我们</a>
                     <a href="#" class="text-gray-500 hover:text-gray-700 text-sm">联系方式</a>
                     <a href="#" class="text-gray-500 hover:text-gray-700 text-sm">免责声明</a>
