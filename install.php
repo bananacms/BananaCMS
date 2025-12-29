@@ -12,6 +12,31 @@ define('CONFIG_PATH', ROOT_PATH . 'config/');
 
 // 检查是否已安装
 if (file_exists(CONFIG_PATH . 'install.lock')) {
+    // 处理删除文件请求
+    if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['file'])) {
+        header('Content-Type: application/json');
+        $allowedFiles = ['install.php', 'data.sql', 'DEPLOY.md', 'README.md'];
+        $file = $_GET['file'];
+        
+        if (!in_array($file, $allowedFiles)) {
+            echo json_encode(['code' => 1, 'msg' => '不允许删除该文件']);
+            exit;
+        }
+        
+        $filePath = ROOT_PATH . $file;
+        if (!file_exists($filePath)) {
+            echo json_encode(['code' => 0, 'msg' => '文件已删除']);
+            exit;
+        }
+        
+        if (@unlink($filePath)) {
+            echo json_encode(['code' => 0, 'msg' => '删除成功']);
+        } else {
+            echo json_encode(['code' => 1, 'msg' => '删除失败，请检查文件权限']);
+        }
+        exit;
+    }
+    
     die('<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="font-family:sans-serif;text-align:center;padding:50px;"><h1>🍌 香蕉CMS</h1><p>系统已安装，如需重新安装请删除 config/install.lock</p><p><a href="/">首页</a> | <a href="/admin.php">后台</a></p></body></html>');
 }
 
@@ -263,11 +288,82 @@ $envPass = !in_array(false, array_column($envChecks, 3));
                 <p class="mb-2"><strong>管理员：</strong><?= htmlspecialchars($_SESSION['install_admin'] ?? '') ?></p>
                 <p class="text-sm text-gray-500 mb-4">请牢记您设置的密码</p>
             </div>
+            
+            <!-- 安全提示 -->
+            <div class="bg-yellow-50 border border-yellow-200 rounded p-4 mb-6 text-left">
+                <h3 class="font-bold text-yellow-800 mb-2">⚠️ 安全提示</h3>
+                <p class="text-sm text-yellow-700 mb-3">为了网站安全，建议删除以下安装相关文件：</p>
+                <div id="deleteFiles" class="space-y-2">
+                    <?php 
+                    $installFiles = [
+                        'install.php' => '安装向导',
+                        'data.sql' => '数据库结构文件',
+                        'DEPLOY.md' => '部署说明',
+                        'README.md' => '项目说明'
+                    ];
+                    foreach ($installFiles as $file => $desc): 
+                        $exists = file_exists(ROOT_PATH . $file);
+                    ?>
+                    <div class="flex items-center justify-between bg-white rounded px-3 py-2 border" id="file-<?= md5($file) ?>">
+                        <div class="flex items-center">
+                            <span class="text-sm <?= $exists ? 'text-gray-700' : 'text-gray-400 line-through' ?>"><?= $file ?></span>
+                            <span class="text-xs text-gray-400 ml-2">(<?= $desc ?>)</span>
+                        </div>
+                        <?php if ($exists): ?>
+                        <button onclick="deleteFile('<?= $file ?>', '<?= md5($file) ?>')" class="text-xs bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded">删除</button>
+                        <?php else: ?>
+                        <span class="text-xs text-green-500">已删除</span>
+                        <?php endif; ?>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <button onclick="deleteAllFiles()" class="mt-3 w-full text-sm bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded font-bold">一键删除所有</button>
+            </div>
+            
             <div class="flex justify-center space-x-4">
                 <a href="/" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded font-bold">访问首页</a>
                 <a href="/admin.php" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded font-bold">进入后台</a>
             </div>
         </div>
+        
+        <script>
+        function deleteFile(file, id) {
+            if (!confirm('确定要删除 ' + file + ' 吗？')) return;
+            
+            fetch('install.php?action=delete&file=' + encodeURIComponent(file))
+                .then(r => r.json())
+                .then(data => {
+                    if (data.code === 0) {
+                        const el = document.getElementById('file-' + id);
+                        el.querySelector('span').classList.add('line-through', 'text-gray-400');
+                        el.querySelector('span').classList.remove('text-gray-700');
+                        el.querySelector('button').outerHTML = '<span class="text-xs text-green-500">已删除</span>';
+                    } else {
+                        alert(data.msg || '删除失败');
+                    }
+                })
+                .catch(() => alert('删除失败'));
+        }
+        
+        function deleteAllFiles() {
+            if (!confirm('确定要删除所有安装相关文件吗？删除后将无法重新安装！')) return;
+            
+            const files = ['install.php', 'data.sql', 'DEPLOY.md', 'README.md'];
+            let deleted = 0;
+            
+            files.forEach(file => {
+                fetch('install.php?action=delete&file=' + encodeURIComponent(file))
+                    .then(r => r.json())
+                    .then(data => {
+                        deleted++;
+                        if (deleted === files.length) {
+                            alert('文件已删除完成');
+                            location.href = '/admin.php';
+                        }
+                    });
+            });
+        }
+        </script>
         <?php endif; ?>
     </div>
     <div class="text-center mt-6 text-white/60 text-sm">Powered by <a href="https://xpornkit.com" class="text-white">香蕉CMS</a></div>
