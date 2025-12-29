@@ -43,13 +43,22 @@
                 <p><span class="text-gray-400">更新：</span><?php echo $vod['vod_remarks'] ?: '更新中'; ?></p>
             </div>
 
-            <div class="mt-6">
+            <div class="mt-6 flex flex-wrap gap-3">
                 <a href="<?php echo xpk_page_url('vod_play', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug'], 'sid' => 1, 'nid' => 1]); ?>" class="inline-flex items-center bg-red-600 text-white px-6 py-2 rounded-full hover:bg-red-700">
                     <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                     立即播放
                 </a>
+                <button onclick="xpkCollect(<?php echo $vod['vod_id']; ?>)" class="inline-flex items-center bg-gray-100 text-gray-700 px-4 py-2 rounded-full hover:bg-gray-200">
+                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                    收藏
+                </button>
             </div>
         </div>
+    </div>
+
+    <!-- 评分区 -->
+    <div class="mb-8 bg-white rounded-lg p-6 shadow-sm">
+        <div id="scoreBox"></div>
     </div>
 
     <!-- 剧情简介 -->
@@ -76,6 +85,48 @@
             </div>
         </div>
     <?php endif; ?>
+
+    <!-- 评论区 -->
+    <div class="mb-8">
+        <div id="commentBox"></div>
+    </div>
 </div>
+
+<script src="/static/js/score.js"></script>
+<script src="/static/js/comment.js"></script>
+<script>
+// 评分组件
+new XpkScore({
+    container: '#scoreBox',
+    type: 'vod',
+    targetId: <?php echo $vod['vod_id']; ?>
+});
+
+// 评论组件
+new XpkComment({
+    container: '#commentBox',
+    type: 'vod',
+    targetId: <?php echo $vod['vod_id']; ?>
+});
+
+// 收藏功能
+function xpkCollect(vodId) {
+    fetch('/api.php?action=collect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'type=vod&id=' + vodId
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.code === 0) {
+            xpk.toast(data.msg, 'success');
+        } else if (data.code === 2) {
+            xpk.toast('请先登录', 'warning');
+        } else {
+            xpk.toast(data.msg, 'error');
+        }
+    });
+}
+</script>
 
 {xpk:footer}

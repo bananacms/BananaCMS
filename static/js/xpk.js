@@ -50,6 +50,49 @@ const xpk = {
 // 全局暴露
 window.xpk = xpk;
 
+/* ========== AJAX 表单处理 ========== */
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('form[data-ajax]').forEach(form => {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const btn = form.querySelector('button[type="submit"]');
+            const btnText = btn ? btn.textContent : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = '处理中...';
+            }
+            
+            try {
+                const res = await fetch(form.action, {
+                    method: form.method || 'POST',
+                    body: new FormData(form)
+                });
+                const data = await res.json();
+                
+                if (data.code === 0) {
+                    xpk.toast(data.msg, 'success');
+                    // 如果有跳转URL
+                    if (data.data && data.data.url) {
+                        setTimeout(() => {
+                            window.location.href = data.data.url;
+                        }, 1000);
+                    }
+                } else {
+                    xpk.toast(data.msg || '操作失败', 'error');
+                }
+            } catch (err) {
+                xpk.toast('请求失败，请重试', 'error');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = btnText;
+                }
+            }
+        });
+    });
+});
+
 /* ========== 广告功能 ========== */
 
 // 广告点击统计
