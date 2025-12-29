@@ -6,7 +6,7 @@
     <!-- 短剧列表 -->
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         {foreach $list as $item}
-        <a href="/short/detail/{$item.short_id}" class="group">
+        <a href="<?php echo xpk_url('short/detail/' . $item['short_id']); ?>" class="group">
             <div class="relative aspect-[3/4] rounded-lg overflow-hidden bg-gray-200">
                 {if $item.short_pic}
                 <img src="{$item.short_pic}" alt="{$item.short_name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform">
@@ -35,11 +35,11 @@
     {if $totalPages > 1}
     <div class="flex flex-wrap justify-center items-center gap-2 mt-8">
         {if $page > 1}
-        <a href="/short/drama/page/{$page-1}" class="px-4 py-2 bg-gray-100 rounded hover:bg-gray-200 text-sm">上一页</a>
+        <a href="<?php echo xpk_url('short/drama/page/' . ($page - 1)); ?>" class="px-4 py-2 bg-gray-100 rounded hover:bg-gray-200 text-sm">上一页</a>
         {/if}
         
         {if $page > 3}
-        <a href="/short/drama/page/1" class="px-3 py-2 bg-gray-100 rounded hover:bg-gray-200 text-sm">1</a>
+        <a href="<?php echo xpk_url('short/drama/page/1'); ?>" class="px-3 py-2 bg-gray-100 rounded hover:bg-gray-200 text-sm">1</a>
         {if $page > 4}<span class="px-2 text-gray-400">...</span>{/if}
         {/if}
         
@@ -47,17 +47,17 @@
         {if $i == $page}
         <span class="px-3 py-2 bg-red-600 text-white rounded text-sm">{$i}</span>
         {else}
-        <a href="/short/drama/page/{$i}" class="px-3 py-2 bg-gray-100 rounded hover:bg-gray-200 text-sm">{$i}</a>
+        <a href="<?php echo xpk_url('short/drama/page/' . $i); ?>" class="px-3 py-2 bg-gray-100 rounded hover:bg-gray-200 text-sm">{$i}</a>
         {/if}
         {/for}
         
         {if $page < $totalPages - 2}
         {if $page < $totalPages - 3}<span class="px-2 text-gray-400">...</span>{/if}
-        <a href="/short/drama/page/{$totalPages}" class="px-3 py-2 bg-gray-100 rounded hover:bg-gray-200 text-sm">{$totalPages}</a>
+        <a href="<?php echo xpk_url('short/drama/page/' . $totalPages); ?>" class="px-3 py-2 bg-gray-100 rounded hover:bg-gray-200 text-sm">{$totalPages}</a>
         {/if}
         
         {if $page < $totalPages}
-        <a href="/short/drama/page/{$page+1}" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm">下一页</a>
+        <a href="<?php echo xpk_url('short/drama/page/' . ($page + 1)); ?>" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm">下一页</a>
         {/if}
         
         {if $totalPages > 5}

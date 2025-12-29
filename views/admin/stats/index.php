@@ -117,6 +117,7 @@
         <div class="bg-white rounded-lg shadow p-4">
             <h3 class="text-lg font-semibold mb-4">🔥 热门视频</h3>
             <div class="space-y-2 max-h-64 overflow-y-auto">
+                <?php if (!empty($hotVideos)): ?>
                 <?php foreach ($hotVideos as $i => $video): ?>
                 <div class="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
                     <span class="w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold <?= $i < 3 ? 'bg-red-500 text-white' : 'bg-gray-200' ?>">
@@ -126,7 +127,7 @@
                     <span class="text-xs text-gray-500"><?= number_format($video['period_pv'] ?? 0) ?> 次</span>
                 </div>
                 <?php endforeach; ?>
-                <?php if (empty($hotVideos)): ?>
+                <?php else: ?>
                 <p class="text-gray-400 text-center py-4">暂无数据</p>
                 <?php endif; ?>
             </div>

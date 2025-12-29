@@ -3,7 +3,7 @@
 <div class="container mx-auto px-4 py-6">
     <!-- 面包屑 -->
     <nav class="text-sm text-gray-500 mb-4">
-        <a href="/" class="hover:text-blue-500">首页</a>
+        <a href="<?php echo xpk_url(); ?>" class="hover:text-blue-500">首页</a>
         <span class="mx-2">/</span>
         <span>友情链接</span>
     </nav>
@@ -97,7 +97,7 @@ document.getElementById('linkForm').addEventListener('submit', function(e) {
     btn.disabled = true;
     btn.textContent = '提交中...';
     
-    fetch('/link/apply', {
+    fetch('<?php echo xpk_url("link/apply"); ?>', {
         method: 'POST',
         body: new URLSearchParams(formData)
     })

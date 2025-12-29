@@ -5,6 +5,9 @@
     </div>
 </div>
 
+<!-- Quill 编辑器样式 -->
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+
 <form method="post" action="/admin.php/short/<?= isset($short) ? 'doEdit/' . $short['short_id'] : 'doAdd' ?>" class="bg-white rounded shadow p-6 max-w-3xl">
     <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
     <input type="hidden" name="short_type" value="<?= $type ?>">
@@ -45,7 +48,8 @@
 
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">简介</label>
-            <textarea name="short_desc" rows="3" class="w-full border rounded px-3 py-2"><?= htmlspecialchars($short['short_desc'] ?? '') ?></textarea>
+            <div id="editor" style="height: 150px;"><?= $short['short_desc'] ?? '' ?></div>
+            <input type="hidden" name="short_desc" id="short_desc">
         </div>
 
         <div>
@@ -72,3 +76,25 @@
         </a>
     </div>
 </form>
+
+<!-- Quill 编辑器 -->
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+<script>
+const quill = new Quill('#editor', {
+    theme: 'snow',
+    modules: {
+        toolbar: [
+            [{ 'header': [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline'],
+            [{ 'color': [] }],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            ['link'],
+            ['clean']
+        ]
+    }
+});
+
+document.querySelector('form').addEventListener('submit', function() {
+    document.getElementById('short_desc').value = quill.root.innerHTML;
+});
+</script>

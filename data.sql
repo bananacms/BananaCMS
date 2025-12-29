@@ -95,7 +95,7 @@ CREATE TABLE `xpk_vod` (
   `vod_remarks` varchar(100) NOT NULL DEFAULT '' COMMENT '备注',
   `vod_content` text COMMENT '简介',
   `vod_play_from` varchar(255) NOT NULL DEFAULT '' COMMENT '播放来源',
-  `vod_play_url` text COMMENT '播放地址',
+  `vod_play_url` mediumtext COMMENT '播放地址',
   `vod_down_from` varchar(255) NOT NULL DEFAULT '' COMMENT '下载来源',
   `vod_down_url` text COMMENT '下载地址',
   `vod_status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态',
@@ -213,6 +213,7 @@ CREATE TABLE `xpk_collect` (
   `collect_filter` varchar(500) NOT NULL DEFAULT '' COMMENT '过滤关键词',
   `collect_param` varchar(255) NOT NULL DEFAULT '' COMMENT '附加参数',
   `collect_bind` text COMMENT '分类绑定JSON',
+  `collect_progress` text COMMENT '采集进度JSON',
   PRIMARY KEY (`collect_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='采集站表';
 

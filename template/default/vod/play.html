@@ -5,10 +5,10 @@
     <a href="/" class="hover:text-red-600">首页</a>
     <span class="mx-2">/</span>
     <?php if (!empty($vod['type_id'])): ?>
-    <a href="/type/<?php echo $vod['type_id']; ?>" class="hover:text-red-600"><?php echo htmlspecialchars($vod['type_name'] ?? '分类'); ?></a>
+    <a href="<?php echo xpk_page_url('type', ['id' => $vod['type_id'], 'slug' => $vod['type_en'] ?? '']); ?>" class="hover:text-red-600"><?php echo htmlspecialchars($vod['type_name'] ?? '分类'); ?></a>
     <span class="mx-2">/</span>
     <?php endif; ?>
-    <a href="/vod/detail/<?php echo $vod['vod_id']; ?>" class="hover:text-red-600"><?php echo htmlspecialchars($vod['vod_name']); ?></a>
+    <a href="<?php echo xpk_page_url('vod_detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="hover:text-red-600"><?php echo htmlspecialchars($vod['vod_name']); ?></a>
     <span class="mx-2">/</span>
     <span class="text-gray-700">播放</span>
 </nav>
@@ -46,7 +46,7 @@
                                 $isActive = ($sIndex + 1 == $sid && $nIndex + 1 == $nid);
                                 $btnClass = $isActive ? 'bg-red-600 text-white' : 'bg-gray-100 hover:bg-gray-200';
                             ?>
-                            <a href="/vod/play/<?php echo $vod['vod_id']; ?>/<?php echo $sIndex + 1; ?>/<?php echo $nIndex + 1; ?>" class="px-4 py-2 rounded text-sm <?php echo $btnClass; ?>">
+                            <a href="<?php echo xpk_page_url('vod_play', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug'], 'sid' => $sIndex + 1, 'nid' => $nIndex + 1]); ?>" class="px-4 py-2 rounded text-sm <?php echo $btnClass; ?>">
                                 <?php echo htmlspecialchars($ep['name']); ?>
                             </a>
                         <?php endforeach; ?>
@@ -64,7 +64,7 @@
                 <h3 class="font-medium"><?php echo htmlspecialchars($vod['vod_name']); ?></h3>
                 <p class="text-gray-500 text-sm mt-1"><?php echo htmlspecialchars($vod['vod_actor'] ?? ''); ?></p>
                 <p class="text-gray-400 text-sm mt-2 line-clamp-2"><?php echo htmlspecialchars($vod['vod_content'] ?? ''); ?></p>
-                <a href="/vod/detail/<?php echo $vod['vod_id']; ?>" class="text-red-600 text-sm mt-2 inline-block hover:underline">查看详情 &gt;</a>
+                <a href="<?php echo xpk_page_url('vod_detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="text-red-600 text-sm mt-2 inline-block hover:underline">查看详情 &gt;</a>
             </div>
         </div>
     </div>
@@ -84,7 +84,7 @@
             $nextNid = 1;
             $hasNext = true;
         }
-        echo $hasNext ? "/vod/play/{$vod['vod_id']}/{$nextSid}/{$nextNid}" : "";
+        echo $hasNext ? xpk_page_url('vod_play', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug'], 'sid' => $nextSid, 'nid' => $nextNid]) : "";
     ?>';
     
     if (!nextUrl) return;

@@ -473,6 +473,16 @@ class AdminCollectController extends AdminBaseController
 
         $done = $page >= $listResult['pagecount'];
         
+        // 保存采集进度（用于断点续采）
+        $this->collectModel->update($id, [
+            'collect_progress' => json_encode([
+                'page' => $done ? 1 : $page + 1,
+                'pagecount' => $listResult['pagecount'],
+                'done' => $done,
+                'time' => time()
+            ])
+        ]);
+        
         $this->success('采集中...', [
             'done' => $done,
             'page' => $page,

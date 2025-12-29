@@ -84,11 +84,13 @@ class XpkType extends XpkModel
 
     /**
      * 通过 slug 查找分类（使用 type_en 字段）
+     * 优先返回顶级分类（type_pid = 0）
      */
     public function findBySlug(string $slug): ?array
     {
+        // 优先查找顶级分类
         $type = $this->db->queryOne(
-            "SELECT * FROM {$this->table} WHERE type_en = ? AND type_status = 1",
+            "SELECT * FROM {$this->table} WHERE type_en = ? AND type_status = 1 ORDER BY type_pid ASC, type_id ASC LIMIT 1",
             [$slug]
         );
         

@@ -170,10 +170,10 @@ class XpkStats
     {
         $startDate = date('Y-m-d', strtotime("-{$days} days"));
 
-        return $this->db->query(
+        $result = $this->db->query(
             "SELECT v.vod_id, v.vod_name, v.vod_pic, v.vod_hits,
                     COUNT(DISTINCT s.log_ip) as period_uv,
-                    SUM(s.log_pv) as period_pv
+                    COALESCE(SUM(s.log_pv), 0) as period_pv
              FROM " . DB_PREFIX . "vod v
              LEFT JOIN {$this->logTable} s ON s.target_id = v.vod_id AND s.log_type = 'vod' AND s.log_date >= ?
              WHERE v.vod_status = 1
@@ -182,6 +182,27 @@ class XpkStats
              LIMIT {$limit}",
             [$startDate]
         );
+        
+        // 如果没有统计数据，按点击量排序返回
+        $hasStats = false;
+        foreach ($result as $row) {
+            if ($row['period_pv'] > 0) {
+                $hasStats = true;
+                break;
+            }
+        }
+        
+        if (!$hasStats) {
+            return $this->db->query(
+                "SELECT vod_id, vod_name, vod_pic, vod_hits, 0 as period_uv, vod_hits as period_pv
+                 FROM " . DB_PREFIX . "vod
+                 WHERE vod_status = 1
+                 ORDER BY vod_hits DESC
+                 LIMIT {$limit}"
+            );
+        }
+        
+        return $result;
     }
 
     /**

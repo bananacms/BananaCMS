@@ -22,9 +22,9 @@ class SearchController extends BaseController
         // 支持两种方式：伪静态 /search/关键词 或 ?wd=关键词
         if (empty($keyword)) {
             $keyword = trim($this->get('wd', ''));
-        } else {
-            $keyword = urldecode($keyword);
         }
+        // 路由已经解码过了，不需要再urldecode
+        $keyword = trim($keyword);
         
         if (empty($keyword)) {
             $this->assign('vodList', []);
@@ -35,6 +35,12 @@ class SearchController extends BaseController
             $this->assign('baseUrl', '/search');
         } else {
             $result = $this->vodModel->search($keyword, $page, PAGE_SIZE);
+            
+            // 记录搜索统计
+            try {
+                $stats = new XpkStats();
+                $stats->log('search', 0, $keyword);
+            } catch (Exception $e) {}
             
             $this->assign('vodList', $result['list']);
             $this->assign('keyword', $keyword);

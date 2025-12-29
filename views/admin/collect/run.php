@@ -3,6 +3,7 @@
 <?php 
 $binds = !empty($collect['collect_bind']) ? json_decode($collect['collect_bind'], true) : [];
 $bindCount = count($binds);
+$lastProgress = !empty($collect['collect_progress']) ? json_decode($collect['collect_progress'], true) : null;
 ?>
 
 <?php if ($bindCount == 0): ?>
@@ -68,6 +69,12 @@ $bindCount = count($binds);
             <button onclick="startCollect()" id="startBtn" class="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded font-bold <?= $bindCount == 0 ? 'opacity-50 cursor-not-allowed' : '' ?>" <?= $bindCount == 0 ? 'disabled' : '' ?>>
                 🚀 开始采集
             </button>
+
+            <?php if ($lastProgress && $lastProgress['page'] > 1 && !$lastProgress['done']): ?>
+            <button onclick="resumeCollect()" id="resumeBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-bold">
+                ▶️ 继续采集 (从第 <?= $lastProgress['page'] ?> 页)
+            </button>
+            <?php endif; ?>
             
             <button onclick="stopCollect()" id="stopBtn" class="w-full bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded font-bold hidden">
                 ⏹ 停止采集
@@ -89,7 +96,7 @@ $bindCount = count($binds);
             </div>
         </div>
 
-        <div class="grid grid-cols-3 gap-4 mb-4">
+        <div class="grid grid-cols-4 gap-4 mb-4">
             <div class="bg-blue-50 rounded p-3 text-center">
                 <p class="text-2xl font-bold text-blue-600" id="statPage">0</p>
                 <p class="text-xs text-gray-500">当前页</p>
@@ -101,6 +108,10 @@ $bindCount = count($binds);
             <div class="bg-orange-50 rounded p-3 text-center">
                 <p class="text-2xl font-bold text-orange-600" id="statUpdated">0</p>
                 <p class="text-xs text-gray-500">更新</p>
+            </div>
+            <div class="bg-purple-50 rounded p-3 text-center">
+                <p class="text-2xl font-bold text-purple-600" id="statEta">--</p>
+                <p class="text-xs text-gray-500">预计剩余</p>
             </div>
         </div>
 
@@ -114,6 +125,9 @@ $bindCount = count($binds);
 let collecting = false;
 let totalAdded = 0;
 let totalUpdated = 0;
+let startTime = 0;
+let startPage = 1;
+let totalPages = 0;
 
 function log(msg, type = 'info') {
     const box = document.getElementById('logBox');
@@ -123,24 +137,61 @@ function log(msg, type = 'info') {
     box.scrollTop = box.scrollHeight;
 }
 
+function formatTime(seconds) {
+    if (seconds < 60) return Math.round(seconds) + '秒';
+    if (seconds < 3600) return Math.round(seconds / 60) + '分钟';
+    return Math.round(seconds / 3600 * 10) / 10 + '小时';
+}
+
+function updateEta(currentPage, pagecount) {
+    if (currentPage <= startPage || pagecount <= 0) {
+        document.getElementById('statEta').textContent = '--';
+        return;
+    }
+    const elapsed = (Date.now() - startTime) / 1000;
+    const pagesCompleted = currentPage - startPage;
+    const pagesRemaining = pagecount - currentPage;
+    const avgTimePerPage = elapsed / pagesCompleted;
+    const eta = pagesRemaining * avgTimePerPage;
+    document.getElementById('statEta').textContent = formatTime(eta);
+}
+
 function startCollect() {
+    beginCollect(1);
+}
+
+function resumeCollect() {
+    const lastPage = <?= $lastProgress['page'] ?? 1 ?>;
+    beginCollect(lastPage);
+}
+
+function beginCollect(fromPage) {
     if (collecting) return;
     collecting = true;
     totalAdded = 0;
     totalUpdated = 0;
+    startTime = Date.now();
+    startPage = fromPage;
+    totalPages = 0;
     
     document.getElementById('startBtn').classList.add('hidden');
+    const resumeBtn = document.getElementById('resumeBtn');
+    if (resumeBtn) resumeBtn.classList.add('hidden');
     document.getElementById('stopBtn').classList.remove('hidden');
     document.getElementById('logBox').innerHTML = '';
+    document.getElementById('statEta').textContent = '计算中...';
     
-    log('开始采集...', 'info');
-    doCollect(1);
+    log(fromPage > 1 ? `从第 ${fromPage} 页继续采集...` : '开始采集...', 'info');
+    doCollect(fromPage);
 }
 
 function stopCollect() {
     collecting = false;
     document.getElementById('startBtn').classList.remove('hidden');
+    const resumeBtn = document.getElementById('resumeBtn');
+    if (resumeBtn) resumeBtn.classList.remove('hidden');
     document.getElementById('stopBtn').classList.add('hidden');
+    document.getElementById('statEta').textContent = '--';
     log('采集已停止', 'warning');
 }
 
@@ -172,20 +223,28 @@ function doCollect(page) {
         const d = res.data;
         totalAdded += d.added;
         totalUpdated += d.updated;
+        if (d.pagecount > 0) totalPages = d.pagecount;
         
-        document.getElementById('statPage').textContent = d.page;
+        document.getElementById('statPage').textContent = d.page + '/' + (totalPages || '?');
         document.getElementById('statAdded').textContent = totalAdded;
         document.getElementById('statUpdated').textContent = totalUpdated;
         
-        const progress = d.pagecount > 0 ? Math.round(d.page / d.pagecount * 100) : 100;
+        const progress = totalPages > 0 ? Math.round(d.page / totalPages * 100) : 0;
         document.getElementById('progressBar').style.width = progress + '%';
         document.getElementById('progressText').textContent = progress + '%';
         
-        log(`第 ${d.page}/${d.pagecount || '?'} 页，新增 ${d.added}，更新 ${d.updated}`, 'success');
+        updateEta(d.page, totalPages);
+        
+        log(`第 ${d.page}/${totalPages || '?'} 页，新增 ${d.added}，更新 ${d.updated}`, 'success');
         
         if (d.done) {
-            log(`采集完成！共新增 ${totalAdded}，更新 ${totalUpdated}`, 'success');
+            const elapsed = formatTime((Date.now() - startTime) / 1000);
+            log(`采集完成！共新增 ${totalAdded}，更新 ${totalUpdated}，耗时 ${elapsed}`, 'success');
+            document.getElementById('statEta').textContent = '完成';
             stopCollect();
+            // 移除继续按钮
+            const resumeBtn = document.getElementById('resumeBtn');
+            if (resumeBtn) resumeBtn.remove();
         } else {
             setTimeout(() => doCollect(page + 1), 500);
         }

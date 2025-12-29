@@ -130,7 +130,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $config .= "define('UPLOAD_PATH', ROOT_PATH . 'upload/');\n";
                 $config .= "define('RUNTIME_PATH', ROOT_PATH . 'runtime/');\n";
                 $config .= "date_default_timezone_set('Asia/Shanghai');\n";
-                $config .= "define('PAGE_SIZE', 20);\n";
+                $config .= "define('PAGE_SIZE', 24);\n";
                 $config .= "define('UPLOAD_MAX_SIZE', 10485760);\n";
                 $config .= "define('UPLOAD_ALLOW_EXT', 'jpg,jpeg,png,gif,webp');\n";
                 

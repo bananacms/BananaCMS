@@ -1,5 +1,8 @@
 <h1 class="text-2xl font-bold mb-6"><?= isset($vod) ? '编辑视频' : '添加视频' ?></h1>
 
+<!-- Quill 编辑器样式 -->
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+
 <form method="POST" class="bg-white rounded-lg shadow p-6">
     <input type="hidden" name="_token" value="<?= $csrfToken ?>">
 
@@ -118,7 +121,8 @@
     <!-- 简介 -->
     <div class="mt-6">
         <label class="block text-sm font-medium text-gray-700 mb-1">简介</label>
-        <textarea name="vod_content" rows="4" class="w-full border rounded px-3 py-2"><?= htmlspecialchars($vod['vod_content'] ?? '') ?></textarea>
+        <div id="editor" style="height: 200px;"><?= $vod['vod_content'] ?? '' ?></div>
+        <input type="hidden" name="vod_content" id="vod_content">
     </div>
 
     <!-- 提交按钮 -->
@@ -131,3 +135,25 @@
         </a>
     </div>
 </form>
+
+<!-- Quill 编辑器 -->
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+<script>
+const quill = new Quill('#editor', {
+    theme: 'snow',
+    modules: {
+        toolbar: [
+            [{ 'header': [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline'],
+            [{ 'color': [] }],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            ['link'],
+            ['clean']
+        ]
+    }
+});
+
+document.querySelector('form').addEventListener('submit', function() {
+    document.getElementById('vod_content').value = quill.root.innerHTML;
+});
+</script>

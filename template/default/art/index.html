@@ -7,7 +7,7 @@
 <?php if (!empty($artList)): ?>
 <div class="space-y-4 mb-8">
     <?php foreach ($artList as $art): ?>
-    <a href="/art/detail/<?= $art['art_id'] ?>" class="flex gap-4 p-4 bg-white rounded-lg border hover:shadow-md transition group">
+    <a href="<?= xpk_page_url('art_detail', ['id' => $art['art_id'], 'slug' => $art['art_slug'] ?? '']) ?>" class="flex gap-4 p-4 bg-white rounded-lg border hover:shadow-md transition group">
         <?php if ($art['art_pic']): ?>
         <img src="<?= htmlspecialchars($art['art_pic']) ?>" alt="" class="w-32 h-20 object-cover rounded flex-shrink-0">
         <?php endif; ?>

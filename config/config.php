@@ -41,7 +41,7 @@ define('RUNTIME_PATH', ROOT_PATH . 'runtime/');
 date_default_timezone_set('Asia/Shanghai');
 
 // 分页配置
-define('PAGE_SIZE', 20);
+define('PAGE_SIZE', 24);
 
 // 后台入口（用于重定向，可自定义）
 define('ADMIN_ENTRY', 'admin.php');

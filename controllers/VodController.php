@@ -56,6 +56,12 @@ class VodController extends BaseController
         // 增加点击量
         $this->vodModel->incHits($id);
         
+        // 记录视频访问统计
+        try {
+            $stats = new XpkStats();
+            $stats->log('vod', $id);
+        } catch (Exception $e) {}
+        
         // 相关视频
         $relatedList = $this->vodModel->getRelated($vod['vod_type_id'], $id, 6);
         
@@ -84,6 +90,12 @@ class VodController extends BaseController
 
         // 增加点击量
         $this->vodModel->incHits($id);
+        
+        // 记录播放统计
+        try {
+            $stats = new XpkStats();
+            $stats->log('play', $id);
+        } catch (Exception $e) {}
         
         // 解析播放地址
         $playUrls = $this->parsePlayUrl($vod['vod_play_url'] ?? '');

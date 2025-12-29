@@ -3,9 +3,9 @@
 <div class="container mx-auto px-4 py-6">
     <!-- 面包屑 -->
     <div class="text-sm text-gray-500 mb-4">
-        <a href="/" class="hover:text-red-600">首页</a>
+        <a href="<?php echo xpk_url(); ?>" class="hover:text-red-600">首页</a>
         <span class="mx-2">/</span>
-        <a href="/short/drama" class="hover:text-red-600">短剧</a>
+        <a href="<?php echo xpk_url('short/drama'); ?>" class="hover:text-red-600">短剧</a>
         <span class="mx-2">/</span>
         <span>{$short.short_name}</span>
     </div>
@@ -43,7 +43,7 @@
             <p class="text-gray-600 mb-6">{$short.short_desc}</p>
 
             {if !empty($episodes)}
-            <a href="/short/play/{$short.short_id}/1" class="inline-block bg-red-600 text-white px-8 py-3 rounded-lg hover:bg-red-700">
+            <a href="<?php echo xpk_url('short/play/' . $short['short_id'] . '/1'); ?>" class="inline-block bg-red-600 text-white px-8 py-3 rounded-lg hover:bg-red-700">
                 ▶ 立即观看
             </a>
             {/if}
@@ -56,7 +56,7 @@
         <h2 class="text-lg font-bold mb-4">选集</h2>
         <div class="xpk-episode-list">
             {foreach $episodes as $index => $ep}
-            <a href="/short/play/{$short.short_id}/{:$index+1}" 
+            <a href="<?php echo xpk_url('short/play/' . $short['short_id'] . '/' . ($index + 1)); ?>" 
                class="xpk-episode-item {:$ep.episode_free ? '' : 'locked'}">
                 {$ep.episode_name ?: '第'.($index+1).'集'}
             </a>

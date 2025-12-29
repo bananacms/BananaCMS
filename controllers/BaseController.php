@@ -13,6 +13,26 @@ class BaseController
     {
         $this->view = new XpkTemplate();
         $this->initCommon();
+        $this->logPageView();
+    }
+
+    /**
+     * 记录页面访问统计
+     */
+    protected function logPageView(): void
+    {
+        // 只记录前端页面访问，排除管理后台和API
+        $uri = $_SERVER['REQUEST_URI'] ?? '';
+        if (strpos($uri, '/admin') !== false || strpos($uri, '/api') !== false) {
+            return;
+        }
+        
+        try {
+            $stats = new XpkStats();
+            $stats->log('page', 0);
+        } catch (Exception $e) {
+            // 静默失败，不影响页面加载
+        }
     }
 
     /**

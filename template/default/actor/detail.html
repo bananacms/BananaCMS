@@ -2,9 +2,9 @@
 
 <!-- 面包屑导航 -->
 <nav class="text-sm text-gray-500 mb-4 max-w-5xl mx-auto">
-    <a href="/" class="hover:text-red-600">首页</a>
+    <a href="<?= xpk_url() ?>" class="hover:text-red-600">首页</a>
     <span class="mx-2">/</span>
-    <a href="/actor" class="hover:text-red-600">演员</a>
+    <a href="<?= xpk_url('actor') ?>" class="hover:text-red-600">演员</a>
     <span class="mx-2">/</span>
     <span class="text-gray-700"><?= htmlspecialchars($actor['actor_name']) ?></span>
 </nav>
@@ -46,7 +46,7 @@
         <h2 class="text-lg font-bold mb-4">相关作品</h2>
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             <?php foreach ($vodList as $vod): ?>
-            <a href="/vod/detail/<?= $vod['vod_id'] ?>" class="group card-hover">
+            <a href="<?= xpk_page_url('vod_detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]) ?>" class="group card-hover">
                 <img src="<?= $vod['vod_pic'] ?: '/static/images/no-image.svg' ?>" alt="<?= htmlspecialchars($vod['vod_name']) ?>" class="w-full aspect-[2/3] object-cover rounded-lg bg-gray-100">
                 <h3 class="mt-2 text-sm truncate group-hover:text-red-600"><?= htmlspecialchars($vod['vod_name']) ?></h3>
             </a>
