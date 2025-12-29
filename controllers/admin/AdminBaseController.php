@@ -102,6 +102,14 @@ class AdminBaseController
     }
 
     /**
+     * 获取请求参数（GET或POST）
+     */
+    protected function input(string $key, mixed $default = null): mixed
+    {
+        return $_REQUEST[$key] ?? $default;
+    }
+
+    /**
      * CSRF Token生成
      */
     protected function csrfToken(): string

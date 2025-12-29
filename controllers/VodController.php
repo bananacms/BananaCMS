@@ -43,6 +43,25 @@ class VodController extends BaseController
     }
 
     /**
+     * 热门视频列表
+     */
+    public function hot(int $page = 1): void
+    {
+        $result = $this->vodModel->getHotPaged($page, PAGE_SIZE);
+        
+        $this->assign('vodList', $result['list']);
+        $this->assign('page', $result['page']);
+        $this->assign('totalPages', $result['totalPages']);
+        $this->assign('total', $result['total']);
+        $this->assign('baseUrl', '/hot');
+        
+        // SEO
+        $this->assign('title', '热门视频 - ' . SITE_NAME);
+        
+        $this->render('vod/hot');
+    }
+
+    /**
      * 视频详情
      */
     public function detail(int $id): void

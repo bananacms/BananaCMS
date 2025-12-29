@@ -67,7 +67,7 @@
                     <svg class="w-6 h-6 mr-6" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
                     <span class="text-sm">首页</span>
                 </a>
-                <a href="/search?wd=热门" class="flex items-center px-6 py-2 hover:bg-gray-100">
+                <a href="/hot" class="flex items-center px-6 py-2 hover:bg-gray-100">
                     <svg class="w-6 h-6 mr-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"></path></svg>
                     <span class="text-sm">热门</span>
                 </a>
@@ -77,7 +77,7 @@
                 </div>
                 <?php if (!empty($navTypes)): ?>
                     <?php foreach ($navTypes as $type): ?>
-                        <a href="/type/<?php echo $type['type_id']; ?>" class="flex items-center px-6 py-2 hover:bg-gray-100">
+                        <a href="<?php echo xpk_page_url('type', ['id' => $type['type_id'], 'slug' => $type['type_en']]); ?>" class="flex items-center px-6 py-2 hover:bg-gray-100">
                             <span class="text-sm"><?php echo htmlspecialchars($type['type_name']); ?></span>
                         </a>
                     <?php endforeach; ?>

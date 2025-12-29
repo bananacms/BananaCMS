@@ -120,6 +120,10 @@ $router->get('art/{id}.html', fn($id) => (new ArtController())->detail((int)$id)
 $router->get('article/{slug}', fn($slug) => (new ArtController())->detailBySlug($slug));
 $router->get('article/{slug}.html', fn($slug) => (new ArtController())->detailBySlug($slug));
 
+// 热门视频
+$router->get('hot', fn() => (new VodController())->hot());
+$router->get('hot/page/{page}', fn($page) => (new VodController())->hot((int)$page));
+
 // 搜索
 $router->get('search', fn() => (new SearchController())->index());
 $router->get('search/page/{page}', fn($page) => (new SearchController())->index((int)$page));

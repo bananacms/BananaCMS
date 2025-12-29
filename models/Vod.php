@@ -58,6 +58,32 @@ class XpkVod extends XpkModel
     }
 
     /**
+     * 获取热门视频（分页）
+     */
+    public function getHotPaged(int $page = 1, int $pageSize = 20): array
+    {
+        if (!$this->xpk_init()) {
+            return ['list' => [], 'total' => 0, 'page' => 1, 'pageSize' => $pageSize, 'totalPages' => 0];
+        }
+
+        $offset = ($page - 1) * $pageSize;
+        
+        $sql = "SELECT * FROM {$this->table} WHERE vod_status = 1 ORDER BY vod_hits DESC, vod_time DESC LIMIT {$pageSize} OFFSET {$offset}";
+        $countSql = "SELECT COUNT(*) as total FROM {$this->table} WHERE vod_status = 1";
+        
+        $list = $this->db->query($sql);
+        $total = $this->db->queryOne($countSql)['total'] ?? 0;
+        
+        return [
+            'list' => $list,
+            'total' => (int)$total,
+            'page' => $page,
+            'pageSize' => $pageSize,
+            'totalPages' => ceil($total / $pageSize),
+        ];
+    }
+
+    /**
      * 获取视频详情
      */
     public function getDetail(int $id): ?array

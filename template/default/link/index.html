@@ -54,6 +54,7 @@
                 </div>
 
                 <form id="linkForm" class="space-y-4">
+                    <input type="hidden" name="_token" value="<?= htmlspecialchars($csrfToken) ?>">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">网站名称 *</label>
                         <input type="text" name="link_name" required
