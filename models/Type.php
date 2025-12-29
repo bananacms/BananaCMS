@@ -84,16 +84,25 @@ class XpkType extends XpkModel
 
     /**
      * 通过 slug 查找分类（使用 type_en 字段）
-     * 优先返回顶级分类（type_pid = 0）
+     * 优先返回顶级分类（type_pid = 0），且分类名称与slug相关
      */
     public function findBySlug(string $slug): ?array
     {
-        // 优先查找顶级分类
+        // 先尝试精确匹配顶级分类
         $type = $this->db->queryOne(
-            "SELECT * FROM {$this->table} WHERE type_en = ? AND type_status = 1 ORDER BY type_pid ASC, type_id ASC LIMIT 1",
+            "SELECT * FROM {$this->table} WHERE type_en = ? AND type_pid = 0 AND type_status = 1 LIMIT 1",
             [$slug]
         );
         
+        // 如果没有顶级分类，再查找子分类
+        if (!$type) {
+            $type = $this->db->queryOne(
+                "SELECT * FROM {$this->table} WHERE type_en = ? AND type_status = 1 ORDER BY type_pid ASC, type_id ASC LIMIT 1",
+                [$slug]
+            );
+        }
+        
+        // 兼容数字ID
         if (!$type && is_numeric($slug)) {
             $type = $this->getById((int)$slug);
         }
