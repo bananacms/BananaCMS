@@ -132,19 +132,24 @@ function saveSetting() {
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: 'link_auto_approve=' + autoApprove
     }).then(r => r.json()).then(data => {
-        alert(data.msg);
+        xpkToast(data.msg, data.code === 0 ? 'success' : 'error');
     });
 }
 
 function audit(id, status) {
-    if (!confirm(status == 1 ? '确定通过该友链？' : '确定拒绝该友链？')) return;
-    fetch('/admin.php/link/audit', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: 'id=' + id + '&status=' + status
-    }).then(r => r.json()).then(data => {
-        alert(data.msg);
-        if (data.code === 0) location.reload();
+    xpkConfirm(status == 1 ? '确定通过该友链？' : '确定拒绝该友链？', function() {
+        fetch('/admin.php/link/audit', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'id=' + id + '&status=' + status
+        }).then(r => r.json()).then(data => {
+            if (data.code === 0) {
+                xpkToast(data.msg, 'success');
+                location.reload();
+            } else {
+                xpkToast(data.msg, 'error');
+            }
+        });
     });
 }
 
@@ -154,32 +159,38 @@ function checkLink(id) {
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: 'id=' + id
     }).then(r => r.json()).then(data => {
-        alert(data.msg);
+        xpkToast(data.msg, data.code === 0 ? 'success' : 'warning');
         location.reload();
     });
 }
 
 function batchCheck() {
-    if (!confirm('确定批量检测所有已通过友链的回链状态？')) return;
-    fetch('/admin.php/link/check', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: 'id=0'
-    }).then(r => r.json()).then(data => {
-        alert(data.msg);
-        location.reload();
+    xpkConfirm('确定批量检测所有已通过友链的回链状态？', function() {
+        fetch('/admin.php/link/check', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'id=0'
+        }).then(r => r.json()).then(data => {
+            xpkToast(data.msg, data.code === 0 ? 'success' : 'warning');
+            location.reload();
+        });
     });
 }
 
 function deleteLink(id) {
-    if (!confirm('确定删除该友链？')) return;
-    fetch('/admin.php/link/delete', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: 'id=' + id
-    }).then(r => r.json()).then(data => {
-        alert(data.msg);
-        if (data.code === 0) location.reload();
+    xpkConfirm('确定删除该友链？', function() {
+        fetch('/admin.php/link/delete', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'id=' + id
+        }).then(r => r.json()).then(data => {
+            if (data.code === 0) {
+                xpkToast(data.msg, 'success');
+                location.reload();
+            } else {
+                xpkToast(data.msg, 'error');
+            }
+        });
     });
 }
 </script>

@@ -265,7 +265,7 @@ function uploadLogo(input) {
     
     const file = input.files[0];
     if (file.size > 2 * 1024 * 1024) {
-        alert('文件大小不能超过2MB');
+        xpkToast('文件大小不能超过2MB', 'error');
         return;
     }
     
@@ -282,17 +282,18 @@ function uploadLogo(input) {
         if (data.code === 0) {
             document.getElementById('siteLogo').value = data.data.url;
             document.getElementById('logoPreview').innerHTML = '<img src="' + data.data.url + '" class="max-h-full max-w-full" alt="Logo">';
-            alert('上传成功');
+            xpkToast('上传成功', 'success');
         } else {
-            alert(data.msg || '上传失败');
+            xpkToast(data.msg || '上传失败', 'error');
         }
     })
-    .catch(() => alert('上传失败'));
+    .catch(() => xpkToast('上传失败', 'error'));
 }
 
 function removeLogo() {
-    if (!confirm('确定删除Logo？')) return;
-    document.getElementById('siteLogo').value = '';
-    document.getElementById('logoPreview').innerHTML = '<span class="text-gray-400 text-sm">无Logo</span>';
+    xpkConfirm('确定删除Logo？', function() {
+        document.getElementById('siteLogo').value = '';
+        document.getElementById('logoPreview').innerHTML = '<span class="text-gray-400 text-sm">无Logo</span>';
+    });
 }
 </script>

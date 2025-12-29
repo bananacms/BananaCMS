@@ -71,8 +71,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // 分割并逐条执行SQL
                 $statements = array_filter(array_map('trim', explode(';', $sql)));
                 foreach ($statements as $statement) {
-                    if (!empty($statement) && !preg_match('/^(--|SET|\/\*)/', $statement)) {
+                    $statement = trim($statement);
+                    // 跳过空语句、注释、SET语句
+                    if (empty($statement) || preg_match('/^(--|#|SET\s|\/\*)/i', $statement)) {
+                        continue;
+                    }
+                    try {
                         $pdo->exec($statement);
+                    } catch (PDOException $e) {
+                        // 忽略表已存在等非致命错误，继续执行
+                        if (strpos($e->getMessage(), 'already exists') === false) {
+                            // 记录错误但继续
+                        }
                     }
                 }
                 

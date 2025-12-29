@@ -82,17 +82,21 @@
 
 <script>
 function cleanLogs() {
-    if (!confirm('确定要清理30天前的日志吗？')) return;
-    
-    fetch('/admin.php/log/clean', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: '_token=<?= $admin['csrf_token'] ?? '' ?>&days=30'
-    })
-    .then(r => r.json())
-    .then(data => {
-        alert(data.msg);
-        if (data.code === 0) location.reload();
+    xpkConfirm('确定要清理30天前的日志吗？', function() {
+        fetch('/admin.php/log/clean', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: '_token=<?= $admin['csrf_token'] ?? '' ?>&days=30'
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.code === 0) {
+                xpkToast(data.msg, 'success');
+                location.reload();
+            } else {
+                xpkToast(data.msg, 'error');
+            }
+        });
     });
 }
 </script>

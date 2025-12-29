@@ -20,6 +20,7 @@ if (APP_DEBUG) {
 require_once CORE_PATH . 'ErrorHandler.php';
 require_once CORE_PATH . 'Database.php';
 require_once CORE_PATH . 'Router.php';
+require_once CORE_PATH . 'Cache.php';
 require_once CORE_PATH . 'RedisSession.php';
 
 // 注册错误处理
