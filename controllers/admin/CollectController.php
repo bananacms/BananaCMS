@@ -205,13 +205,13 @@ class AdminCollectController extends AdminBaseController
 
             // 生成slug
             require_once CORE_PATH . 'Slug.php';
-            $slug = xpk_slug_unique($name, 'type', 'type_slug');
+            $slug = xpk_slug_unique($name, 'type', 'type_en');
 
             // 新增分类
             $newId = $this->typeModel->insert([
                 'type_pid' => 0,
                 'type_name' => $name,
-                'type_slug' => $slug,
+                'type_en' => $slug,
                 'type_sort' => $cat['id'],
                 'type_status' => 1
             ]);
@@ -246,13 +246,13 @@ class AdminCollectController extends AdminBaseController
 
             // 生成slug
             require_once CORE_PATH . 'Slug.php';
-            $slug = xpk_slug_unique($name, 'type', 'type_slug');
+            $slug = xpk_slug_unique($name, 'type', 'type_en');
 
             // 新增子分类
             $newId = $this->typeModel->insert([
                 'type_pid' => $localPid,
                 'type_name' => $name,
-                'type_slug' => $slug,
+                'type_en' => $slug,
                 'type_sort' => $cat['id'],
                 'type_status' => 1
             ]);
