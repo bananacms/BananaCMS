@@ -116,7 +116,7 @@
         <!-- 热门视频 -->
         <div class="bg-white rounded-lg shadow p-4">
             <h3 class="text-lg font-semibold mb-4">🔥 热门视频</h3>
-            <div class="space-y-2 max-h-64 overflow-y-auto">
+            <div class="space-y-2">
                 <?php if (!empty($hotVideos)): ?>
                 <?php foreach ($hotVideos as $i => $video): ?>
                 <div class="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
