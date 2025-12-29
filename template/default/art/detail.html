@@ -12,8 +12,8 @@
     <img src="<?= htmlspecialchars($art['art_pic']) ?>" alt="" class="w-full rounded-lg mb-6">
     <?php endif; ?>
     
-    <div class="prose max-w-none text-gray-700 leading-relaxed">
-        <?= nl2br(htmlspecialchars($art['art_content'])) ?>
+    <div class="prose max-w-none text-gray-700 leading-relaxed art-content">
+        <?= $art['art_content'] ?>
     </div>
     
     <div class="mt-8 pt-6 border-t">
@@ -21,4 +21,4 @@
     </div>
 </article>
 
-{xpk:footer}
+<?php include VIEW_PATH . 'layouts/footer.php'; ?>

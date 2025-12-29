@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>{$short.short_name} 第{:$epIndex+1}集 - {$siteName}</title>
+    <title><?= htmlspecialchars($short['short_name']) ?> 第<?= $epIndex + 1 ?>集 - <?= $siteName ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="<?php echo xpk_url('static/css/xpk.css'); ?>">
+    <link rel="stylesheet" href="/static/css/xpk.css">
     <style>
         body { margin: 0; background: #000; }
         .player-wrapper {
@@ -36,12 +36,12 @@
 </head>
 <body>
     <div class="player-wrapper">
-        {if $currentEp}
+        <?php if (!empty($currentEp)): ?>
         <video
             id="player"
             class="player-video"
-            src="{$currentEp.episode_url}"
-            poster="{:$currentEp['episode_pic'] ?: $short['short_pic']}"
+            src="<?= htmlspecialchars($currentEp['episode_url']) ?>"
+            poster="<?= htmlspecialchars($currentEp['episode_pic'] ?: $short['short_pic']) ?>"
             playsinline
             webkit-playsinline
             autoplay
@@ -51,10 +51,10 @@
             <!-- 顶部栏 -->
             <div class="bg-gradient-to-b from-black/60 to-transparent p-4">
                 <div class="flex items-center gap-3">
-                    <a href="<?php echo xpk_url('short/detail/' . $short['short_id']); ?>" class="text-white text-2xl">←</a>
+                    <a href="/short/detail/<?= $short['short_id'] ?>" class="text-white text-2xl">←</a>
                     <div class="flex-1">
-                        <div class="text-white font-medium">{$short.short_name}</div>
-                        <div class="text-white/70 text-sm">第{:$epIndex+1}集 / 共{:count($episodes)}集</div>
+                        <div class="text-white font-medium"><?= htmlspecialchars($short['short_name']) ?></div>
+                        <div class="text-white/70 text-sm">第<?= $epIndex + 1 ?>集 / 共<?= count($episodes) ?>集</div>
                     </div>
                 </div>
             </div>
@@ -70,12 +70,12 @@
                 <div class="flex items-center justify-between text-white">
                     <button id="playBtn" class="text-3xl">⏸</button>
                     <div class="flex gap-4">
-                        {if $epIndex > 0}
-                        <a href="<?php echo xpk_url('short/play/' . $short['short_id'] . '/' . $epIndex); ?>" class="px-4 py-2 bg-white/20 rounded">上一集</a>
-                        {/if}
-                        {if $epIndex < count($episodes) - 1}
-                        <a href="<?php echo xpk_url('short/play/' . $short['short_id'] . '/' . ($epIndex + 2)); ?>" class="px-4 py-2 bg-red-600 rounded">下一集</a>
-                        {/if}
+                        <?php if ($epIndex > 0): ?>
+                        <a href="/short/play/<?= $short['short_id'] ?>/<?= $epIndex ?>" class="px-4 py-2 bg-white/20 rounded">上一集</a>
+                        <?php endif; ?>
+                        <?php if ($epIndex < count($episodes) - 1): ?>
+                        <a href="/short/play/<?= $short['short_id'] ?>/<?= $epIndex + 2 ?>" class="px-4 py-2 bg-red-600 rounded">下一集</a>
+                        <?php endif; ?>
                     </div>
                     <button id="epListBtn" class="text-xl">📋</button>
                 </div>
@@ -90,24 +90,24 @@
                     <button id="closeEpModal" class="text-white text-2xl">×</button>
                 </div>
                 <div class="grid grid-cols-5 gap-2">
-                    {foreach $episodes as $i => $ep}
-                    <a href="<?php echo xpk_url('short/play/' . $short['short_id'] . '/' . ($i + 1)); ?>"
-                       class="py-2 text-center rounded {:$i == $epIndex ? 'bg-red-600 text-white' : 'bg-gray-800 text-gray-300'}">
-                        {:$i+1}
+                    <?php foreach ($episodes as $i => $ep): ?>
+                    <a href="/short/play/<?= $short['short_id'] ?>/<?= $i + 1 ?>"
+                       class="py-2 text-center rounded <?= $i == $epIndex ? 'bg-red-600 text-white' : 'bg-gray-800 text-gray-300' ?>">
+                        <?= $i + 1 ?>
                     </a>
-                    {/foreach}
+                    <?php endforeach; ?>
                 </div>
             </div>
         </div>
 
-        {else}
+        <?php else: ?>
         <div class="flex items-center justify-center h-full text-white">
             <div class="text-center">
                 <p class="text-xl mb-4">剧集不存在</p>
-                <a href="<?php echo xpk_url('short/detail/' . $short['short_id']); ?>" class="text-red-500">返回详情</a>
+                <a href="/short/detail/<?= $short['short_id'] ?>" class="text-red-500">返回详情</a>
             </div>
         </div>
-        {/if}
+        <?php endif; ?>
     </div>
 
     <script>
