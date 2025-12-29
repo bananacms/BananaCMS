@@ -201,7 +201,7 @@ class CommentController extends BaseController
     /**
      * JSON响应
      */
-    private function json(int $code, string $msg, array $data = []): void
+    protected function json(int $code, string $msg, array $data = []): void
     {
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode(['code' => $code, 'msg' => $msg, 'data' => $data], JSON_UNESCAPED_UNICODE);
