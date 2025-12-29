@@ -153,6 +153,12 @@ $router->post('admin.php/collect/test', fn() => (new AdminCollectController())->
 $router->get('admin.php/log', fn() => (new AdminLogController())->index());
 $router->post('admin.php/log/clean', fn() => (new AdminLogController())->clean());
 
+// 单页管理
+require_once CTRL_PATH . 'admin/PageController.php';
+$router->get('admin.php/page', fn() => (new AdminPageController())->index());
+$router->get('admin.php/page/edit/{key}', fn($key) => (new AdminPageController())->edit($key));
+$router->post('admin.php/page/save', fn() => (new AdminPageController())->save());
+
 // 友链管理
 require_once CTRL_PATH . 'admin/LinkController.php';
 $router->get('admin.php/link', fn() => (new AdminLinkController())->index());

@@ -139,6 +139,13 @@ require_once CTRL_PATH . 'LinkController.php';
 $router->get('link', fn() => (new LinkController())->index());
 $router->post('link/apply', fn() => (new LinkController())->apply());
 
+// 单页面
+require_once CTRL_PATH . 'PageController.php';
+$router->get('page/{slug}', fn($slug) => (new PageController())->show($slug));
+$router->get('about', fn() => (new PageController())->show('about'));
+$router->get('contact', fn() => (new PageController())->show('contact'));
+$router->get('disclaimer', fn() => (new PageController())->show('disclaimer'));
+
 // 评论
 require_once CTRL_PATH . 'CommentController.php';
 $router->get('comment/list', fn() => (new CommentController())->list());

@@ -68,6 +68,9 @@
                 <a href="/admin.php/log" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/log') !== false ? 'active' : '' ?>">
                     📋 操作日志
                 </a>
+                <a href="/admin.php/page" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/page') !== false ? 'active' : '' ?>">
+                    📄 单页管理
+                </a>
                 <a href="/admin.php/config" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/config') !== false ? 'active' : '' ?>">
                     ⚙️ 系统配置
                 </a>
