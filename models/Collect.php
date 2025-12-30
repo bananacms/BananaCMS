@@ -355,7 +355,7 @@ class XpkCollect extends XpkModel
         
         // 如果是数字
         if (is_numeric($firstChar)) {
-            return '0-9';
+            return '#';
         }
         
         // 如果是英文字母
