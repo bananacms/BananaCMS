@@ -367,6 +367,6 @@ class XpkCollect extends XpkModel
         require_once CORE_PATH . 'Pinyin.php';
         $pinyin = new XpkPinyin();
         $letter = $pinyin->getFirstLetter($firstChar);
-        return strtoupper($letter);
+        return !empty($letter) ? strtoupper($letter) : '#';
     }
 }

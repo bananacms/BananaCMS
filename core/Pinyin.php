@@ -7029,7 +7029,15 @@ class XpkPinyin
     public function getFirstLetter($string, $encoding = 'utf-8')
     {
         $shortPinyin = self::getShortPinyin($string, $encoding);
-        return !empty($shortPinyin) ? strtoupper(substr($shortPinyin, 0, 1)) : '';
+        if (empty($shortPinyin)) {
+            return '';
+        }
+        $firstChar = substr($shortPinyin, 0, 1);
+        // 确保返回的是英文字母，否则返回空
+        if (preg_match('/^[A-Za-z]$/', $firstChar)) {
+            return strtoupper($firstChar);
+        }
+        return '';
     }
 
 

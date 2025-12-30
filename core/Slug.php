@@ -23,8 +23,14 @@ class XpkSlug
         
         // 中文转拼音
         $pinyin = XpkPinyin::getPinyin($text);
+        $slug = self::sanitize($pinyin, $separator);
         
-        return self::sanitize($pinyin, $separator);
+        // 如果转换后为空（日语、韩语等），生成随机slug
+        if (empty($slug)) {
+            $slug = 'v' . substr(md5($text), 0, 8);
+        }
+        
+        return $slug;
     }
     
     /**
@@ -38,7 +44,14 @@ class XpkSlug
             return self::sanitize($text, '');
         }
         
-        return strtolower(XpkPinyin::getShortPinyin($text));
+        $short = strtolower(XpkPinyin::getShortPinyin($text));
+        
+        // 如果转换后为空（日语、韩语等），生成随机短slug
+        if (empty($short) || !preg_match('/^[a-z0-9]+$/', $short)) {
+            $short = substr(md5($text), 0, 6);
+        }
+        
+        return $short;
     }
     
     /**
