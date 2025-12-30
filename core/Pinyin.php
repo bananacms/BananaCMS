@@ -7020,5 +7020,17 @@ class XpkPinyin
         return self::$short_pinyin;
     }
 
+    /**
+     * 获取首字母
+     * @param $string
+     * @param string $encoding
+     * @return string
+     */
+    public function getFirstLetter($string, $encoding = 'utf-8')
+    {
+        $shortPinyin = self::getShortPinyin($string, $encoding);
+        return !empty($shortPinyin) ? strtoupper(substr($shortPinyin, 0, 1)) : '';
+    }
+
 
 }
