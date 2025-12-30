@@ -3,7 +3,7 @@
  * 中文转拼音类
  * Powered by https://xpornkit.com
  */
-class Pinyin
+class XpkPinyin
 {
     //中文字符串
     private static $string = '';
