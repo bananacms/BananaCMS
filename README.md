@@ -274,6 +274,10 @@ X-Token: {token}
 | 缓存 | File / Redis |
 | 存储 | Local / Cloudflare R2 |
 
+## 📢 社区
+
+- Telegram 频道: [@BananaCMS](https://t.me/BananaCMS)
+
 ## 📄 开源协议
 
 MIT License

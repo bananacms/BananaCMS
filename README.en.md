@@ -273,6 +273,10 @@ X-Token: {token}
 | Cache | File / Redis |
 | Storage | Local / Cloudflare R2 |
 
+## 📢 Community
+
+- Telegram Channel: [@BananaCMS](https://t.me/BananaCMS)
+
 ## 📄 License
 
 MIT License
