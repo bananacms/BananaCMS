@@ -3,7 +3,7 @@
  * 香蕉CMS API入口（APP/客户端专用）
  * Powered by https://xpornkit.com
  * 
- * 接口文档见 API.md
+ * 接口文档见 README.md
  */
 
 // 加载配置
