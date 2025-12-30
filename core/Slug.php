@@ -18,16 +18,23 @@ class XpkSlug
     {
         // 如果已经是纯英文/数字，直接处理
         if (preg_match('/^[a-zA-Z0-9\s\-_]+$/', $text)) {
-            return self::sanitize($text, $separator);
+            $slug = self::sanitize($text, $separator);
+        } else {
+            // 中文转拼音
+            $pinyin = XpkPinyin::getPinyin($text);
+            $slug = self::sanitize($pinyin, $separator);
+            
+            // 如果转换后为空（日语、韩语等），生成随机slug
+            if (empty($slug)) {
+                $slug = 'v' . substr(md5($text), 0, 8);
+            }
         }
         
-        // 中文转拼音
-        $pinyin = XpkPinyin::getPinyin($text);
-        $slug = self::sanitize($pinyin, $separator);
-        
-        // 如果转换后为空（日语、韩语等），生成随机slug
-        if (empty($slug)) {
-            $slug = 'v' . substr(md5($text), 0, 8);
+        // 限制 slug 长度为 200 字符，避免超出数据库字段限制
+        if (strlen($slug) > 200) {
+            $slug = substr($slug, 0, 200);
+            // 确保不会在分隔符处截断
+            $slug = rtrim($slug, $separator);
         }
         
         return $slug;

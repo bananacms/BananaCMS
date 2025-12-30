@@ -1,0 +1,74 @@
+<?php include TPL_PATH . 'bilibili/layouts/header.php'; ?>
+
+<div class="max-w-7xl mx-auto px-4 py-6">
+    <!-- 面包屑 -->
+    <div class="text-sm text-gray-500 mb-4">
+        <a href="/" class="hover:text-pink-500">首页</a>
+        <span class="mx-2">/</span>
+        <a href="/actor" class="hover:text-pink-500">演员</a>
+        <span class="mx-2">/</span>
+        <span class="text-gray-700"><?php echo htmlspecialchars($actor['actor_name']); ?></span>
+    </div>
+
+    <!-- 演员信息 -->
+    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div class="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
+            <div class="w-32 h-32 bg-pink-100 rounded-full flex items-center justify-center text-pink-500 text-5xl flex-shrink-0 overflow-hidden">
+                <?php if (!empty($actor['actor_pic'])): ?>
+                    <img src="<?php echo htmlspecialchars($actor['actor_pic']); ?>" alt="<?php echo htmlspecialchars($actor['actor_name']); ?>" class="w-full h-full object-cover">
+                <?php else: ?>
+                    <?php echo mb_substr($actor['actor_name'], 0, 1); ?>
+                <?php endif; ?>
+            </div>
+            <div class="text-center md:text-left">
+                <h1 class="text-2xl font-bold text-gray-800"><?php echo htmlspecialchars($actor['actor_name']); ?></h1>
+                <?php if (!empty($actor['actor_en'])): ?>
+                    <p class="text-gray-500 text-sm mt-1"><?php echo htmlspecialchars($actor['actor_en']); ?></p>
+                <?php endif; ?>
+                <?php if (!empty($actor['actor_content'])): ?>
+                    <p class="text-gray-600 text-sm mt-3 max-w-2xl"><?php echo nl2br(htmlspecialchars($actor['actor_content'])); ?></p>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('actor_top') ?>
+
+    <!-- 相关作品 -->
+    <div class="bg-white rounded-lg shadow-sm p-4 md:p-6">
+        <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+            <span class="text-pink-500 mr-2">📺</span>相关作品
+        </h2>
+        <?php if (!empty($vodList)): ?>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6">
+                <?php foreach ($vodList as $vod): ?>
+                    <a href="<?php echo xpk_page_url('detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="card bg-white rounded-lg overflow-hidden cursor-pointer border border-gray-100">
+                        <div class="relative">
+                            <img src="<?php echo htmlspecialchars($vod['vod_pic']); ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full aspect-video object-cover" loading="lazy">
+                            <?php if (!empty($vod['vod_remarks'])): ?>
+                                <div class="absolute bottom-1 right-1 bg-black/70 text-white text-xs px-1 rounded"><?php echo htmlspecialchars($vod['vod_remarks']); ?></div>
+                            <?php endif; ?>
+                        </div>
+                        <div class="p-2">
+                            <h3 class="text-sm line-clamp-2 hover:text-pink-500"><?php echo htmlspecialchars($vod['vod_name']); ?></h3>
+                            <p class="text-gray-400 text-xs mt-1"><?php echo htmlspecialchars($vod['vod_year'] ?? ''); ?></p>
+                        </div>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+
+            <!-- 分页 -->
+            <?php include TPL_PATH . 'bilibili/components/pagination.php'; ?>
+        <?php else: ?>
+            <div class="text-center text-gray-400 py-8">
+                暂无相关作品
+            </div>
+        <?php endif; ?>
+    </div>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('actor_bottom') ?>
+</div>
+
+<?php include TPL_PATH . 'bilibili/layouts/footer.php'; ?>

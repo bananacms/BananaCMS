@@ -1,0 +1,79 @@
+<?php 
+$netflixLayoutPath = TPL_PATH . 'netflix/layouts/';
+include $netflixLayoutPath . 'header.php'; 
+?>
+
+<!-- 用户中心 -->
+<div class="pt-20 md:pt-24 px-4 md:px-12 pb-10">
+    <div class="max-w-4xl mx-auto">
+        <!-- 用户信息 -->
+        <div class="bg-gray-900 rounded-lg p-6 md:p-8 mb-8">
+            <div class="flex items-center space-x-6">
+                <div class="w-20 h-20 md:w-24 md:h-24 bg-red-600 rounded-full flex items-center justify-center text-3xl md:text-4xl font-bold">
+                    <?php echo mb_substr($user['user_nick_name'], 0, 1); ?>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold"><?php echo htmlspecialchars($user['user_nick_name']); ?></h1>
+                    <p class="text-gray-400 mt-1"><?php echo htmlspecialchars($user['user_email']); ?></p>
+                    <p class="text-gray-500 text-sm mt-2">注册时间：<?php echo date('Y-m-d', strtotime($user['user_reg_time'])); ?></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 功能菜单 -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <a href="/user/favorite" class="bg-gray-900 rounded-lg p-6 text-center hover:bg-gray-800 transition">
+                <div class="text-3xl mb-2">❤️</div>
+                <p class="text-sm">我的收藏</p>
+            </a>
+            <a href="/user/history" class="bg-gray-900 rounded-lg p-6 text-center hover:bg-gray-800 transition">
+                <div class="text-3xl mb-2">📺</div>
+                <p class="text-sm">观看历史</p>
+            </a>
+            <a href="/user/profile" class="bg-gray-900 rounded-lg p-6 text-center hover:bg-gray-800 transition">
+                <div class="text-3xl mb-2">⚙️</div>
+                <p class="text-sm">账号设置</p>
+            </a>
+            <a href="/user/logout" class="bg-gray-900 rounded-lg p-6 text-center hover:bg-gray-800 transition">
+                <div class="text-3xl mb-2">🚪</div>
+                <p class="text-sm">退出登录</p>
+            </a>
+        </div>
+
+        <!-- 最近观看 -->
+        <?php if (!empty($recentList)): ?>
+        <div class="mb-8">
+            <h2 class="text-lg font-bold mb-4">最近观看</h2>
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 md:gap-3">
+                <?php foreach ($recentList as $vod): ?>
+                <a href="<?php echo xpk_page_url('vod_detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="card cursor-pointer relative overflow-hidden rounded group">
+                    <img src="<?php echo $vod['vod_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full aspect-[2/3] object-cover bg-gray-800">
+                    <div class="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                        <p class="text-xs truncate"><?php echo htmlspecialchars($vod['vod_name']); ?></p>
+                    </div>
+                </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <!-- 我的收藏 -->
+        <?php if (!empty($favoriteList)): ?>
+        <div>
+            <h2 class="text-lg font-bold mb-4">我的收藏</h2>
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 md:gap-3">
+                <?php foreach ($favoriteList as $vod): ?>
+                <a href="<?php echo xpk_page_url('vod_detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="card cursor-pointer relative overflow-hidden rounded group">
+                    <img src="<?php echo $vod['vod_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full aspect-[2/3] object-cover bg-gray-800">
+                    <div class="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                        <p class="text-xs truncate"><?php echo htmlspecialchars($vod['vod_name']); ?></p>
+                    </div>
+                </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+    </div>
+</div>
+
+<?php include $netflixLayoutPath . 'footer.php'; ?>

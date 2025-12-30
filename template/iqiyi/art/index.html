@@ -1,0 +1,51 @@
+<?php include TPL_PATH . 'iqiyi/layouts/header.php'; ?>
+
+<div class="max-w-7xl mx-auto px-4 py-6">
+    <!-- 页面标题 -->
+    <div class="bg-white rounded-lg shadow p-4 mb-6">
+        <h1 class="text-xl font-bold text-gray-800">资讯文章</h1>
+    </div>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('art_top') ?>
+
+    <!-- 文章列表 -->
+    <?php if (!empty($artList)): ?>
+        <div class="space-y-4 mb-6">
+            <?php foreach ($artList as $art): ?>
+                <a href="<?php echo xpk_page_url('art_detail', ['id' => $art['art_id'], 'slug' => $art['art_slug']]); ?>" class="block bg-white rounded-lg shadow overflow-hidden hover:shadow-md transition">
+                    <div class="flex">
+                        <?php if (!empty($art['art_pic'])): ?>
+                            <div class="w-32 md:w-48 flex-shrink-0">
+                                <img src="<?php echo htmlspecialchars($art['art_pic']); ?>" alt="<?php echo htmlspecialchars($art['art_title']); ?>" class="w-full h-full object-cover" loading="lazy">
+                            </div>
+                        <?php endif; ?>
+                        <div class="flex-1 p-4">
+                            <h2 class="text-lg font-medium text-gray-800 line-clamp-2 hover:text-green-500"><?php echo htmlspecialchars($art['art_title']); ?></h2>
+                            <?php if (!empty($art['art_blurb'])): ?>
+                                <p class="text-gray-500 text-sm mt-2 line-clamp-2"><?php echo htmlspecialchars($art['art_blurb']); ?></p>
+                            <?php endif; ?>
+                            <div class="flex items-center text-xs text-gray-400 mt-3">
+                                <span><?php echo date('Y-m-d', strtotime($art['art_time'])); ?></span>
+                                <span class="mx-2">·</span>
+                                <span>阅读 <?php echo $art['art_hits'] ?? 0; ?></span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            <?php endforeach; ?>
+        </div>
+
+        <!-- 分页 -->
+        <?php include TPL_PATH . 'iqiyi/components/pagination.php'; ?>
+    <?php else: ?>
+        <div class="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+            暂无文章
+        </div>
+    <?php endif; ?>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('art_bottom') ?>
+</div>
+
+<?php include TPL_PATH . 'iqiyi/layouts/footer.php'; ?>

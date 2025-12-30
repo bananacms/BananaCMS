@@ -1,0 +1,69 @@
+<?php 
+$netflixLayoutPath = TPL_PATH . 'netflix/layouts/';
+include $netflixLayoutPath . 'header.php'; 
+?>
+
+<!-- 文章详情页 -->
+<div class="pt-20 md:pt-24 px-4 md:px-12 pb-10">
+    <div class="max-w-4xl mx-auto">
+        <!-- 文章标题 -->
+        <h1 class="text-2xl md:text-3xl font-bold mb-4"><?php echo htmlspecialchars($art['art_title']); ?></h1>
+        
+        <!-- 文章信息 -->
+        <div class="flex items-center text-gray-500 text-sm mb-8 pb-6 border-b border-gray-800">
+            <span><?php echo date('Y-m-d H:i', strtotime($art['art_time'])); ?></span>
+            <span class="mx-3">·</span>
+            <span><?php echo number_format($art['art_hits']); ?>阅读</span>
+            <?php if ($art['art_from']): ?>
+            <span class="mx-3">·</span>
+            <span>来源：<?php echo htmlspecialchars($art['art_from']); ?></span>
+            <?php endif; ?>
+        </div>
+
+        <!-- 封面图 -->
+        <?php if ($art['art_pic']): ?>
+        <div class="mb-8">
+            <img src="<?php echo $art['art_pic']; ?>" alt="<?php echo htmlspecialchars($art['art_title']); ?>" class="w-full rounded-lg">
+        </div>
+        <?php endif; ?>
+
+        <!-- 文章内容 -->
+        <div class="prose prose-invert max-w-none">
+            <div class="text-gray-300 leading-relaxed">
+                <?php echo $art['art_content']; ?>
+            </div>
+        </div>
+
+        <!-- 标签 -->
+        <?php if ($art['art_tag']): ?>
+        <div class="mt-8 pt-6 border-t border-gray-800">
+            <div class="flex flex-wrap gap-2">
+                <?php foreach (explode(',', $art['art_tag']) as $tag): ?>
+                <span class="bg-gray-800 px-3 py-1 rounded text-sm"><?php echo htmlspecialchars(trim($tag)); ?></span>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <!-- 上下篇 -->
+        <div class="mt-8 pt-6 border-t border-gray-800 flex justify-between">
+            <?php if ($prevArt): ?>
+            <a href="<?php echo xpk_page_url('art_detail', ['id' => $prevArt['art_id'], 'slug' => $prevArt['art_slug']]); ?>" class="text-gray-400 hover:text-white">
+                ← <?php echo htmlspecialchars(mb_substr($prevArt['art_title'], 0, 20)); ?>...
+            </a>
+            <?php else: ?>
+            <span></span>
+            <?php endif; ?>
+
+            <?php if ($nextArt): ?>
+            <a href="<?php echo xpk_page_url('art_detail', ['id' => $nextArt['art_id'], 'slug' => $nextArt['art_slug']]); ?>" class="text-gray-400 hover:text-white">
+                <?php echo htmlspecialchars(mb_substr($nextArt['art_title'], 0, 20)); ?>... →
+            </a>
+            <?php else: ?>
+            <span></span>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+
+<?php include $netflixLayoutPath . 'footer.php'; ?>

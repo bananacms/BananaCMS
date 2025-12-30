@@ -1,0 +1,102 @@
+<?php include TPL_PATH . 'bilibili/layouts/header.php'; ?>
+
+<div class="max-w-7xl mx-auto px-4 py-6">
+    <!-- 面包屑 -->
+    <div class="text-sm text-gray-500 mb-4">
+        <a href="/" class="hover:text-pink-500">首页</a>
+        <span class="mx-2">/</span>
+        <a href="<?php echo xpk_page_url('detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="hover:text-pink-500"><?php echo htmlspecialchars($vod['vod_name']); ?></a>
+        <span class="mx-2">/</span>
+        <span class="text-gray-700"><?php echo htmlspecialchars($currentEp['name'] ?? '正在播放'); ?></span>
+    </div>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('play_top') ?>
+
+    <!-- 播放器 -->
+    <div class="bg-black rounded-lg overflow-hidden mb-6">
+        <div class="aspect-video">
+            <?php if (!empty($playerUrl)): ?>
+                <iframe src="<?php echo htmlspecialchars($playerUrl); ?>" class="w-full h-full" allowfullscreen frameborder="0" scrolling="no"></iframe>
+            <?php else: ?>
+                <div class="w-full h-full flex items-center justify-center text-white">
+                    <p>播放地址加载失败</p>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- 视频信息 -->
+    <div class="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-6">
+        <div class="flex items-start justify-between">
+            <div>
+                <h1 class="text-xl font-bold text-gray-800"><?php echo htmlspecialchars($vod['vod_name']); ?></h1>
+                <p class="text-pink-500 text-sm mt-1"><?php echo htmlspecialchars($currentEp['name'] ?? ''); ?></p>
+            </div>
+            <div class="flex items-center space-x-4 text-sm text-gray-500">
+                <span>▶ <?php echo xpk_format_number($vod['vod_hits'] ?? 0); ?></span>
+            </div>
+        </div>
+        <div class="flex flex-wrap gap-2 mt-3">
+            <?php if (!empty($vod['vod_year'])): ?>
+                <span class="bg-pink-100 text-pink-500 px-3 py-1 rounded-full text-xs"><?php echo htmlspecialchars($vod['vod_year']); ?></span>
+            <?php endif; ?>
+            <?php if (!empty($vod['vod_area'])): ?>
+                <span class="bg-blue-100 text-blue-500 px-3 py-1 rounded-full text-xs"><?php echo htmlspecialchars($vod['vod_area']); ?></span>
+            <?php endif; ?>
+            <?php if (!empty($vod['vod_remarks'])): ?>
+                <span class="bg-green-100 text-green-500 px-3 py-1 rounded-full text-xs"><?php echo htmlspecialchars($vod['vod_remarks']); ?></span>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('play_middle') ?>
+
+    <!-- 播放列表 -->
+    <?php if (!empty($playUrls)): ?>
+        <div class="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                <span class="text-pink-500 mr-2">📺</span>选集播放
+            </h2>
+            <?php foreach ($playUrls as $sid => $source): ?>
+                <div class="mb-4">
+                    <h3 class="text-sm text-gray-500 mb-2"><?php echo htmlspecialchars($source['name']); ?></h3>
+                    <div class="flex flex-wrap gap-2">
+                        <?php foreach ($source['urls'] as $nid => $ep): ?>
+                            <?php $isActive = ($sid == $currentSid && $nid == $currentNid); ?>
+                            <a href="<?php echo xpk_page_url('play', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug'], 'sid' => $sid, 'nid' => $nid]); ?>" class="px-4 py-2 <?php echo $isActive ? 'bg-pink-500 text-white' : 'bg-gray-100 hover:bg-pink-500 hover:text-white'; ?> rounded text-sm transition"><?php echo htmlspecialchars($ep['name']); ?></a>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+
+    <!-- 相关推荐 -->
+    <?php if (!empty($relatedList)): ?>
+        <div class="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                <span class="text-pink-500 mr-2">💡</span>相关推荐
+            </h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <?php foreach (array_slice($relatedList, 0, 12) as $related): ?>
+                    <a href="<?php echo xpk_page_url('detail', ['id' => $related['vod_id'], 'slug' => $related['vod_slug']]); ?>" class="card">
+                        <div class="relative">
+                            <img src="<?php echo htmlspecialchars($related['vod_pic']); ?>" alt="<?php echo htmlspecialchars($related['vod_name']); ?>" class="w-full aspect-video object-cover rounded-lg" loading="lazy">
+                            <?php if (!empty($related['vod_remarks'])): ?>
+                                <div class="absolute bottom-1 right-1 bg-black/70 text-white text-xs px-1 rounded"><?php echo htmlspecialchars($related['vod_remarks']); ?></div>
+                            <?php endif; ?>
+                        </div>
+                        <h3 class="text-sm mt-2 line-clamp-1 hover:text-pink-500"><?php echo htmlspecialchars($related['vod_name']); ?></h3>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('play_bottom') ?>
+</div>
+
+<?php include TPL_PATH . 'bilibili/layouts/footer.php'; ?>

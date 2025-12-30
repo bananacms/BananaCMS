@@ -1,0 +1,49 @@
+<?php include TPL_PATH . 'bilibili/layouts/header.php'; ?>
+
+<div class="min-h-[60vh] flex items-center justify-center py-12 px-4">
+    <div class="bg-white rounded-lg shadow-sm w-full max-w-md p-6 md:p-8">
+        <div class="text-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-800">登录</h1>
+            <p class="text-gray-500 text-sm mt-2">欢迎回来</p>
+        </div>
+
+        <?php if (!empty($error)): ?>
+            <div class="bg-red-50 text-red-500 px-4 py-3 rounded-lg mb-4 text-sm">
+                <?php echo htmlspecialchars($error); ?>
+            </div>
+        <?php endif; ?>
+
+        <form action="/user/login" method="post" class="space-y-4">
+            <div>
+                <label class="block text-gray-600 text-sm mb-2">用户名</label>
+                <input type="text" name="username" value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>" required class="w-full bg-gray-100 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pink-500" placeholder="请输入用户名">
+            </div>
+            <div>
+                <label class="block text-gray-600 text-sm mb-2">密码</label>
+                <input type="password" name="password" required class="w-full bg-gray-100 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pink-500" placeholder="请输入密码">
+            </div>
+            <?php if (!empty($captchaEnabled)): ?>
+                <div>
+                    <label class="block text-gray-600 text-sm mb-2">验证码</label>
+                    <div class="flex space-x-2">
+                        <input type="text" name="captcha" required class="flex-1 bg-gray-100 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pink-500" placeholder="请输入验证码">
+                        <img src="/captcha" alt="验证码" class="h-12 rounded-lg cursor-pointer" onclick="this.src='/captcha?t='+Date.now()">
+                    </div>
+                </div>
+            <?php endif; ?>
+            <div class="flex items-center justify-between text-sm">
+                <label class="flex items-center text-gray-500">
+                    <input type="checkbox" name="remember" class="mr-2 rounded">
+                    记住我
+                </label>
+            </div>
+            <button type="submit" class="w-full bg-pink-500 text-white py-3 rounded-full hover:bg-pink-600 transition font-medium">登录</button>
+        </form>
+
+        <div class="text-center mt-6 text-sm text-gray-500">
+            还没有账号？<a href="/user/register" class="text-pink-500 hover:text-pink-600">立即注册</a>
+        </div>
+    </div>
+</div>
+
+<?php include TPL_PATH . 'bilibili/layouts/footer.php'; ?>

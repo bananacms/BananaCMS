@@ -1,0 +1,86 @@
+<?php 
+$netflixLayoutPath = TPL_PATH . 'netflix/layouts/';
+include $netflixLayoutPath . 'header.php'; 
+?>
+
+<!-- 演员详情页 -->
+<div class="pt-20 md:pt-24 px-4 md:px-12 pb-10">
+    <div class="flex flex-col md:flex-row gap-8 mb-10">
+        <!-- 演员头像 -->
+        <div class="w-40 md:w-56 flex-shrink-0 mx-auto md:mx-0">
+            <div class="aspect-square rounded-full overflow-hidden bg-gray-800">
+                <img src="<?php echo $actor['actor_pic'] ?: '/static/images/no-avatar.svg'; ?>" alt="<?php echo htmlspecialchars($actor['actor_name']); ?>" class="w-full h-full object-cover">
+            </div>
+        </div>
+
+        <!-- 演员信息 -->
+        <div class="flex-1 text-center md:text-left">
+            <h1 class="text-2xl md:text-4xl font-bold mb-4"><?php echo htmlspecialchars($actor['actor_name']); ?></h1>
+            
+            <?php if ($actor['actor_en']): ?>
+            <p class="text-gray-400 mb-4"><?php echo htmlspecialchars($actor['actor_en']); ?></p>
+            <?php endif; ?>
+
+            <div class="text-sm text-gray-400 space-y-2 mb-6">
+                <?php if ($actor['actor_sex']): ?>
+                <p><span class="text-gray-500">性别：</span><?php echo $actor['actor_sex'] == 1 ? '男' : '女'; ?></p>
+                <?php endif; ?>
+                <?php if ($actor['actor_area']): ?>
+                <p><span class="text-gray-500">地区：</span><?php echo htmlspecialchars($actor['actor_area']); ?></p>
+                <?php endif; ?>
+                <?php if ($actor['actor_blood']): ?>
+                <p><span class="text-gray-500">血型：</span><?php echo htmlspecialchars($actor['actor_blood']); ?></p>
+                <?php endif; ?>
+                <?php if ($actor['actor_starsign']): ?>
+                <p><span class="text-gray-500">星座：</span><?php echo htmlspecialchars($actor['actor_starsign']); ?></p>
+                <?php endif; ?>
+            </div>
+
+            <?php if ($actor['actor_content']): ?>
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-2">简介</h3>
+                <p class="text-gray-400 text-sm leading-relaxed"><?php echo nl2br(htmlspecialchars($actor['actor_content'])); ?></p>
+            </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- 相关作品 -->
+    <?php if (!empty($vodList)): ?>
+    <div>
+        <h2 class="text-xl font-bold mb-6">相关作品</h2>
+        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 md:gap-4">
+            <?php foreach ($vodList as $vod): ?>
+            <a href="<?php echo xpk_page_url('vod_detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="card cursor-pointer relative overflow-hidden rounded group">
+                <img src="<?php echo $vod['vod_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full aspect-[2/3] object-cover bg-gray-800">
+                <div class="card-overlay absolute inset-0 bg-black/60 opacity-0 flex items-center justify-center">
+                    <span class="w-10 h-10 bg-white/90 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5 text-black ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    </span>
+                </div>
+                <div class="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                    <p class="text-xs md:text-sm truncate"><?php echo htmlspecialchars($vod['vod_name']); ?></p>
+                </div>
+            </a>
+            <?php endforeach; ?>
+        </div>
+
+        <!-- 分页 -->
+        <?php if ($totalPages > 1): ?>
+        <div class="flex justify-center items-center space-x-2 mt-10">
+            <?php if ($page > 1): ?>
+            <a href="?page=<?php echo $page - 1; ?>" class="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded transition">上一页</a>
+            <?php endif; ?>
+            
+            <span class="text-gray-400 px-4">第 <?php echo $page; ?> / <?php echo $totalPages; ?> 页</span>
+            
+            <?php if ($page < $totalPages): ?>
+            <a href="?page=<?php echo $page + 1; ?>" class="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded transition">下一页</a>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
+    </div>
+    <?php endif; ?>
+</div>
+
+<?php include $netflixLayoutPath . 'footer.php'; ?>

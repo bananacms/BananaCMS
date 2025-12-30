@@ -1,0 +1,99 @@
+<?php 
+$netflixLayoutPath = TPL_PATH . 'netflix/layouts/';
+include $netflixLayoutPath . 'header.php'; 
+?>
+
+<!-- 播放页 -->
+<div class="pt-16">
+    <!-- 播放器区域 -->
+    <div class="bg-black">
+        <div class="max-w-7xl mx-auto">
+            <div class="relative w-full" style="padding-top: 56.25%;">
+                <iframe id="player" src="<?php echo $playUrl; ?>" class="absolute inset-0 w-full h-full" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- 视频信息 -->
+    <div class="max-w-7xl mx-auto px-4 md:px-8 py-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+            <div>
+                <h1 class="text-xl md:text-2xl font-bold"><?php echo htmlspecialchars($vod['vod_name']); ?></h1>
+                <p class="text-gray-400 text-sm mt-1">
+                    正在播放：<?php echo htmlspecialchars($currentSource['name']); ?> - <?php echo htmlspecialchars($currentEpisode['name']); ?>
+                </p>
+            </div>
+            <div class="flex items-center space-x-4 mt-4 md:mt-0">
+                <a href="<?php echo xpk_page_url('vod_detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="text-gray-400 hover:text-white text-sm">
+                    ← 返回详情
+                </a>
+            </div>
+        </div>
+
+        <!-- 线路切换 -->
+        <?php if (count($playList) > 1): ?>
+        <div class="mb-6">
+            <h3 class="text-sm text-gray-400 mb-3">切换线路</h3>
+            <div class="flex flex-wrap gap-2">
+                <?php foreach ($playList as $sid => $source): ?>
+                <a href="<?php echo xpk_page_url('vod_play', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug'], 'sid' => $sid, 'nid' => 1]); ?>" 
+                   class="<?php echo $sid == $currentSid ? 'bg-red-600' : 'bg-gray-800 hover:bg-gray-700'; ?> px-4 py-2 rounded text-sm transition">
+                    <?php echo htmlspecialchars($source['name']); ?>
+                </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <!-- 选集 -->
+        <div class="mb-6">
+            <h3 class="text-sm text-gray-400 mb-3">选集</h3>
+            <div class="flex flex-wrap gap-2 max-h-48 overflow-y-auto">
+                <?php foreach ($currentSource['urls'] as $nid => $ep): ?>
+                <a href="<?php echo xpk_page_url('vod_play', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug'], 'sid' => $currentSid, 'nid' => $nid]); ?>" 
+                   class="<?php echo $nid == $currentNid ? 'bg-red-600' : 'bg-gray-800 hover:bg-gray-700'; ?> px-4 py-2 rounded text-sm transition">
+                    <?php echo htmlspecialchars($ep['name']); ?>
+                </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+
+        <!-- 上下集 -->
+        <div class="flex justify-between items-center py-4 border-t border-gray-800">
+            <?php if ($prevEpisode): ?>
+            <a href="<?php echo xpk_page_url('vod_play', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug'], 'sid' => $currentSid, 'nid' => $prevEpisode['nid']]); ?>" class="bg-gray-800 hover:bg-gray-700 px-6 py-2 rounded transition">
+                ← 上一集
+            </a>
+            <?php else: ?>
+            <span class="text-gray-600 px-6 py-2">← 上一集</span>
+            <?php endif; ?>
+
+            <?php if ($nextEpisode): ?>
+            <a href="<?php echo xpk_page_url('vod_play', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug'], 'sid' => $currentSid, 'nid' => $nextEpisode['nid']]); ?>" class="bg-gray-800 hover:bg-gray-700 px-6 py-2 rounded transition">
+                下一集 →
+            </a>
+            <?php else: ?>
+            <span class="text-gray-600 px-6 py-2">下一集 →</span>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- 相关推荐 -->
+    <?php if (!empty($relatedList)): ?>
+    <div class="max-w-7xl mx-auto px-4 md:px-8 pb-10">
+        <h3 class="text-lg font-bold mb-4">相关推荐</h3>
+        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 md:gap-3">
+            <?php foreach (array_slice($relatedList, 0, 6) as $related): ?>
+            <a href="<?php echo xpk_page_url('vod_detail', ['id' => $related['vod_id'], 'slug' => $related['vod_slug']]); ?>" class="card cursor-pointer relative overflow-hidden rounded group">
+                <img src="<?php echo $related['vod_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($related['vod_name']); ?>" class="w-full aspect-[2/3] object-cover bg-gray-800">
+                <div class="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                    <p class="text-xs truncate"><?php echo htmlspecialchars($related['vod_name']); ?></p>
+                </div>
+            </a>
+            <?php endforeach; ?>
+        </div>
+    </div>
+    <?php endif; ?>
+</div>
+
+<?php include $netflixLayoutPath . 'footer.php'; ?>

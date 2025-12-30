@@ -1,0 +1,137 @@
+<?php 
+$netflixLayoutPath = TPL_PATH . 'netflix/layouts/';
+include $netflixLayoutPath . 'header.php'; 
+?>
+
+<!-- 视频详情页 -->
+<div class="relative">
+    <!-- 背景图 -->
+    <div class="absolute inset-0 h-[60vh] md:h-[70vh]">
+        <img src="<?php echo $vod['vod_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-r from-[#141414] via-[#141414]/80 to-[#141414]/40"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-[#141414] via-[#141414]/50 to-transparent"></div>
+    </div>
+
+    <!-- 内容 -->
+    <div class="relative pt-24 md:pt-32 px-4 md:px-12">
+        <div class="flex flex-col md:flex-row gap-6 md:gap-10">
+            <!-- 海报 -->
+            <div class="w-40 md:w-64 flex-shrink-0 mx-auto md:mx-0">
+                <img src="<?php echo $vod['vod_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full aspect-[2/3] object-cover rounded-lg shadow-2xl">
+            </div>
+
+            <!-- 信息 -->
+            <div class="flex-1 text-center md:text-left">
+                <h1 class="text-2xl md:text-4xl font-bold mb-2"><?php echo htmlspecialchars($vod['vod_name']); ?></h1>
+                <?php if ($vod['vod_sub']): ?>
+                <p class="text-gray-400 mb-4"><?php echo htmlspecialchars($vod['vod_sub']); ?></p>
+                <?php endif; ?>
+
+                <!-- 标签 -->
+                <div class="flex flex-wrap justify-center md:justify-start gap-2 mb-4">
+                    <?php if ($vod['vod_year']): ?>
+                    <span class="bg-gray-800 px-3 py-1 rounded text-sm"><?php echo $vod['vod_year']; ?></span>
+                    <?php endif; ?>
+                    <?php if ($vod['vod_area']): ?>
+                    <span class="bg-gray-800 px-3 py-1 rounded text-sm"><?php echo htmlspecialchars($vod['vod_area']); ?></span>
+                    <?php endif; ?>
+                    <?php if ($vod['vod_lang']): ?>
+                    <span class="bg-gray-800 px-3 py-1 rounded text-sm"><?php echo htmlspecialchars($vod['vod_lang']); ?></span>
+                    <?php endif; ?>
+                    <?php if ($vod['type_name']): ?>
+                    <span class="bg-red-600 px-3 py-1 rounded text-sm"><?php echo htmlspecialchars($vod['type_name']); ?></span>
+                    <?php endif; ?>
+                    <?php if ($vod['vod_score'] > 0): ?>
+                    <span class="bg-yellow-600 px-3 py-1 rounded text-sm">⭐ <?php echo $vod['vod_score']; ?>分</span>
+                    <?php endif; ?>
+                </div>
+
+                <!-- 播放按钮 -->
+                <div class="flex flex-wrap justify-center md:justify-start gap-3 mb-6">
+                    <?php if (!empty($playList)): ?>
+                    <a href="<?php echo xpk_page_url('vod_play', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug'], 'sid' => 1, 'nid' => 1]); ?>" class="bg-white text-black px-8 py-3 rounded font-semibold flex items-center hover:bg-gray-200 transition">
+                        <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        立即播放
+                    </a>
+                    <?php endif; ?>
+                    <button onclick="addToFavorite(<?php echo $vod['vod_id']; ?>)" class="bg-gray-700 text-white px-6 py-3 rounded font-semibold flex items-center hover:bg-gray-600 transition">
+                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        收藏
+                    </button>
+                </div>
+
+                <!-- 详细信息 -->
+                <div class="text-sm text-gray-400 space-y-2 mb-6">
+                    <?php if ($vod['vod_director']): ?>
+                    <p><span class="text-gray-500">导演：</span><?php echo htmlspecialchars($vod['vod_director']); ?></p>
+                    <?php endif; ?>
+                    <?php if ($vod['vod_actor']): ?>
+                    <p><span class="text-gray-500">主演：</span><?php echo htmlspecialchars($vod['vod_actor']); ?></p>
+                    <?php endif; ?>
+                    <?php if ($vod['vod_remarks']): ?>
+                    <p><span class="text-gray-500">状态：</span><?php echo htmlspecialchars($vod['vod_remarks']); ?></p>
+                    <?php endif; ?>
+                    <p><span class="text-gray-500">播放：</span><?php echo number_format($vod['vod_hits']); ?>次</p>
+                </div>
+
+                <!-- 简介 -->
+                <?php if ($vod['vod_content']): ?>
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold mb-2">剧情简介</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed line-clamp-4 md:line-clamp-none"><?php echo nl2br(htmlspecialchars(strip_tags($vod['vod_content']))); ?></p>
+                </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- 播放列表 -->
+        <?php if (!empty($playList)): ?>
+        <div class="mt-10">
+            <h3 class="text-xl font-bold mb-4">选集播放</h3>
+            <?php foreach ($playList as $sid => $source): ?>
+            <div class="mb-6">
+                <h4 class="text-gray-400 text-sm mb-3"><?php echo htmlspecialchars($source['name']); ?></h4>
+                <div class="flex flex-wrap gap-2">
+                    <?php foreach ($source['urls'] as $nid => $ep): ?>
+                    <a href="<?php echo xpk_page_url('vod_play', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug'], 'sid' => $sid, 'nid' => $nid]); ?>" 
+                       class="bg-gray-800 hover:bg-red-600 px-4 py-2 rounded text-sm transition">
+                        <?php echo htmlspecialchars($ep['name']); ?>
+                    </a>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
+
+        <!-- 相关推荐 -->
+        <?php if (!empty($relatedList)): ?>
+        <div class="mt-10 pb-10">
+            <h3 class="text-xl font-bold mb-4">相关推荐</h3>
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 md:gap-3">
+                <?php foreach ($relatedList as $related): ?>
+                <a href="<?php echo xpk_page_url('vod_detail', ['id' => $related['vod_id'], 'slug' => $related['vod_slug']]); ?>" class="card cursor-pointer relative overflow-hidden rounded group">
+                    <img src="<?php echo $related['vod_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($related['vod_name']); ?>" class="w-full aspect-[2/3] object-cover bg-gray-800">
+                    <div class="card-overlay absolute inset-0 bg-black/60 opacity-0 flex items-center justify-center">
+                        <span class="w-10 h-10 bg-white/90 rounded-full flex items-center justify-center">
+                            <svg class="w-5 h-5 text-black ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        </span>
+                    </div>
+                    <div class="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                        <p class="text-xs md:text-sm truncate"><?php echo htmlspecialchars($related['vod_name']); ?></p>
+                    </div>
+                </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+    </div>
+</div>
+
+<script>
+function addToFavorite(vodId) {
+    alert('收藏功能需要登录');
+}
+</script>
+
+<?php include $netflixLayoutPath . 'footer.php'; ?>

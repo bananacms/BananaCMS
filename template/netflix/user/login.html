@@ -1,0 +1,47 @@
+<?php 
+$netflixLayoutPath = TPL_PATH . 'netflix/layouts/';
+include $netflixLayoutPath . 'header.php'; 
+?>
+
+<!-- 登录页 -->
+<div class="min-h-screen flex items-center justify-center px-4 py-20">
+    <div class="bg-black/80 rounded-lg p-8 md:p-12 w-full max-w-md">
+        <h1 class="text-2xl md:text-3xl font-bold mb-8">登录</h1>
+        
+        <?php if (!empty($error)): ?>
+        <div class="bg-red-900/50 border border-red-500 text-red-200 px-4 py-3 rounded mb-6">
+            <?php echo htmlspecialchars($error); ?>
+        </div>
+        <?php endif; ?>
+
+        <form action="/user/login" method="post" class="space-y-6">
+            <div>
+                <input type="text" name="username" placeholder="用户名或邮箱" required
+                       class="w-full bg-gray-800 border border-gray-700 rounded px-4 py-4 text-white placeholder-gray-500 focus:outline-none focus:border-red-500">
+            </div>
+            <div>
+                <input type="password" name="password" placeholder="密码" required
+                       class="w-full bg-gray-800 border border-gray-700 rounded px-4 py-4 text-white placeholder-gray-500 focus:outline-none focus:border-red-500">
+            </div>
+            <div class="flex items-center justify-between text-sm">
+                <label class="flex items-center text-gray-400">
+                    <input type="checkbox" name="remember" class="mr-2 rounded bg-gray-800 border-gray-700">
+                    记住我
+                </label>
+                <a href="/user/forgot" class="text-gray-400 hover:text-white">忘记密码？</a>
+            </div>
+            <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded font-semibold transition">
+                登录
+            </button>
+        </form>
+
+        <div class="mt-8 text-center">
+            <p class="text-gray-400">
+                还没有账号？
+                <a href="/user/register" class="text-white hover:underline">立即注册</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<?php include $netflixLayoutPath . 'footer.php'; ?>

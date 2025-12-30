@@ -1,0 +1,39 @@
+<?php include TPL_PATH . 'douban/layouts/header.php'; ?>
+
+<div class="max-w-5xl mx-auto px-4 py-8">
+    <!-- 页面标题 -->
+    <div class="mb-6 border-b pb-2">
+        <h1 class="text-lg font-bold text-gray-800">友情链接</h1>
+    </div>
+
+    <!-- 链接列表 -->
+    <?php if (!empty($linkList)): ?>
+        <div class="flex flex-wrap gap-3 mb-8">
+            <?php foreach ($linkList as $link): ?>
+                <a href="<?php echo htmlspecialchars($link['link_url']); ?>" target="_blank" rel="noopener nofollow" class="px-4 py-2 bg-gray-100 rounded hover:bg-green-100 hover:text-green-700 text-sm">
+                    <?php echo htmlspecialchars($link['link_name']); ?>
+                </a>
+            <?php endforeach; ?>
+        </div>
+    <?php else: ?>
+        <div class="text-center text-gray-500 py-12">
+            暂无友情链接
+        </div>
+    <?php endif; ?>
+
+    <!-- 申请链接 -->
+    <div class="border-t pt-6">
+        <h2 class="text-lg font-bold text-gray-800 mb-4">申请友链</h2>
+        <p class="text-gray-500 text-sm mb-4">如需申请友情链接，请联系管理员。</p>
+        <div class="text-sm text-gray-600">
+            <p>要求：</p>
+            <ul class="list-disc list-inside mt-2 space-y-1 text-gray-500">
+                <li>网站内容健康，无违法违规内容</li>
+                <li>网站正常运营，无大量死链</li>
+                <li>已添加本站链接</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<?php include TPL_PATH . 'douban/layouts/footer.php'; ?>

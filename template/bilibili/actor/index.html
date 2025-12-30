@@ -1,0 +1,53 @@
+<?php include TPL_PATH . 'bilibili/layouts/header.php'; ?>
+
+<div class="max-w-7xl mx-auto px-4 py-6">
+    <!-- 页面标题 -->
+    <div class="mb-6">
+        <h1 class="text-xl font-bold text-gray-800 flex items-center">
+            <span class="text-pink-500 mr-2">⭐</span>演员列表
+        </h1>
+    </div>
+
+    <!-- 字母筛选 -->
+    <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+        <div class="flex flex-wrap gap-2">
+            <a href="/actor" class="px-3 py-1 <?php echo empty($letter) ? 'bg-pink-500 text-white' : 'bg-gray-100 hover:bg-pink-100 hover:text-pink-500'; ?> rounded text-sm">全部</a>
+            <?php foreach (range('A', 'Z') as $l): ?>
+                <a href="/actor?letter=<?php echo $l; ?>" class="px-3 py-1 <?php echo ($letter ?? '') == $l ? 'bg-pink-500 text-white' : 'bg-gray-100 hover:bg-pink-100 hover:text-pink-500'; ?> rounded text-sm"><?php echo $l; ?></a>
+            <?php endforeach; ?>
+        </div>
+    </div>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('actor_top') ?>
+
+    <!-- 演员列表 -->
+    <?php if (!empty($actorList)): ?>
+        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 mb-6">
+            <?php foreach ($actorList as $actor): ?>
+                <a href="<?php echo xpk_page_url('actor_detail', ['id' => $actor['actor_id'], 'slug' => $actor['actor_en']]); ?>" class="bg-white rounded-lg shadow-sm p-3 text-center hover:shadow-md transition">
+                    <div class="w-16 h-16 mx-auto bg-pink-100 rounded-full flex items-center justify-center text-pink-500 text-2xl mb-2">
+                        <?php if (!empty($actor['actor_pic'])): ?>
+                            <img src="<?php echo htmlspecialchars($actor['actor_pic']); ?>" alt="<?php echo htmlspecialchars($actor['actor_name']); ?>" class="w-full h-full object-cover rounded-full">
+                        <?php else: ?>
+                            <?php echo mb_substr($actor['actor_name'], 0, 1); ?>
+                        <?php endif; ?>
+                    </div>
+                    <h3 class="text-sm text-gray-800 line-clamp-1 hover:text-pink-500"><?php echo htmlspecialchars($actor['actor_name']); ?></h3>
+                </a>
+            <?php endforeach; ?>
+        </div>
+
+        <!-- 分页 -->
+        <?php include TPL_PATH . 'bilibili/components/pagination.php'; ?>
+    <?php else: ?>
+        <div class="bg-white rounded-lg shadow-sm p-8 text-center text-gray-500">
+            暂无演员数据
+        </div>
+    <?php endif; ?>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('actor_bottom') ?>
+</div>
+
+<?php include TPL_PATH . 'bilibili/layouts/footer.php'; ?>

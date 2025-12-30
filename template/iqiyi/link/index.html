@@ -1,0 +1,44 @@
+<?php include TPL_PATH . 'iqiyi/layouts/header.php'; ?>
+
+<div class="max-w-7xl mx-auto px-4 py-6">
+    <!-- 页面标题 -->
+    <div class="bg-white rounded-lg shadow p-4 mb-6">
+        <h1 class="text-xl font-bold text-gray-800">友情链接</h1>
+    </div>
+
+    <!-- 链接列表 -->
+    <?php if (!empty($linkList)): ?>
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <?php foreach ($linkList as $link): ?>
+                    <a href="<?php echo htmlspecialchars($link['link_url']); ?>" target="_blank" rel="noopener nofollow" class="block p-4 bg-gray-50 rounded-lg text-center hover:bg-green-50 hover:text-green-500 transition">
+                        <?php if (!empty($link['link_logo'])): ?>
+                            <img src="<?php echo htmlspecialchars($link['link_logo']); ?>" alt="<?php echo htmlspecialchars($link['link_name']); ?>" class="w-12 h-12 mx-auto mb-2 object-contain">
+                        <?php endif; ?>
+                        <span class="text-sm"><?php echo htmlspecialchars($link['link_name']); ?></span>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    <?php else: ?>
+        <div class="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+            暂无友情链接
+        </div>
+    <?php endif; ?>
+
+    <!-- 申请链接 -->
+    <div class="bg-white rounded-lg shadow p-6 mt-6">
+        <h2 class="text-lg font-bold text-gray-800 mb-4">申请友链</h2>
+        <p class="text-gray-500 text-sm mb-4">如需申请友情链接，请联系管理员。</p>
+        <div class="text-sm text-gray-600">
+            <p>要求：</p>
+            <ul class="list-disc list-inside mt-2 space-y-1">
+                <li>网站内容健康，无违法违规内容</li>
+                <li>网站正常运营，无大量死链</li>
+                <li>已添加本站链接</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<?php include TPL_PATH . 'iqiyi/layouts/footer.php'; ?>

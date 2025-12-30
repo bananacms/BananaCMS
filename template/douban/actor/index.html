@@ -1,0 +1,53 @@
+<?php include TPL_PATH . 'douban/layouts/header.php'; ?>
+
+<div class="max-w-5xl mx-auto px-4 py-8">
+    <!-- 页面标题 -->
+    <div class="mb-6 border-b pb-2">
+        <h1 class="text-lg font-bold text-gray-800">影人</h1>
+    </div>
+
+    <!-- 字母筛选 -->
+    <div class="mb-6">
+        <div class="flex flex-wrap gap-2">
+            <a href="/actor" class="px-3 py-1 <?php echo empty($letter) ? 'bg-green-700 text-white' : 'bg-gray-100 hover:bg-green-100 hover:text-green-700'; ?> rounded text-sm">全部</a>
+            <?php foreach (range('A', 'Z') as $l): ?>
+                <a href="/actor?letter=<?php echo $l; ?>" class="px-3 py-1 <?php echo ($letter ?? '') == $l ? 'bg-green-700 text-white' : 'bg-gray-100 hover:bg-green-100 hover:text-green-700'; ?> rounded text-sm"><?php echo $l; ?></a>
+            <?php endforeach; ?>
+        </div>
+    </div>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('actor_top') ?>
+
+    <!-- 演员列表 -->
+    <?php if (!empty($actorList)): ?>
+        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 md:gap-6 mb-6">
+            <?php foreach ($actorList as $actor): ?>
+                <a href="<?php echo xpk_page_url('actor_detail', ['id' => $actor['actor_id'], 'slug' => $actor['actor_en']]); ?>" class="text-center group">
+                    <div class="w-20 h-20 mx-auto bg-gray-200 rounded-full overflow-hidden">
+                        <?php if (!empty($actor['actor_pic'])): ?>
+                            <img src="<?php echo htmlspecialchars($actor['actor_pic']); ?>" alt="<?php echo htmlspecialchars($actor['actor_name']); ?>" class="w-full h-full object-cover">
+                        <?php else: ?>
+                            <div class="w-full h-full flex items-center justify-center text-gray-400 text-2xl">
+                                <?php echo mb_substr($actor['actor_name'], 0, 1); ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                    <h3 class="mt-2 text-sm text-gray-800 group-hover:text-green-700"><?php echo htmlspecialchars($actor['actor_name']); ?></h3>
+                </a>
+            <?php endforeach; ?>
+        </div>
+
+        <!-- 分页 -->
+        <?php include TPL_PATH . 'douban/components/pagination.php'; ?>
+    <?php else: ?>
+        <div class="text-center text-gray-500 py-12">
+            暂无影人数据
+        </div>
+    <?php endif; ?>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('actor_bottom') ?>
+</div>
+
+<?php include TPL_PATH . 'douban/layouts/footer.php'; ?>

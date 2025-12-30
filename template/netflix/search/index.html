@@ -1,0 +1,92 @@
+<?php 
+$netflixLayoutPath = TPL_PATH . 'netflix/layouts/';
+include $netflixLayoutPath . 'header.php'; 
+?>
+
+<!-- 搜索页 -->
+<div class="pt-20 md:pt-24 px-4 md:px-12 pb-10">
+    <!-- 搜索框 -->
+    <div class="max-w-2xl mx-auto mb-10">
+        <form action="/search" method="get" class="flex">
+            <input type="text" name="wd" value="<?php echo htmlspecialchars($keyword ?? ''); ?>" placeholder="搜索视频..." 
+                   class="flex-1 bg-gray-800 border border-gray-700 text-white px-6 py-4 rounded-l-lg text-lg focus:outline-none focus:border-red-500">
+            <button type="submit" class="bg-red-600 hover:bg-red-700 px-8 py-4 rounded-r-lg transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+            </button>
+        </form>
+    </div>
+
+    <?php if (!empty($keyword)): ?>
+    <h1 class="text-xl md:text-2xl font-bold mb-6">
+        搜索 "<?php echo htmlspecialchars($keyword); ?>" 的结果
+        <?php if (!empty($vodList)): ?>
+        <span class="text-gray-500 text-base font-normal ml-2">共 <?php echo $total; ?> 条</span>
+        <?php endif; ?>
+    </h1>
+
+    <!-- 搜索结果 -->
+    <?php if (!empty($vodList)): ?>
+    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 md:gap-4">
+        <?php foreach ($vodList as $vod): ?>
+        <a href="<?php echo xpk_page_url('vod_detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="card cursor-pointer relative overflow-hidden rounded group">
+            <img src="<?php echo $vod['vod_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full aspect-[2/3] object-cover bg-gray-800">
+            <div class="card-overlay absolute inset-0 bg-black/60 opacity-0 flex items-center justify-center">
+                <span class="w-10 h-10 md:w-12 md:h-12 bg-white/90 rounded-full flex items-center justify-center">
+                    <svg class="w-5 h-5 md:w-6 md:h-6 text-black ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                </span>
+            </div>
+            <div class="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                <p class="text-xs md:text-sm truncate"><?php echo htmlspecialchars($vod['vod_name']); ?></p>
+                <?php if ($vod['type_name']): ?>
+                <p class="text-xs text-gray-400"><?php echo htmlspecialchars($vod['type_name']); ?></p>
+                <?php endif; ?>
+            </div>
+            <?php if ($vod['vod_remarks']): ?>
+            <span class="absolute top-1 right-1 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded"><?php echo $vod['vod_remarks']; ?></span>
+            <?php endif; ?>
+        </a>
+        <?php endforeach; ?>
+    </div>
+
+    <!-- 分页 -->
+    <?php if ($totalPages > 1): ?>
+    <div class="flex justify-center items-center space-x-2 mt-10">
+        <?php if ($page > 1): ?>
+        <a href="?wd=<?php echo urlencode($keyword); ?>&page=<?php echo $page - 1; ?>" class="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded transition">上一页</a>
+        <?php endif; ?>
+        
+        <span class="text-gray-400 px-4">第 <?php echo $page; ?> / <?php echo $totalPages; ?> 页</span>
+        
+        <?php if ($page < $totalPages): ?>
+        <a href="?wd=<?php echo urlencode($keyword); ?>&page=<?php echo $page + 1; ?>" class="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded transition">下一页</a>
+        <?php endif; ?>
+    </div>
+    <?php endif; ?>
+
+    <?php else: ?>
+    <div class="text-center py-20">
+        <p class="text-gray-500 text-lg mb-4">未找到相关内容</p>
+        <p class="text-gray-600 text-sm">换个关键词试试吧</p>
+    </div>
+    <?php endif; ?>
+
+    <?php else: ?>
+    <!-- 热门搜索 -->
+    <div class="text-center py-10">
+        <h2 class="text-lg text-gray-400 mb-6">热门搜索</h2>
+        <div class="flex flex-wrap justify-center gap-3">
+            <?php if (!empty($hotKeywords)): ?>
+                <?php foreach ($hotKeywords as $kw): ?>
+                <a href="/search?wd=<?php echo urlencode($kw); ?>" class="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded transition"><?php echo htmlspecialchars($kw); ?></a>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <span class="text-gray-600">暂无热门搜索</span>
+            <?php endif; ?>
+        </div>
+    </div>
+    <?php endif; ?>
+</div>
+
+<?php include $netflixLayoutPath . 'footer.php'; ?>

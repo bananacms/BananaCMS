@@ -1,0 +1,117 @@
+<?php 
+// Netflix 模板布局
+$netflixLayoutPath = TPL_PATH . 'netflix/layouts/';
+include $netflixLayoutPath . 'header.php'; 
+?>
+
+<!-- 首页顶部广告 -->
+<?= xpk_ad('home_top') ?>
+
+<!-- 大横幅 Hero -->
+<?php if (!empty($hotList)): $featured = $hotList[0]; ?>
+<div class="relative h-[70vh] md:h-[85vh]">
+    <div class="absolute inset-0">
+        <img src="<?php echo $featured['vod_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($featured['vod_name']); ?>" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-r from-[#141414] via-[#141414]/60 to-transparent"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-[#141414] via-transparent to-transparent"></div>
+    </div>
+    <div class="absolute bottom-20 md:bottom-32 left-4 md:left-12 max-w-xl z-10">
+        <h1 class="text-3xl md:text-5xl font-bold mb-4"><?php echo htmlspecialchars($featured['vod_name']); ?></h1>
+        <p class="text-gray-300 text-sm md:text-base mb-6 line-clamp-3"><?php echo htmlspecialchars($featured['vod_blurb'] ?: mb_substr(strip_tags($featured['vod_content']), 0, 100)); ?></p>
+        <div class="flex space-x-4">
+            <a href="<?php echo xpk_page_url('vod_play', ['id' => $featured['vod_id'], 'slug' => $featured['vod_slug'], 'sid' => 1, 'nid' => 1]); ?>" class="bg-white text-black px-6 md:px-8 py-2 md:py-3 rounded font-semibold flex items-center hover:bg-gray-200 transition">
+                <svg class="w-5 h-5 md:w-6 md:h-6 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                播放
+            </a>
+            <a href="<?php echo xpk_page_url('vod_detail', ['id' => $featured['vod_id'], 'slug' => $featured['vod_slug']]); ?>" class="bg-gray-600/80 text-white px-6 md:px-8 py-2 md:py-3 rounded font-semibold flex items-center hover:bg-gray-600 transition">
+                <svg class="w-5 h-5 md:w-6 md:h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                详情
+            </a>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
+<!-- 内容区 -->
+<div class="px-4 md:px-12 -mt-16 md:-mt-32 relative z-10 pb-10">
+    
+    <!-- 热门推荐 -->
+    <section class="mb-8 md:mb-12">
+        <h2 class="text-lg md:text-xl font-bold mb-4">🔥 热门推荐</h2>
+        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 md:gap-3">
+            <?php foreach (array_slice($hotList, 1, 12) as $vod): ?>
+            <a href="<?php echo xpk_page_url('vod_detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="card cursor-pointer relative overflow-hidden rounded group">
+                <img src="<?php echo $vod['vod_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full aspect-[2/3] object-cover bg-gray-800">
+                <div class="card-overlay absolute inset-0 bg-black/60 opacity-0 flex items-center justify-center">
+                    <span class="w-10 h-10 md:w-12 md:h-12 bg-white/90 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5 md:w-6 md:h-6 text-black ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    </span>
+                </div>
+                <div class="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                    <p class="text-xs md:text-sm truncate"><?php echo htmlspecialchars($vod['vod_name']); ?></p>
+                </div>
+                <?php if ($vod['vod_remarks']): ?>
+                <span class="absolute top-1 right-1 bg-red-600 text-white text-xs px-1.5 py-0.5 rounded"><?php echo $vod['vod_remarks']; ?></span>
+                <?php endif; ?>
+            </a>
+            <?php endforeach; ?>
+        </div>
+    </section>
+
+    <!-- 最新上线 -->
+    <section class="mb-8 md:mb-12">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg md:text-xl font-bold">最新上线</h2>
+            <a href="<?php echo xpk_page_url('type', ['id' => 1, 'slug' => $navTypes[0]['type_en'] ?? '']); ?>" class="text-gray-400 text-sm hover:text-white">查看更多 &gt;</a>
+        </div>
+        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 md:gap-3">
+            <?php foreach (array_slice($newList, 0, 12) as $vod): ?>
+            <a href="<?php echo xpk_page_url('vod_detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="card cursor-pointer relative overflow-hidden rounded group">
+                <img src="<?php echo $vod['vod_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full aspect-[2/3] object-cover bg-gray-800">
+                <div class="card-overlay absolute inset-0 bg-black/60 opacity-0 flex items-center justify-center">
+                    <span class="w-10 h-10 md:w-12 md:h-12 bg-white/90 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5 md:w-6 md:h-6 text-black ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    </span>
+                </div>
+                <div class="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                    <p class="text-xs md:text-sm truncate"><?php echo htmlspecialchars($vod['vod_name']); ?></p>
+                </div>
+                <span class="absolute top-1 left-1 bg-green-600 text-white text-xs px-1.5 py-0.5 rounded">NEW</span>
+            </a>
+            <?php endforeach; ?>
+        </div>
+    </section>
+
+    <!-- 分类视频 -->
+    <?php foreach ($typeVods as $typeId => $item): ?>
+        <?php if (!empty($item['vods'])): ?>
+        <section class="mb-8 md:mb-12">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg md:text-xl font-bold"><?php echo htmlspecialchars($item['type']['type_name']); ?></h2>
+                <a href="<?php echo xpk_page_url('type', ['id' => $typeId, 'slug' => $item['type']['type_en'] ?? '']); ?>" class="text-gray-400 text-sm hover:text-white">更多 &gt;</a>
+            </div>
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 md:gap-3">
+                <?php foreach (array_slice($item['vods'], 0, 12) as $vod): ?>
+                <a href="<?php echo xpk_page_url('vod_detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="card cursor-pointer relative overflow-hidden rounded group">
+                    <img src="<?php echo $vod['vod_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full aspect-[2/3] object-cover bg-gray-800">
+                    <div class="card-overlay absolute inset-0 bg-black/60 opacity-0 flex items-center justify-center">
+                        <span class="w-10 h-10 md:w-12 md:h-12 bg-white/90 rounded-full flex items-center justify-center">
+                            <svg class="w-5 h-5 md:w-6 md:h-6 text-black ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        </span>
+                    </div>
+                    <div class="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                        <p class="text-xs md:text-sm truncate"><?php echo htmlspecialchars($vod['vod_name']); ?></p>
+                    </div>
+                    <?php if ($vod['vod_remarks']): ?>
+                    <span class="absolute top-1 right-1 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded"><?php echo $vod['vod_remarks']; ?></span>
+                    <?php endif; ?>
+                </a>
+                <?php endforeach; ?>
+            </div>
+        </section>
+        <?php endif; ?>
+    <?php endforeach; ?>
+
+</div>
+
+<?php include $netflixLayoutPath . 'footer.php'; ?>

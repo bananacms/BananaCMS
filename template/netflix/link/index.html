@@ -1,0 +1,39 @@
+<?php 
+$netflixLayoutPath = TPL_PATH . 'netflix/layouts/';
+include $netflixLayoutPath . 'header.php'; 
+?>
+
+<!-- 友情链接页 -->
+<div class="pt-20 md:pt-24 px-4 md:px-12 pb-10">
+    <h1 class="text-2xl md:text-3xl font-bold mb-8">友情链接</h1>
+
+    <?php if (!empty($links)): ?>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        <?php foreach ($links as $link): ?>
+        <a href="<?php echo htmlspecialchars($link['link_url']); ?>" target="_blank" rel="noopener nofollow" 
+           class="bg-gray-900 rounded-lg p-4 hover:bg-gray-800 transition text-center">
+            <?php if ($link['link_logo']): ?>
+            <img src="<?php echo htmlspecialchars($link['link_logo']); ?>" alt="<?php echo htmlspecialchars($link['link_name']); ?>" class="h-8 mx-auto mb-2">
+            <?php endif; ?>
+            <p class="text-sm"><?php echo htmlspecialchars($link['link_name']); ?></p>
+        </a>
+        <?php endforeach; ?>
+    </div>
+    <?php else: ?>
+    <div class="text-center py-20">
+        <p class="text-gray-500 text-lg">暂无友情链接</p>
+    </div>
+    <?php endif; ?>
+
+    <!-- 申请链接 -->
+    <div class="mt-12 bg-gray-900 rounded-lg p-6 md:p-8">
+        <h2 class="text-lg font-bold mb-4">申请友链</h2>
+        <p class="text-gray-400 text-sm mb-4">如需交换友情链接，请联系管理员。</p>
+        <div class="text-gray-500 text-sm space-y-1">
+            <p>本站名称：<?php echo SITE_NAME; ?></p>
+            <p>本站地址：<?php echo SITE_URL; ?></p>
+        </div>
+    </div>
+</div>
+
+<?php include $netflixLayoutPath . 'footer.php'; ?>

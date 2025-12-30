@@ -1,0 +1,53 @@
+<?php 
+$netflixLayoutPath = TPL_PATH . 'netflix/layouts/';
+include $netflixLayoutPath . 'header.php'; 
+?>
+
+<!-- 文章列表页 -->
+<div class="pt-20 md:pt-24 px-4 md:px-12 pb-10">
+    <h1 class="text-2xl md:text-3xl font-bold mb-8">资讯</h1>
+
+    <!-- 文章列表 -->
+    <?php if (!empty($artList)): ?>
+    <div class="max-w-4xl space-y-6">
+        <?php foreach ($artList as $art): ?>
+        <a href="<?php echo xpk_page_url('art_detail', ['id' => $art['art_id'], 'slug' => $art['art_slug']]); ?>" class="flex gap-4 md:gap-6 bg-gray-900 rounded-lg overflow-hidden hover:bg-gray-800 transition group">
+            <div class="w-32 md:w-48 flex-shrink-0">
+                <img src="<?php echo $art['art_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($art['art_title']); ?>" class="w-full aspect-video object-cover bg-gray-800">
+            </div>
+            <div class="flex-1 py-3 pr-4">
+                <h2 class="text-base md:text-lg font-medium mb-2 group-hover:text-red-500 line-clamp-2"><?php echo htmlspecialchars($art['art_title']); ?></h2>
+                <p class="text-gray-400 text-sm line-clamp-2 hidden md:block"><?php echo htmlspecialchars($art['art_blurb'] ?: mb_substr(strip_tags($art['art_content']), 0, 100)); ?></p>
+                <div class="text-gray-500 text-xs mt-2">
+                    <span><?php echo date('Y-m-d', strtotime($art['art_time'])); ?></span>
+                    <span class="mx-2">·</span>
+                    <span><?php echo number_format($art['art_hits']); ?>阅读</span>
+                </div>
+            </div>
+        </a>
+        <?php endforeach; ?>
+    </div>
+
+    <!-- 分页 -->
+    <?php if ($totalPages > 1): ?>
+    <div class="flex justify-center items-center space-x-2 mt-10">
+        <?php if ($page > 1): ?>
+        <a href="?page=<?php echo $page - 1; ?>" class="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded transition">上一页</a>
+        <?php endif; ?>
+        
+        <span class="text-gray-400 px-4">第 <?php echo $page; ?> / <?php echo $totalPages; ?> 页</span>
+        
+        <?php if ($page < $totalPages): ?>
+        <a href="?page=<?php echo $page + 1; ?>" class="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded transition">下一页</a>
+        <?php endif; ?>
+    </div>
+    <?php endif; ?>
+
+    <?php else: ?>
+    <div class="text-center py-20">
+        <p class="text-gray-500 text-lg">暂无文章</p>
+    </div>
+    <?php endif; ?>
+</div>
+
+<?php include $netflixLayoutPath . 'footer.php'; ?>

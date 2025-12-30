@@ -1,0 +1,21 @@
+<?php include TPL_PATH . 'bilibili/layouts/header.php'; ?>
+
+<div class="max-w-4xl mx-auto px-4 py-6">
+    <!-- 面包屑 -->
+    <div class="text-sm text-gray-500 mb-4">
+        <a href="/" class="hover:text-pink-500">首页</a>
+        <span class="mx-2">/</span>
+        <span class="text-gray-700"><?php echo htmlspecialchars($page['page_title']); ?></span>
+    </div>
+
+    <!-- 页面内容 -->
+    <article class="bg-white rounded-lg shadow-sm p-6 md:p-8">
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6 pb-6 border-b border-gray-100"><?php echo htmlspecialchars($page['page_title']); ?></h1>
+        
+        <div class="prose prose-pink max-w-none text-gray-600 leading-relaxed">
+            <?php echo $page['page_content']; ?>
+        </div>
+    </article>
+</div>
+
+<?php include TPL_PATH . 'bilibili/layouts/footer.php'; ?>

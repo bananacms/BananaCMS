@@ -1,0 +1,59 @@
+<?php include TPL_PATH . 'iqiyi/layouts/header.php'; ?>
+
+<div class="max-w-7xl mx-auto px-4 py-6">
+    <!-- 页面标题 -->
+    <div class="bg-white rounded-lg shadow p-4 mb-6">
+        <h1 class="text-xl font-bold text-gray-800">🔥 热门排行</h1>
+    </div>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('hot_top') ?>
+
+    <!-- 排行榜 -->
+    <?php if (!empty($hotList)): ?>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <?php foreach ($hotList as $index => $vod): ?>
+                <a href="<?php echo xpk_page_url('detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="bg-white rounded-lg shadow overflow-hidden flex hover:shadow-md transition group">
+                    <div class="w-10 md:w-14 flex items-center justify-center <?php echo $index < 3 ? 'bg-gradient-to-b from-yellow-400 to-yellow-500 text-white' : 'bg-gray-100 text-gray-500'; ?> font-bold text-lg">
+                        <?php echo $index + 1; ?>
+                    </div>
+                    <div class="w-20 md:w-28 flex-shrink-0">
+                        <img src="<?php echo htmlspecialchars($vod['vod_pic']); ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full h-full object-cover" loading="lazy">
+                    </div>
+                    <div class="flex-1 p-3 md:p-4">
+                        <h3 class="font-medium text-gray-800 truncate group-hover:text-green-500"><?php echo htmlspecialchars($vod['vod_name']); ?></h3>
+                        <div class="flex flex-wrap gap-1 mt-2">
+                            <?php if (!empty($vod['vod_score'])): ?>
+                                <span class="bg-yellow-100 text-yellow-600 px-2 py-0.5 rounded text-xs"><?php echo $vod['vod_score']; ?>分</span>
+                            <?php endif; ?>
+                            <?php if (!empty($vod['vod_year'])): ?>
+                                <span class="bg-gray-100 text-gray-500 px-2 py-0.5 rounded text-xs"><?php echo htmlspecialchars($vod['vod_year']); ?></span>
+                            <?php endif; ?>
+                            <?php if (!empty($vod['vod_area'])): ?>
+                                <span class="bg-gray-100 text-gray-500 px-2 py-0.5 rounded text-xs"><?php echo htmlspecialchars($vod['vod_area']); ?></span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="flex items-center text-xs text-gray-400 mt-2">
+                            <span class="mr-3"><?php echo xpk_format_number($vod['vod_hits'] ?? 0); ?>次播放</span>
+                            <?php if (!empty($vod['vod_remarks'])): ?>
+                                <span class="text-green-500"><?php echo htmlspecialchars($vod['vod_remarks']); ?></span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </a>
+            <?php endforeach; ?>
+        </div>
+
+        <!-- 分页 -->
+        <?php include TPL_PATH . 'iqiyi/components/pagination.php'; ?>
+    <?php else: ?>
+        <div class="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+            暂无热门视频
+        </div>
+    <?php endif; ?>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('hot_bottom') ?>
+</div>
+
+<?php include TPL_PATH . 'iqiyi/layouts/footer.php'; ?>

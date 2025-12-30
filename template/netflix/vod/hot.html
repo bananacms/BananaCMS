@@ -1,0 +1,56 @@
+<?php 
+$netflixLayoutPath = TPL_PATH . 'netflix/layouts/';
+include $netflixLayoutPath . 'header.php'; 
+?>
+
+<!-- 热门页 -->
+<div class="pt-20 md:pt-24 px-4 md:px-12 pb-10">
+    <h1 class="text-2xl md:text-3xl font-bold mb-6">🔥 热门排行</h1>
+
+    <!-- 热门视频列表 -->
+    <?php if (!empty($vodList)): ?>
+    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 md:gap-4">
+        <?php foreach ($vodList as $index => $vod): ?>
+        <a href="<?php echo xpk_page_url('vod_detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="card cursor-pointer relative overflow-hidden rounded group">
+            <img src="<?php echo $vod['vod_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full aspect-[2/3] object-cover bg-gray-800">
+            <div class="card-overlay absolute inset-0 bg-black/60 opacity-0 flex items-center justify-center">
+                <span class="w-10 h-10 md:w-12 md:h-12 bg-white/90 rounded-full flex items-center justify-center">
+                    <svg class="w-5 h-5 md:w-6 md:h-6 text-black ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                </span>
+            </div>
+            <!-- 排名 -->
+            <div class="absolute top-0 left-0 w-8 h-8 md:w-10 md:h-10 flex items-center justify-center text-lg md:text-xl font-bold
+                <?php echo $index < 3 ? 'bg-red-600' : 'bg-black/70'; ?>">
+                <?php echo $index + 1; ?>
+            </div>
+            <div class="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                <p class="text-xs md:text-sm truncate"><?php echo htmlspecialchars($vod['vod_name']); ?></p>
+                <p class="text-xs text-gray-400"><?php echo number_format($vod['vod_hits']); ?>次播放</p>
+            </div>
+        </a>
+        <?php endforeach; ?>
+    </div>
+
+    <!-- 分页 -->
+    <?php if ($totalPages > 1): ?>
+    <div class="flex justify-center items-center space-x-2 mt-10">
+        <?php if ($page > 1): ?>
+        <a href="?page=<?php echo $page - 1; ?>" class="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded transition">上一页</a>
+        <?php endif; ?>
+        
+        <span class="text-gray-400 px-4">第 <?php echo $page; ?> / <?php echo $totalPages; ?> 页</span>
+        
+        <?php if ($page < $totalPages): ?>
+        <a href="?page=<?php echo $page + 1; ?>" class="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded transition">下一页</a>
+        <?php endif; ?>
+    </div>
+    <?php endif; ?>
+
+    <?php else: ?>
+    <div class="text-center py-20">
+        <p class="text-gray-500 text-lg">暂无热门内容</p>
+    </div>
+    <?php endif; ?>
+</div>
+
+<?php include $netflixLayoutPath . 'footer.php'; ?>
