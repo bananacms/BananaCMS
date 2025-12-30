@@ -22,7 +22,7 @@ class XpkSlug
         }
         
         // 中文转拼音
-        $pinyin = Pinyin::getPinyin($text);
+        $pinyin = XpkPinyin::getPinyin($text);
         
         return self::sanitize($pinyin, $separator);
     }
@@ -38,7 +38,7 @@ class XpkSlug
             return self::sanitize($text, '');
         }
         
-        return strtolower(Pinyin::getShortPinyin($text));
+        return strtolower(XpkPinyin::getShortPinyin($text));
     }
     
     /**
