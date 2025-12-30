@@ -395,3 +395,21 @@ function xpk_ads(string $position): array
     
     return $adModel->getByPosition($position);
 }
+
+/**
+ * 格式化数字（如播放量）
+ * @param int|float $number 数字
+ * @return string 格式化后的字符串
+ */
+function xpk_format_number($number): string
+{
+    $number = (int)$number;
+    if ($number >= 100000000) {
+        return round($number / 100000000, 1) . '亿';
+    } elseif ($number >= 10000) {
+        return round($number / 10000, 1) . '万';
+    } elseif ($number >= 1000) {
+        return number_format($number);
+    }
+    return (string)$number;
+}
