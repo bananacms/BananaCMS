@@ -1,0 +1,28 @@
+<?php include VIEW_PATH . 'layouts/header.php'; ?>
+
+<div class="mb-6">
+    <h1 class="text-2xl font-bold">资讯</h1>
+</div>
+
+<?php if (!empty($artList)): ?>
+<div class="space-y-4 mb-8">
+    <?php foreach ($artList as $art): ?>
+    <a href="<?= xpk_page_url('art_detail', ['id' => $art['art_id'], 'slug' => $art['art_slug'] ?? '']) ?>" class="flex gap-4 p-4 bg-white rounded-lg border hover:shadow-md transition group">
+        <?php if ($art['art_pic']): ?>
+        <img src="<?= htmlspecialchars($art['art_pic']) ?>" alt="" class="w-32 h-20 object-cover rounded flex-shrink-0">
+        <?php endif; ?>
+        <div class="flex-1 min-w-0">
+            <h3 class="font-medium group-hover:text-red-600 line-clamp-2"><?= htmlspecialchars($art['art_name']) ?></h3>
+            <p class="text-gray-400 text-sm mt-2"><?= date('Y-m-d', $art['art_time']) ?> · <?= $art['art_hits'] ?>次阅读</p>
+        </div>
+    </a>
+    <?php endforeach; ?>
+</div>
+
+<?php include TPL_PATH . 'default/components/pagination.php'; ?>
+
+<?php else: ?>
+<div class="text-center py-12 text-gray-500">暂无文章</div>
+<?php endif; ?>
+
+<?php include VIEW_PATH . 'layouts/footer.php'; ?>
