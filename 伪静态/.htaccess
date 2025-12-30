@@ -15,7 +15,7 @@
 </IfModule>
 
 # 禁止访问敏感目录
-<FilesMatch "^(config|core|models|controllers|views|runtime|tests)">
+<FilesMatch "^(config|core|models|controllers|views|runtime)">
     Order deny,allow
     Deny from all
 </FilesMatch>
