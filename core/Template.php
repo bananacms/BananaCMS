@@ -13,8 +13,29 @@ class XpkTemplate
 
     public function __construct()
     {
-        $this->tplPath = TPL_PATH . 'default/';
+        $this->vars = [];
         $this->cachePath = RUNTIME_PATH . 'cache/';
+        
+        // 从数据库获取当前模板配置
+        $template = 'default';
+        try {
+            $db = XpkDatabase::getInstance();
+            $row = $db->queryOne("SELECT config_value FROM " . DB_PREFIX . "config WHERE config_name = 'site_template'");
+            if ($row && !empty($row['config_value'])) {
+                $template = $row['config_value'];
+            }
+        } catch (Exception $e) {
+            // 数据库异常时使用默认模板
+        }
+        
+        // 验证模板目录是否存在
+        $tplDir = TPL_PATH . $template . '/';
+        if (!is_dir($tplDir)) {
+            $template = 'default';
+            $tplDir = TPL_PATH . 'default/';
+        }
+        
+        $this->tplPath = $tplDir;
         
         if (!is_dir($this->cachePath)) {
             mkdir($this->cachePath, 0755, true);
@@ -57,8 +78,9 @@ class XpkTemplate
             define('XPK_TPL_WARNING', true);
         }
 
-        // 缓存文件
-        $cacheFile = $this->cachePath . md5($template) . '.php';
+        // 缓存文件（包含模板目录名，确保不同模板使用不同缓存）
+        $tplName = basename(dirname($this->tplPath));
+        $cacheFile = $this->cachePath . $tplName . '_' . md5($template) . '.php';
         
         // 开发模式或缓存过期时重新编译
         $needCompile = APP_DEBUG 

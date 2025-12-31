@@ -140,6 +140,7 @@ class XpkAd
     {
         $type = $ad['ad_type'];
         $id = $ad['ad_id'];
+        $position = $ad['ad_position'];
         
         // 代码广告直接输出
         if ($type === self::TYPE_CODE) {
@@ -156,10 +157,40 @@ class XpkAd
         // 图片广告
         if ($type === self::TYPE_IMAGE) {
             $img = '<img src="' . htmlspecialchars($ad['ad_image']) . '" alt="' . htmlspecialchars($ad['ad_title']) . '" class="xpk-ad-img">';
-            if ($ad['ad_link']) {
-                return '<div class="xpk-ad xpk-ad-image" data-id="' . $id . '"><a href="' . htmlspecialchars($ad['ad_link']) . '" target="_blank" onclick="xpkAdClick(' . $id . ')">' . $img . '</a></div>';
+            $linkHtml = $ad['ad_link'] 
+                ? '<a href="' . htmlspecialchars($ad['ad_link']) . '" target="_blank" rel="nofollow" onclick="xpkAdClick(' . $id . ')">' . $img . '</a>'
+                : $img;
+            
+            // 悬浮广告特殊处理
+            if ($position === self::POS_HOME_FLOAT) {
+                return '<div class="xpk-ad-float right" data-id="' . $id . '" id="floatAd' . $id . '">
+                    <span class="xpk-ad-close" onclick="this.parentElement.style.display=\'none\'">&times;</span>
+                    ' . $linkHtml . '
+                </div>';
             }
-            return '<div class="xpk-ad xpk-ad-image" data-id="' . $id . '">' . $img . '</div>';
+            
+            // 弹窗广告特殊处理
+            if ($position === self::POS_POPUP) {
+                return '<div class="xpk-ad-popup" data-id="' . $id . '" id="popupAd' . $id . '">
+                    <div class="xpk-ad-popup-content">
+                        <span class="xpk-ad-popup-close" onclick="this.parentElement.parentElement.style.display=\'none\'">&times;</span>
+                        ' . $linkHtml . '
+                    </div>
+                </div>
+                <script>
+                // 弹窗广告只显示一次（每天）
+                (function(){
+                    var key = "popup_ad_' . $id . '_" + new Date().toDateString();
+                    if (localStorage.getItem(key)) {
+                        document.getElementById("popupAd' . $id . '").style.display = "none";
+                    } else {
+                        localStorage.setItem(key, "1");
+                    }
+                })();
+                </script>';
+            }
+            
+            return '<div class="xpk-ad xpk-ad-image" data-id="' . $id . '">' . $linkHtml . '</div>';
         }
 
         // 视频广告

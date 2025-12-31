@@ -29,7 +29,10 @@ class SearchController extends BaseController
         // 路由已经解码过了，不需要再urldecode
         $keyword = trim($keyword);
         
-        if (empty($keyword)) {
+        // 支持排序参数（用于"查看更多"功能）
+        $order = $this->get('order', '');
+        
+        if (empty($keyword) && empty($order)) {
             // 获取热门搜索词和最新搜索词
             $hotKeywords = $this->searchLogModel->getHotKeywords(8);
             $recentKeywords = $this->searchLogModel->getRecentKeywords(8);
@@ -42,6 +45,19 @@ class SearchController extends BaseController
             $this->assign('baseUrl', '/search');
             $this->assign('hotKeywords', $hotKeywords);
             $this->assign('recentKeywords', $recentKeywords);
+        } elseif (empty($keyword) && $order === 'time') {
+            // 按时间排序显示最新视频（"查看更多"功能）
+            $result = $this->vodModel->getListPaged($page, PAGE_SIZE, 'time');
+            
+            $this->assign('vodList', $result['list']);
+            $this->assign('keyword', '');
+            $this->assign('total', $result['total']);
+            $this->assign('page', $result['page']);
+            $this->assign('totalPages', $result['totalPages']);
+            $this->assign('baseUrl', '/search?order=time');
+            $this->assign('hotKeywords', []);
+            $this->assign('recentKeywords', []);
+            $this->assign('pageTitle', '最新更新');
         } else {
             // 记录搜索日志
             $this->searchLogModel->log($keyword);
@@ -66,7 +82,8 @@ class SearchController extends BaseController
         }
         
         // SEO - 搜索页禁止收录
-        $this->assign('title', ($keyword ? $keyword . ' - ' : '') . '搜索 - ' . SITE_NAME);
+        $pageTitle = $this->data['pageTitle'] ?? ($keyword ? $keyword . ' - ' : '') . '搜索';
+        $this->assign('title', $pageTitle . ' - ' . SITE_NAME);
         $this->assign('noindex', true);
         
         $this->render('search/index');

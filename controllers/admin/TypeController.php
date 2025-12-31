@@ -162,4 +162,58 @@ class AdminTypeController extends AdminBaseController
         $this->log('删除', '分类', "ID:{$id}");
         $this->success('删除成功');
     }
+
+    /**
+     * 批量删除分类
+     */
+    public function batchDelete(): void
+    {
+        $ids = $this->post('ids', []);
+        
+        if (empty($ids) || !is_array($ids)) {
+            $this->error('请选择要删除的分类');
+        }
+
+        $ids = array_map('intval', $ids);
+        $db = XpkDatabase::getInstance();
+        
+        $success = 0;
+        $failed = 0;
+        $errors = [];
+
+        foreach ($ids as $id) {
+            if ($id <= 0) continue;
+
+            // 检查是否有子分类
+            $children = $this->typeModel->count(['type_pid' => $id]);
+            if ($children > 0) {
+                $failed++;
+                $errors[] = "ID:{$id} 有子分类";
+                continue;
+            }
+
+            // 检查是否有视频
+            $vodCount = $db->queryOne(
+                "SELECT COUNT(*) as cnt FROM " . DB_PREFIX . "vod WHERE vod_type_id = ?",
+                [$id]
+            )['cnt'] ?? 0;
+
+            if ($vodCount > 0) {
+                $failed++;
+                $errors[] = "ID:{$id} 有视频";
+                continue;
+            }
+
+            $this->typeModel->delete($id);
+            $success++;
+        }
+
+        $this->log('批量删除', '分类', "成功:{$success} 失败:{$failed}");
+        
+        if ($failed > 0) {
+            $this->success("删除完成：成功 {$success} 个，失败 {$failed} 个（" . implode('；', array_slice($errors, 0, 3)) . "）");
+        } else {
+            $this->success("成功删除 {$success} 个分类");
+        }
+    }
 }

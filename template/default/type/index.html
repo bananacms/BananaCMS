@@ -30,6 +30,9 @@
 </div>
 
 <?php if (!empty($vodList)): ?>
+<!-- 列表页顶部广告 -->
+<?= xpk_ad('list_insert') ?>
+
 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 mb-6">
     <?php foreach ($vodList as $vod): ?>
     <a href="<?= xpk_page_url('vod_detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]) ?>" class="group">

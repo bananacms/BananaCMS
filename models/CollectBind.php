@@ -12,27 +12,44 @@ class XpkCollectBind extends XpkModel
     /**
      * 获取采集站的绑定关系
      * 优先使用采集站专属绑定，没有则使用全局绑定
+     * local_type_id = 0 表示"不采集"
+     * local_type_id = -1 表示"明确不采集"（覆盖全局绑定）
      */
     public function getBinds(int $collectId): array
     {
-        // 获取该采集站的专属绑定
+        // 获取该采集站的专属绑定（包括"不采集"的设置）
         $specific = $this->db->query(
             "SELECT remote_type_id, local_type_id FROM {$this->table} WHERE collect_id = ?",
             [$collectId]
         );
+        
+        // 构建专属绑定映射，记录哪些远程分类有专属设置
+        $specificMap = [];
+        foreach ($specific as $row) {
+            $specificMap[$row['remote_type_id']] = (int)$row['local_type_id'];
+        }
         
         // 获取全局绑定
         $global = $this->db->query(
             "SELECT remote_type_id, local_type_id FROM {$this->table} WHERE collect_id = 0"
         );
         
-        // 合并：专属绑定优先
+        // 合并：专属绑定优先（包括专属的"不采集"设置）
         $binds = [];
+        
+        // 先加载全局绑定
         foreach ($global as $row) {
-            $binds[$row['remote_type_id']] = (int)$row['local_type_id'];
+            $remoteId = $row['remote_type_id'];
+            // 如果专属绑定中有这个远程分类的设置，跳过全局绑定
+            if (isset($specificMap[$remoteId])) {
+                continue;
+            }
+            $binds[$remoteId] = (int)$row['local_type_id'];
         }
-        foreach ($specific as $row) {
-            $binds[$row['remote_type_id']] = (int)$row['local_type_id'];
+        
+        // 再加载专属绑定（会覆盖全局绑定，包括设为0的"不采集"）
+        foreach ($specificMap as $remoteId => $localId) {
+            $binds[$remoteId] = $localId;
         }
         
         return $binds;
@@ -71,6 +88,7 @@ class XpkCollectBind extends XpkModel
 
     /**
      * 保存绑定关系
+     * local_type_id = 0 表示"不采集"，也需要保存以覆盖全局绑定
      */
     public function saveBinds(int $collectId, array $binds, array $remoteNames = []): void
     {
@@ -80,14 +98,13 @@ class XpkCollectBind extends XpkModel
             [$collectId]
         );
         
-        // 插入新绑定
+        // 插入新绑定（包括"不采集"的设置，local_type_id = 0）
         foreach ($binds as $remoteId => $localId) {
-            if ($localId > 0) {
-                $this->db->execute(
-                    "INSERT INTO {$this->table} (collect_id, remote_type_id, remote_type_name, local_type_id) VALUES (?, ?, ?, ?)",
-                    [$collectId, $remoteId, $remoteNames[$remoteId] ?? '', $localId]
-                );
-            }
+            // 保存所有绑定，包括 localId = 0 的"不采集"设置
+            $this->db->execute(
+                "INSERT INTO {$this->table} (collect_id, remote_type_id, remote_type_name, local_type_id) VALUES (?, ?, ?, ?)",
+                [$collectId, $remoteId, $remoteNames[$remoteId] ?? '', (int)$localId]
+            );
         }
     }
 

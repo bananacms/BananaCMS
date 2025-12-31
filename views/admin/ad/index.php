@@ -285,20 +285,36 @@ function openAdModal(id = null) {
     const modal = document.getElementById('adModal');
     const title = document.getElementById('adModalTitle');
     
+    // 重置表单
     document.getElementById('adForm').reset();
     document.getElementById('adId').value = '';
+    
+    // 重置时间字段
+    document.getElementById('adStartTime').value = '';
+    document.getElementById('adEndTime').value = '';
+    
+    // 重置类型相关字段显示
     toggleTypeFields();
     
     if (id) {
         title.textContent = '编辑广告';
+        // 显示加载状态
+        title.textContent = '加载中...';
+        
         fetch('/admin.php/ad/getOne?id=' + id)
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) throw new Error('网络请求失败');
+                return r.json();
+            })
             .then(data => {
-                if (data.code === 0) {
+                if (data.code === 0 && data.data) {
                     const ad = data.data;
-                    document.getElementById('adId').value = ad.ad_id;
+                    title.textContent = '编辑广告';
+                    
+                    // 填充表单数据
+                    document.getElementById('adId').value = ad.ad_id || '';
                     document.getElementById('adTitle').value = ad.ad_title || '';
-                    document.getElementById('adPosition').value = ad.ad_position || '';
+                    document.getElementById('adPosition').value = ad.ad_position || 'home_top';
                     document.getElementById('adType').value = ad.ad_type || 'image';
                     document.getElementById('adImage').value = ad.ad_image || '';
                     document.getElementById('adLink').value = ad.ad_link || '';
@@ -307,27 +323,36 @@ function openAdModal(id = null) {
                     document.getElementById('adDuration').value = ad.ad_duration || 15;
                     document.getElementById('adSkipTime').value = ad.ad_skip_time || 5;
                     document.getElementById('adSort').value = ad.ad_sort || 0;
-                    document.getElementById('adStatus').value = ad.ad_status;
+                    document.getElementById('adStatus').value = ad.ad_status !== undefined ? ad.ad_status : 1;
                     document.getElementById('adRemark').value = ad.ad_remark || '';
                     
-                    if (ad.ad_start_time && ad.ad_start_time > 0) {
-                        document.getElementById('adStartTime').value = formatDateTime(ad.ad_start_time);
+                    // 处理时间字段
+                    if (ad.ad_start_time && parseInt(ad.ad_start_time) > 0) {
+                        document.getElementById('adStartTime').value = formatDateTime(parseInt(ad.ad_start_time));
                     }
-                    if (ad.ad_end_time && ad.ad_end_time > 0) {
-                        document.getElementById('adEndTime').value = formatDateTime(ad.ad_end_time);
+                    if (ad.ad_end_time && parseInt(ad.ad_end_time) > 0) {
+                        document.getElementById('adEndTime').value = formatDateTime(parseInt(ad.ad_end_time));
                     }
                     
+                    // 根据类型显示对应字段
                     toggleTypeFields();
+                    
+                    // 显示模态框
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
                 } else {
                     xpkToast(data.msg || '获取数据失败', 'error');
                 }
+            })
+            .catch(err => {
+                console.error('获取广告数据失败:', err);
+                xpkToast('获取数据失败: ' + err.message, 'error');
             });
     } else {
         title.textContent = '添加广告';
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
     }
-    
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
 }
 
 function formatDateTime(timestamp) {

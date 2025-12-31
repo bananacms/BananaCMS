@@ -143,13 +143,41 @@ class VodController extends BaseController
         } catch (Exception $e) {}
         
         // 解析播放地址
+        $playFroms = explode('$
+</content>
+</file>, $vod['vod_play_from'] ?? '');
         $playUrls = $this->parsePlayUrl($vod['vod_play_url'] ?? '');
+        
+        // 获取当前播放源和地址
+        $currentFrom = $playFroms[$sid - 1] ?? '';
+        $currentUrl = $playUrls[$sid - 1][$nid - 1]['url'] ?? '';
+        
+        // 获取播放器配置
+        $playerUrl = '';
+        $playerInfo = null;
+        if (!empty($currentFrom) && !empty($currentUrl)) {
+            require_once MODEL_PATH . 'Player.php';
+            $playerModel = new XpkPlayer();
+            $playerInfo = $playerModel->findByCode($currentFrom);
+            
+            if ($playerInfo && !empty($playerInfo['player_url'])) {
+                // 使用播放器解析地址
+                $playerUrl = str_replace('{url}', urlencode($currentUrl), $playerInfo['player_url']);
+            } else {
+                // 没有配置播放器，直接使用原地址
+                $playerUrl = $currentUrl;
+            }
+        }
         
         $this->assign('vod', $vod);
         $this->assign('playUrls', $playUrls);
+        $this->assign('playFroms', $playFroms);
         $this->assign('sid', $sid);
         $this->assign('nid', $nid);
-        $this->assign('currentUrl', $playUrls[$sid - 1][$nid - 1]['url'] ?? '');
+        $this->assign('currentUrl', $playerUrl);
+        $this->assign('rawUrl', $currentUrl);
+        $this->assign('currentFrom', $currentFrom);
+        $this->assign('playerInfo', $playerInfo);
         
         // SEO
         $this->assign('title', $vod['vod_name'] . ' 播放 - ' . $this->data['siteName']);

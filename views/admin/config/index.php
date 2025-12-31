@@ -6,8 +6,16 @@
 
 <h1 class="text-2xl font-bold mb-6">系统配置</h1>
 
-<form method="POST" class="bg-white rounded-lg shadow p-6">
+<form method="POST" action="/admin.php/config/save" class="bg-white rounded-lg shadow p-6">
     <input type="hidden" name="_token" value="<?= $csrfToken ?>">
+
+    <!-- 顶部固定保存按钮 -->
+    <div class="sticky top-0 bg-white py-3 mb-4 border-b -mx-6 px-6 z-10 flex justify-between items-center">
+        <span class="text-gray-500 text-sm">修改配置后请点击保存</span>
+        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded shadow">
+            💾 保存配置
+        </button>
+    </div>
 
     <div class="space-y-6">
         <!-- 基本设置 -->
@@ -403,8 +411,10 @@
         </div>
     </div>
 
-    <div class="mt-6">
-        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded">保存配置</button>
+    <div class="mt-6 flex justify-end">
+        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded shadow">
+            💾 保存配置
+        </button>
     </div>
 </form>
 

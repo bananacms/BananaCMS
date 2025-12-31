@@ -84,6 +84,49 @@ class XpkVod extends XpkModel
     }
 
     /**
+     * 获取视频列表（分页）
+     */
+    public function getListPaged(int $page = 1, int $pageSize = 20, string $order = 'time', ?int $typeId = null): array
+    {
+        if (!$this->xpk_init()) {
+            return ['list' => [], 'total' => 0, 'page' => 1, 'pageSize' => $pageSize, 'totalPages' => 0];
+        }
+
+        $orderField = match($order) {
+            'time' => 'vod_time DESC',
+            'hits' => 'vod_hits DESC',
+            'score' => 'vod_score DESC',
+            'up' => 'vod_up DESC',
+            default => 'vod_id DESC',
+        };
+
+        $offset = ($page - 1) * $pageSize;
+        
+        $sql = "SELECT * FROM {$this->table} WHERE vod_status = 1";
+        $countSql = "SELECT COUNT(*) as total FROM {$this->table} WHERE vod_status = 1";
+        $params = [];
+
+        if ($typeId) {
+            $sql .= " AND vod_type_id = ?";
+            $countSql .= " AND vod_type_id = ?";
+            $params[] = $typeId;
+        }
+
+        $sql .= " ORDER BY {$orderField} LIMIT {$pageSize} OFFSET {$offset}";
+        
+        $list = $this->db->query($sql, $params);
+        $total = $this->db->queryOne($countSql, $params)['total'] ?? 0;
+        
+        return [
+            'list' => $list,
+            'total' => (int)$total,
+            'page' => $page,
+            'pageSize' => $pageSize,
+            'totalPages' => ceil($total / $pageSize),
+        ];
+    }
+
+    /**
      * 获取视频详情
      */
     public function getDetail(int $id): ?array

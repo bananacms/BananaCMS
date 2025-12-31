@@ -6,15 +6,23 @@
 
 <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold">分类管理</h1>
-    <button onclick="openTypeModal()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
-        + 添加分类
-    </button>
+    <div class="flex gap-2">
+        <button id="batchDeleteBtn" onclick="batchDelete()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded hidden">
+            批量删除 (<span id="selectedCount">0</span>)
+        </button>
+        <button onclick="openTypeModal()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+            + 添加分类
+        </button>
+    </div>
 </div>
 
 <div class="bg-white rounded-lg shadow overflow-hidden">
     <table class="w-full">
         <thead class="bg-gray-50">
             <tr>
+                <th class="px-4 py-3 text-left text-sm font-medium text-gray-500 w-10">
+                    <input type="checkbox" id="selectAll" onchange="toggleSelectAll()" class="rounded">
+                </th>
                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">ID</th>
                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">分类名称</th>
                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">英文名</th>
@@ -26,11 +34,14 @@
         <tbody class="divide-y">
             <?php if (empty($types)): ?>
             <tr>
-                <td colspan="6" class="px-4 py-8 text-center text-gray-500">暂无数据</td>
+                <td colspan="7" class="px-4 py-8 text-center text-gray-500">暂无数据</td>
             </tr>
             <?php else: ?>
             <?php foreach ($types as $type): ?>
             <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3">
+                    <input type="checkbox" class="type-checkbox rounded" value="<?= $type['type_id'] ?>" onchange="updateSelectedCount()">
+                </td>
                 <td class="px-4 py-3 text-sm"><?= $type['type_id'] ?></td>
                 <td class="px-4 py-3 text-sm">
                     <?= str_repeat('　├─ ', $type['level'] ?? 0) ?>
@@ -192,4 +203,53 @@ function saveType(e) {
 document.getElementById('typeModal').addEventListener('click', function(e) {
     if (e.target === this) closeTypeModal();
 });
+
+// 全选/取消全选
+function toggleSelectAll() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.type-checkbox');
+    checkboxes.forEach(cb => cb.checked = selectAll.checked);
+    updateSelectedCount();
+}
+
+// 更新选中数量
+function updateSelectedCount() {
+    const checkboxes = document.querySelectorAll('.type-checkbox:checked');
+    const count = checkboxes.length;
+    document.getElementById('selectedCount').textContent = count;
+    document.getElementById('batchDeleteBtn').classList.toggle('hidden', count === 0);
+    
+    // 更新全选框状态
+    const allCheckboxes = document.querySelectorAll('.type-checkbox');
+    document.getElementById('selectAll').checked = count > 0 && count === allCheckboxes.length;
+}
+
+// 批量删除
+function batchDelete() {
+    const checkboxes = document.querySelectorAll('.type-checkbox:checked');
+    const ids = Array.from(checkboxes).map(cb => cb.value);
+    
+    if (ids.length === 0) {
+        xpkToast('请选择要删除的分类', 'warning');
+        return;
+    }
+    
+    xpkConfirm('确定删除选中的 ' + ids.length + ' 个分类？\n注意：有子分类或视频的分类无法删除', function() {
+        fetch('/admin.php/type/batchDelete', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: ids.map(id => 'ids[]=' + id).join('&')
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.code === 0) {
+                xpkToast(data.msg, 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                xpkToast(data.msg || '删除失败', 'error');
+            }
+        })
+        .catch(() => xpkToast('请求失败', 'error'));
+    });
+}
 </script>
