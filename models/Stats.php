@@ -21,6 +21,12 @@ class XpkStats
     public function log(string $type, int $targetId = 0, string $extra = ''): void
     {
         $ip = $this->getClientIp();
+        
+        // 如果无法获取IP，使用占位符
+        if (empty($ip) || $ip === '::1') {
+            $ip = '127.0.0.1';
+        }
+        
         $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
         $referer = $_SERVER['HTTP_REFERER'] ?? '';
         $today = date('Y-m-d');
@@ -32,10 +38,10 @@ class XpkStats
         );
 
         if ($exists) {
-            // 更新PV
+            // 更新PV和最后访问时间
             $this->db->execute(
-                "UPDATE {$this->logTable} SET log_pv = log_pv + 1 WHERE log_id = ?",
-                [$exists['log_id']]
+                "UPDATE {$this->logTable} SET log_pv = log_pv + 1, log_time = ? WHERE log_id = ?",
+                [time(), $exists['log_id']]
             );
         } else {
             // 新增记录
@@ -336,14 +342,81 @@ class XpkStats
     }
 
     /**
+     * 获取诊断信息
+     */
+    public function getDiagnostics(): array
+    {
+        $info = [
+            'table_exists' => false,
+            'total_records' => 0,
+            'today_records' => 0,
+            'last_record_time' => null,
+            'current_ip' => $this->getClientIp(),
+        ];
+        
+        try {
+            // 检查表是否存在
+            $result = $this->db->query("SHOW TABLES LIKE '{$this->logTable}'");
+            $info['table_exists'] = !empty($result);
+            
+            if ($info['table_exists']) {
+                // 总记录数
+                $info['total_records'] = (int)($this->db->queryOne(
+                    "SELECT COUNT(*) as cnt FROM {$this->logTable}"
+                )['cnt'] ?? 0);
+                
+                // 今日记录数
+                $info['today_records'] = (int)($this->db->queryOne(
+                    "SELECT COUNT(*) as cnt FROM {$this->logTable} WHERE log_date = ?",
+                    [date('Y-m-d')]
+                )['cnt'] ?? 0);
+                
+                // 最后记录时间
+                $lastRecord = $this->db->queryOne(
+                    "SELECT log_time FROM {$this->logTable} ORDER BY log_id DESC LIMIT 1"
+                );
+                if ($lastRecord && $lastRecord['log_time']) {
+                    $info['last_record_time'] = date('Y-m-d H:i:s', $lastRecord['log_time']);
+                }
+            }
+        } catch (Exception $e) {
+            $info['error'] = $e->getMessage();
+        }
+        
+        return $info;
+    }
+
+    /**
      * 获取客户端IP
      */
     private function getClientIp(): string
     {
-        $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['HTTP_CLIENT_IP'] ?? $_SERVER['REMOTE_ADDR'] ?? '';
-        if (strpos($ip, ',') !== false) {
-            $ip = trim(explode(',', $ip)[0]);
+        // 按优先级尝试获取真实IP
+        $headers = [
+            'HTTP_CF_CONNECTING_IP',     // Cloudflare
+            'HTTP_X_REAL_IP',            // Nginx代理
+            'HTTP_X_FORWARDED_FOR',      // 标准代理头
+            'HTTP_CLIENT_IP',            // 某些代理
+            'HTTP_X_FORWARDED',
+            'HTTP_FORWARDED_FOR',
+            'HTTP_FORWARDED',
+            'REMOTE_ADDR',               // 直连
+        ];
+        
+        foreach ($headers as $header) {
+            if (!empty($_SERVER[$header])) {
+                $ip = $_SERVER[$header];
+                // X-Forwarded-For 可能包含多个IP，取第一个
+                if (strpos($ip, ',') !== false) {
+                    $ip = trim(explode(',', $ip)[0]);
+                }
+                // 验证IP格式
+                if (filter_var($ip, FILTER_VALIDATE_IP)) {
+                    return $ip;
+                }
+            }
         }
-        return $ip;
+        
+        return '0.0.0.0';
     }
 }

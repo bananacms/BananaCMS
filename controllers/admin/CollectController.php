@@ -363,6 +363,11 @@ class AdminCollectController extends AdminBaseController
      */
     public function doCollect(): void
     {
+        // 设置错误处理，确保所有错误都能被捕获并返回JSON
+        set_error_handler(function($errno, $errstr, $errfile, $errline) {
+            throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
+        });
+        
         // 捕获所有错误
         try {
             // 单次请求最多执行120秒
@@ -544,8 +549,32 @@ class AdminCollectController extends AdminBaseController
             'log_id' => $logId
         ]);
         } catch (Exception $e) {
+            restore_error_handler();
+            // 记录错误到日志
+            $logDir = RUNTIME_PATH . 'logs/';
+            if (!is_dir($logDir)) {
+                @mkdir($logDir, 0755, true);
+            }
+            $logFile = $logDir . date('Y-m-d') . '_collect.log';
+            $logMsg = "[" . date('Y-m-d H:i:s') . "] 采集错误: " . $e->getMessage() . "\n";
+            $logMsg .= "File: " . $e->getFile() . " Line: " . $e->getLine() . "\n";
+            $logMsg .= "Trace: " . $e->getTraceAsString() . "\n\n";
+            @file_put_contents($logFile, $logMsg, FILE_APPEND);
+            
             $this->error('采集出错: ' . $e->getMessage());
         } catch (Error $e) {
+            restore_error_handler();
+            // 记录错误到日志
+            $logDir = RUNTIME_PATH . 'logs/';
+            if (!is_dir($logDir)) {
+                @mkdir($logDir, 0755, true);
+            }
+            $logFile = $logDir . date('Y-m-d') . '_collect.log';
+            $logMsg = "[" . date('Y-m-d H:i:s') . "] 采集致命错误: " . $e->getMessage() . "\n";
+            $logMsg .= "File: " . $e->getFile() . " Line: " . $e->getLine() . "\n";
+            $logMsg .= "Trace: " . $e->getTraceAsString() . "\n\n";
+            @file_put_contents($logFile, $logMsg, FILE_APPEND);
+            
             $this->error('采集出错: ' . $e->getMessage());
         }
     }

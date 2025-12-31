@@ -12,6 +12,25 @@
         </div>
     </div>
 
+    <?php 
+    // 检查统计数据是否正常
+    $totalUvPv = $overview['uv'] + $overview['pv'] + $overview['uv_yesterday'] + $overview['pv_yesterday'];
+    if ($totalUvPv == 0): 
+    ?>
+    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <h4 class="font-medium text-yellow-800 mb-2">⚠️ 统计数据为空</h4>
+        <p class="text-sm text-yellow-700 mb-2">可能的原因：</p>
+        <ul class="text-sm text-yellow-600 list-disc list-inside space-y-1">
+            <li>网站刚部署，还没有访问记录</li>
+            <li>统计日志表 (xpk_stats_log) 不存在或结构不正确</li>
+            <li>前台页面访问时统计记录失败（检查 runtime/logs/ 目录下的日志）</li>
+        </ul>
+        <p class="text-sm text-yellow-700 mt-2">
+            💡 提示：访问前台页面后刷新此页面查看是否有数据更新
+        </p>
+    </div>
+    <?php endif; ?>
+
     <!-- 今日概览 -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div class="bg-white rounded-lg shadow p-4">

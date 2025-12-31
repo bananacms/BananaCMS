@@ -6,9 +6,17 @@
 
 <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold">视频管理</h1>
-    <a href="/admin.php/vod/add" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
-        + 添加视频
-    </a>
+    <div class="flex gap-2">
+        <a href="/admin.php/vod/replace" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded">
+            🔄 地址替换
+        </a>
+        <a href="/admin.php/vod/sources" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded">
+            📺 播放源
+        </a>
+        <a href="/admin.php/vod/add" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+            + 添加视频
+        </a>
+    </div>
 </div>
 
 <!-- 搜索筛选 -->

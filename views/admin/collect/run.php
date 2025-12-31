@@ -1,10 +1,15 @@
 <h1 class="text-2xl font-bold mb-6">执行采集 - <?= htmlspecialchars($collect['collect_name']) ?></h1>
 
 <?php 
-require_once MODEL_PATH . 'CollectBind.php';
-$bindModel = new XpkCollectBind();
-$binds = $bindModel->getBinds($collect['collect_id']);
-$bindCount = count(array_filter($binds));
+try {
+    require_once MODEL_PATH . 'CollectBind.php';
+    $bindModel = new XpkCollectBind();
+    $binds = $bindModel->getBinds($collect['collect_id']);
+    $bindCount = count(array_filter($binds));
+} catch (Exception $e) {
+    $binds = [];
+    $bindCount = 0;
+}
 $lastProgress = !empty($collect['collect_progress']) ? json_decode($collect['collect_progress'], true) : null;
 $canResume = $lastProgress && !empty($lastProgress['page']) && $lastProgress['page'] > 1 && empty($lastProgress['done']);
 ?>

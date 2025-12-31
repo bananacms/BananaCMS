@@ -48,6 +48,9 @@ class AdminStatsController extends AdminBaseController
         
         // 实时在线
         $onlineCount = $this->statsModel->getOnlineCount();
+        
+        // 诊断信息
+        $diagInfo = $this->statsModel->getDiagnostics();
 
         $this->assign('overview', $overview);
         $this->assign('trend', $trend);
@@ -57,6 +60,7 @@ class AdminStatsController extends AdminBaseController
         $this->assign('deviceStats', $deviceStats);
         $this->assign('contentStats', $contentStats);
         $this->assign('onlineCount', $onlineCount);
+        $this->assign('diagInfo', $diagInfo);
         $this->assign('days', $days);
 
         $this->render('stats/index', '数据统计');

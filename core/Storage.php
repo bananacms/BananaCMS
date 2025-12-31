@@ -26,30 +26,77 @@ class XpkLocalStorage implements XpkStorageDriver
     {
         $this->basePath = UPLOAD_PATH;
         $this->baseUrl = rtrim(SITE_URL, '/') . '/upload/';
+        
+        // 确保上传目录存在
+        if (!is_dir($this->basePath)) {
+            if (!@mkdir($this->basePath, 0755, true)) {
+                throw new Exception('无法创建上传目录：' . $this->basePath);
+            }
+        }
     }
 
     public function upload(string $localPath, string $remotePath): string
     {
         $targetPath = $this->basePath . ltrim($remotePath, '/');
         $dir = dirname($targetPath);
-        if (!is_dir($dir)) mkdir($dir, 0755, true);
-        if (copy($localPath, $targetPath)) return $this->getUrl($remotePath);
-        throw new Exception('文件保存失败');
+        
+        // 创建目录
+        if (!is_dir($dir)) {
+            if (!@mkdir($dir, 0755, true)) {
+                throw new Exception('无法创建目录：' . $dir);
+            }
+        }
+        
+        // 检查目录是否可写
+        if (!is_writable($dir)) {
+            throw new Exception('目录不可写：' . $dir . '，请检查权限');
+        }
+        
+        // 复制文件
+        if (!@copy($localPath, $targetPath)) {
+            $error = error_get_last();
+            throw new Exception('文件保存失败：' . ($error['message'] ?? '未知错误'));
+        }
+        
+        // 设置文件权限
+        @chmod($targetPath, 0644);
+        
+        return $this->getUrl($remotePath);
     }
 
     public function uploadContent(string $content, string $remotePath): string
     {
         $targetPath = $this->basePath . ltrim($remotePath, '/');
         $dir = dirname($targetPath);
-        if (!is_dir($dir)) mkdir($dir, 0755, true);
-        if (file_put_contents($targetPath, $content) !== false) return $this->getUrl($remotePath);
-        throw new Exception('文件保存失败');
+        
+        // 创建目录
+        if (!is_dir($dir)) {
+            if (!@mkdir($dir, 0755, true)) {
+                throw new Exception('无法创建目录：' . $dir);
+            }
+        }
+        
+        // 检查目录是否可写
+        if (!is_writable($dir)) {
+            throw new Exception('目录不可写：' . $dir . '，请检查权限');
+        }
+        
+        // 写入文件
+        if (@file_put_contents($targetPath, $content) === false) {
+            $error = error_get_last();
+            throw new Exception('文件保存失败：' . ($error['message'] ?? '未知错误'));
+        }
+        
+        // 设置文件权限
+        @chmod($targetPath, 0644);
+        
+        return $this->getUrl($remotePath);
     }
 
     public function delete(string $remotePath): bool
     {
         $targetPath = $this->basePath . ltrim($remotePath, '/');
-        return !file_exists($targetPath) || unlink($targetPath);
+        return !file_exists($targetPath) || @unlink($targetPath);
     }
 
     public function exists(string $remotePath): bool

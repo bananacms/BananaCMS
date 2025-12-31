@@ -88,6 +88,11 @@ $router->post('admin.php/vod/delete', fn() => (new AdminVodController())->delete
 $router->post('admin.php/vod/status', fn() => (new AdminVodController())->status());
 $router->post('admin.php/vod/lock', fn() => (new AdminVodController())->lock());
 $router->post('admin.php/vod/batchLock', fn() => (new AdminVodController())->batchLock());
+$router->get('admin.php/vod/replace', fn() => (new AdminVodController())->replace());
+$router->post('admin.php/vod/replace', fn() => (new AdminVodController())->doReplace());
+$router->get('admin.php/vod/sources', fn() => (new AdminVodController())->sources());
+$router->post('admin.php/vod/deleteSource', fn() => (new AdminVodController())->deleteSource());
+$router->post('admin.php/vod/renameSource', fn() => (new AdminVodController())->renameSource());
 
 // 分类管理
 $router->get('admin.php/type', fn() => (new AdminTypeController())->index());
@@ -136,6 +141,8 @@ $router->post('admin.php/user/delete', fn() => (new AdminUserController())->dele
 $router->get('admin.php/config', fn() => (new AdminConfigController())->index());
 $router->post('admin.php/config', fn() => (new AdminConfigController())->save());
 $router->post('admin.php/config/upload', fn() => (new AdminConfigController())->upload());
+$router->post('admin.php/config/uploadTemplate', fn() => (new AdminConfigController())->uploadTemplate());
+$router->post('admin.php/config/deleteTemplate', fn() => (new AdminConfigController())->deleteTemplate());
 
 // 采集管理
 $router->get('admin.php/collect', fn() => (new AdminCollectController())->index());

@@ -152,10 +152,85 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">模板</label>
                     <select name="site_template" class="w-full border rounded px-3 py-2">
-                        <option value="default" <?= ($config['site_template'] ?? 'default') === 'default' ? 'selected' : '' ?>>默认模板</option>
+                        <?php foreach ($templates as $tpl): ?>
+                        <option value="<?= htmlspecialchars($tpl['name']) ?>" <?= ($config['site_template'] ?? 'default') === $tpl['name'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($tpl['name']) ?><?= !$tpl['valid'] ? ' (无效)' : '' ?>
+                        </option>
+                        <?php endforeach; ?>
+                        <?php if (empty($templates)): ?>
+                        <option value="default">默认模板</option>
+                        <?php endif; ?>
                     </select>
                 </div>
             </div>
+        </div>
+
+        <!-- 模板管理 -->
+        <div>
+            <h3 class="font-bold text-gray-700 border-b pb-2 mb-4">模板管理</h3>
+            <div class="mb-4">
+                <div class="flex items-center gap-4">
+                    <input type="file" id="templateFile" accept=".zip" class="hidden" onchange="uploadTemplate(this)">
+                    <button type="button" onclick="document.getElementById('templateFile').click()" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                        📦 上传模板 (ZIP)
+                    </button>
+                    <span class="text-sm text-gray-500">支持ZIP格式，最大50MB</span>
+                </div>
+            </div>
+            <div class="bg-gray-50 rounded-lg overflow-hidden">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="px-4 py-2 text-left">模板名称</th>
+                            <th class="px-4 py-2 text-left">状态</th>
+                            <th class="px-4 py-2 text-left">大小</th>
+                            <th class="px-4 py-2 text-left">修改时间</th>
+                            <th class="px-4 py-2 text-left">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <?php foreach ($templates as $tpl): ?>
+                        <tr class="hover:bg-gray-100">
+                            <td class="px-4 py-2 font-medium">
+                                <?= htmlspecialchars($tpl['name']) ?>
+                                <?php if (($config['site_template'] ?? 'default') === $tpl['name']): ?>
+                                <span class="ml-2 px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded">使用中</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="px-4 py-2">
+                                <?php if ($tpl['valid']): ?>
+                                <span class="text-green-600">✓ 有效</span>
+                                <?php else: ?>
+                                <span class="text-red-600">✗ 无效</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="px-4 py-2 text-gray-500">
+                                <?= number_format($tpl['size'] / 1024, 1) ?> KB
+                            </td>
+                            <td class="px-4 py-2 text-gray-500">
+                                <?= date('Y-m-d H:i', $tpl['mtime']) ?>
+                            </td>
+                            <td class="px-4 py-2">
+                                <?php if ($tpl['name'] !== 'default' && ($config['site_template'] ?? 'default') !== $tpl['name']): ?>
+                                <button type="button" onclick="deleteTemplate('<?= htmlspecialchars($tpl['name']) ?>')" class="text-red-500 hover:text-red-700">删除</button>
+                                <?php elseif ($tpl['name'] === 'default'): ?>
+                                <span class="text-gray-400">默认</span>
+                                <?php else: ?>
+                                <span class="text-gray-400">使用中</span>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                        <?php if (empty($templates)): ?>
+                        <tr>
+                            <td colspan="5" class="px-4 py-4 text-center text-gray-500">暂无模板</td>
+                        </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">模板目录：template/，上传的ZIP文件会自动解压到该目录</p>
+        </div>
             <div class="mt-4">
                 <label class="block text-sm font-medium text-gray-700 mb-1">网站Logo</label>
                 <div class="flex items-center gap-4">
@@ -215,6 +290,52 @@
             </div>
         </div>
 
+        <!-- Sitemap 站点地图 -->
+        <div>
+            <h3 class="font-bold text-gray-700 border-b pb-2 mb-4">Sitemap 站点地图</h3>
+            <?php
+            $siteUrl = rtrim($config['site_url'] ?? SITE_URL, '/');
+            $sitemapUrl = $siteUrl . '/sitemap.xml';
+            ?>
+            <div class="bg-gray-50 rounded p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <p class="font-medium text-gray-700">Sitemap 地址</p>
+                        <p class="text-sm text-gray-500 mt-1">提交此地址到搜索引擎（Google/Bing/百度）</p>
+                    </div>
+                    <button type="button" onclick="checkSitemap()" class="px-3 py-1.5 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm">
+                        检测状态
+                    </button>
+                </div>
+                <div class="flex items-center gap-2 bg-white border rounded p-3">
+                    <code id="sitemapUrl" class="flex-1 text-sm text-blue-600"><?= htmlspecialchars($sitemapUrl) ?></code>
+                    <button type="button" onclick="copySitemapUrl()" class="px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 text-xs">复制</button>
+                    <a href="<?= htmlspecialchars($sitemapUrl) ?>" target="_blank" class="px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 text-xs">打开</a>
+                </div>
+                <div id="sitemapStatus" class="mt-3 hidden">
+                    <div class="text-sm"></div>
+                </div>
+                <div class="mt-4 text-sm text-gray-600">
+                    <p class="font-medium mb-2">📋 分片说明：</p>
+                    <ul class="list-disc list-inside space-y-1 text-gray-500">
+                        <li><code class="bg-gray-200 px-1 rounded">/sitemap.xml</code> - 索引文件（自动列出所有分片）</li>
+                        <li><code class="bg-gray-200 px-1 rounded">/sitemap.xml?type=main</code> - 首页、分类页</li>
+                        <li><code class="bg-gray-200 px-1 rounded">/sitemap.xml?type=vod&page=1</code> - 视频分片（每片5000条）</li>
+                        <li><code class="bg-gray-200 px-1 rounded">/sitemap.xml?type=actor&page=1</code> - 演员分片</li>
+                        <li><code class="bg-gray-200 px-1 rounded">/sitemap.xml?type=art&page=1</code> - 文章分片</li>
+                    </ul>
+                </div>
+                <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm">
+                    <p class="text-yellow-800 font-medium">⚠️ 注意事项：</p>
+                    <ul class="list-disc list-inside mt-1 text-yellow-700 space-y-1">
+                        <li>必须配置伪静态才能访问 /sitemap.xml（见 伪静态/ 目录）</li>
+                        <li>提交给搜索引擎时使用 <strong>/sitemap.xml</strong>，不要用 sitemap.php</li>
+                        <li>Sitemap 会自动根据数据量分片，无需手动生成</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
         <!-- 存储/缓存状态 -->
         <div>
             <h3 class="font-bold text-gray-700 border-b pb-2 mb-4">系统状态（只读）</h3>
@@ -245,7 +366,39 @@
                         </span>
                     </div>
                 </div>
-                <p class="text-xs text-gray-400 mt-3">以上配置需在 config/config.php 文件中修改</p>
+                
+                <!-- 上传相关配置 -->
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <p class="font-medium text-gray-700 mb-2">上传配置：</p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div>
+                            <span class="text-gray-500">upload目录:</span>
+                            <?php $uploadWritable = is_writable(UPLOAD_PATH); ?>
+                            <span class="ml-2 font-medium <?= $uploadWritable ? 'text-green-600' : 'text-red-600' ?>">
+                                <?= $uploadWritable ? '可写' : '不可写' ?>
+                            </span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500">上传限制:</span>
+                            <span class="ml-2 font-medium"><?= ini_get('upload_max_filesize') ?></span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500">POST限制:</span>
+                            <span class="ml-2 font-medium"><?= ini_get('post_max_size') ?></span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500">finfo扩展:</span>
+                            <span class="ml-2 font-medium <?= function_exists('finfo_open') ? 'text-green-600' : 'text-yellow-600' ?>">
+                                <?= function_exists('finfo_open') ? '已启用' : '未启用' ?>
+                            </span>
+                        </div>
+                    </div>
+                    <?php if (!$uploadWritable): ?>
+                    <p class="mt-2 text-red-600 text-xs">⚠️ upload目录不可写，请设置权限为755或777</p>
+                    <?php endif; ?>
+                </div>
+                
+                <p class="text-xs text-gray-400 mt-3">以上配置需在 config/config.php 或 php.ini 中修改</p>
             </div>
         </div>
     </div>
@@ -295,5 +448,105 @@ function removeLogo() {
         document.getElementById('siteLogo').value = '';
         document.getElementById('logoPreview').innerHTML = '<span class="text-gray-400 text-sm">无Logo</span>';
     });
+}
+
+function uploadTemplate(input) {
+    if (!input.files || !input.files[0]) return;
+    
+    const file = input.files[0];
+    if (file.size > 50 * 1024 * 1024) {
+        xpkToast('文件大小不能超过50MB', 'error');
+        return;
+    }
+    
+    if (!file.name.toLowerCase().endsWith('.zip')) {
+        xpkToast('只支持ZIP格式', 'error');
+        return;
+    }
+    
+    xpkToast('正在上传模板...', 'info');
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    fetch('/admin.php/config/uploadTemplate', {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.code === 0) {
+            xpkToast('模板上传成功：' + data.data.name, 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            xpkToast(data.msg || '上传失败', 'error');
+        }
+    })
+    .catch(() => xpkToast('上传失败', 'error'))
+    .finally(() => {
+        input.value = '';
+    });
+}
+
+function deleteTemplate(name) {
+    xpkConfirm('确定删除模板 "' + name + '"？此操作不可恢复！', function() {
+        fetch('/admin.php/config/deleteTemplate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: '_token=<?= $csrfToken ?>&name=' + encodeURIComponent(name)
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.code === 0) {
+                xpkToast('删除成功', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                xpkToast(data.msg || '删除失败', 'error');
+            }
+        })
+        .catch(() => xpkToast('删除失败', 'error'));
+    });
+}
+
+function copySitemapUrl() {
+    const url = document.getElementById('sitemapUrl').textContent;
+    navigator.clipboard.writeText(url).then(() => {
+        xpkToast('已复制到剪贴板', 'success');
+    }).catch(() => {
+        // 降级方案
+        const input = document.createElement('input');
+        input.value = url;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        xpkToast('已复制到剪贴板', 'success');
+    });
+}
+
+function checkSitemap() {
+    const statusDiv = document.getElementById('sitemapStatus');
+    const statusContent = statusDiv.querySelector('div');
+    statusDiv.classList.remove('hidden');
+    statusContent.innerHTML = '<span class="text-gray-500">检测中...</span>';
+    
+    const sitemapUrl = document.getElementById('sitemapUrl').textContent;
+    
+    fetch(sitemapUrl, { method: 'HEAD' })
+        .then(response => {
+            if (response.ok) {
+                const contentType = response.headers.get('content-type') || '';
+                if (contentType.includes('xml')) {
+                    statusContent.innerHTML = '<span class="text-green-600">✓ Sitemap 正常工作！Content-Type: ' + contentType + '</span>';
+                } else {
+                    statusContent.innerHTML = '<span class="text-yellow-600">⚠ 可访问但Content-Type不是XML: ' + contentType + '</span>';
+                }
+            } else {
+                statusContent.innerHTML = '<span class="text-red-600">✗ 无法访问 (HTTP ' + response.status + ')，请检查伪静态配置</span>';
+            }
+        })
+        .catch(error => {
+            statusContent.innerHTML = '<span class="text-red-600">✗ 请求失败，可能是跨域限制。请直接点击"打开"按钮测试</span>';
+        });
 }
 </script>

@@ -253,6 +253,202 @@ class AdminVodController extends AdminBaseController
     }
 
     /**
+     * 播放地址替换页面
+     */
+    public function replace(): void
+    {
+        // 获取所有播放源
+        $db = XpkDatabase::getInstance();
+        $sources = $db->query(
+            "SELECT DISTINCT vod_play_from FROM " . DB_PREFIX . "vod WHERE vod_play_from != '' ORDER BY vod_play_from"
+        );
+        
+        // 解析播放源列表
+        $playFromList = [];
+        foreach ($sources as $row) {
+            $froms = explode('$$$', $row['vod_play_from']);
+            foreach ($froms as $from) {
+                $from = trim($from);
+                if (!empty($from) && !in_array($from, $playFromList)) {
+                    $playFromList[] = $from;
+                }
+            }
+        }
+        sort($playFromList);
+
+        $this->assign('playFromList', $playFromList);
+        $this->assign('csrfToken', $this->csrfToken());
+        $this->assign('flash', $this->getFlash());
+        $this->render('vod/replace', '播放地址替换');
+    }
+
+    /**
+     * 执行播放地址替换
+     */
+    public function doReplace(): void
+    {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+
+        $type = trim($this->post('type', 'domain')); // domain=域名替换, source=播放源替换, custom=自定义替换
+        $oldStr = trim($this->post('old_str', ''));
+        $newStr = trim($this->post('new_str', ''));
+        $playFrom = trim($this->post('play_from', '')); // 指定播放源，为空则全部
+        $field = trim($this->post('field', 'play')); // play=播放地址, down=下载地址, both=两者
+
+        if (empty($oldStr)) {
+            $this->error('请输入要替换的内容');
+        }
+
+        $db = XpkDatabase::getInstance();
+        $affected = 0;
+
+        // 构建查询条件
+        $where = '';
+        $params = [];
+        
+        if (!empty($playFrom)) {
+            $where = " WHERE vod_play_from LIKE ?";
+            $params[] = '%' . $playFrom . '%';
+        }
+
+        // 根据替换类型执行
+        if ($field === 'play' || $field === 'both') {
+            $sql = "UPDATE " . DB_PREFIX . "vod SET vod_play_url = REPLACE(vod_play_url, ?, ?)" . $where;
+            $affected += $db->execute($sql, array_merge([$oldStr, $newStr], $params));
+        }
+
+        if ($field === 'down' || $field === 'both') {
+            $sql = "UPDATE " . DB_PREFIX . "vod SET vod_down_url = REPLACE(vod_down_url, ?, ?)" . $where;
+            $affected += $db->execute($sql, array_merge([$oldStr, $newStr], $params));
+        }
+
+        $this->log('批量替换', '播放地址', "替换 '{$oldStr}' 为 '{$newStr}'，影响 {$affected} 条");
+        $this->success("替换完成，共影响 {$affected} 条记录");
+    }
+
+    /**
+     * 播放源管理页面
+     */
+    public function sources(): void
+    {
+        $db = XpkDatabase::getInstance();
+        
+        // 统计各播放源的视频数量
+        $sources = $db->query(
+            "SELECT vod_play_from, COUNT(*) as count FROM " . DB_PREFIX . "vod WHERE vod_play_from != '' GROUP BY vod_play_from"
+        );
+        
+        // 解析并统计
+        $sourceStats = [];
+        foreach ($sources as $row) {
+            $froms = explode('$$$', $row['vod_play_from']);
+            foreach ($froms as $from) {
+                $from = trim($from);
+                if (empty($from)) continue;
+                
+                if (!isset($sourceStats[$from])) {
+                    $sourceStats[$from] = 0;
+                }
+                $sourceStats[$from] += $row['count'];
+            }
+        }
+        arsort($sourceStats);
+
+        $this->assign('sourceStats', $sourceStats);
+        $this->assign('csrfToken', $this->csrfToken());
+        $this->render('vod/sources', '播放源管理');
+    }
+
+    /**
+     * 删除指定播放源
+     */
+    public function deleteSource(): void
+    {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+
+        $sourceName = trim($this->post('source', ''));
+        if (empty($sourceName)) {
+            $this->error('请指定播放源');
+        }
+
+        $db = XpkDatabase::getInstance();
+        
+        // 获取所有包含该播放源的视频
+        $vods = $db->query(
+            "SELECT vod_id, vod_play_from, vod_play_url, vod_down_from, vod_down_url FROM " . DB_PREFIX . "vod WHERE vod_play_from LIKE ?",
+            ['%' . $sourceName . '%']
+        );
+
+        $affected = 0;
+        foreach ($vods as $vod) {
+            $playFromArr = array_filter(explode('$$$', $vod['vod_play_from']));
+            $playUrlArr = array_filter(explode('$$$', $vod['vod_play_url']));
+            
+            // 找到要删除的播放源索引
+            $newFromArr = [];
+            $newUrlArr = [];
+            foreach ($playFromArr as $i => $from) {
+                if (trim($from) !== $sourceName) {
+                    $newFromArr[] = $from;
+                    $newUrlArr[] = $playUrlArr[$i] ?? '';
+                }
+            }
+
+            // 更新数据库
+            $db->execute(
+                "UPDATE " . DB_PREFIX . "vod SET vod_play_from = ?, vod_play_url = ? WHERE vod_id = ?",
+                [implode('$$$', $newFromArr), implode('$$$', $newUrlArr), $vod['vod_id']]
+            );
+            $affected++;
+        }
+
+        $this->log('删除播放源', '视频', "删除播放源 '{$sourceName}'，影响 {$affected} 条");
+        $this->success("删除完成，共处理 {$affected} 条视频");
+    }
+
+    /**
+     * 重命名播放源
+     */
+    public function renameSource(): void
+    {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+
+        $oldName = trim($this->post('old_name', ''));
+        $newName = trim($this->post('new_name', ''));
+        
+        if (empty($oldName) || empty($newName)) {
+            $this->error('请输入播放源名称');
+        }
+
+        if ($oldName === $newName) {
+            $this->error('新旧名称相同');
+        }
+
+        $db = XpkDatabase::getInstance();
+        
+        // 直接替换播放源名称
+        $affected = $db->execute(
+            "UPDATE " . DB_PREFIX . "vod SET vod_play_from = REPLACE(vod_play_from, ?, ?) WHERE vod_play_from LIKE ?",
+            [$oldName, $newName, '%' . $oldName . '%']
+        );
+
+        // 同时替换下载源名称
+        $db->execute(
+            "UPDATE " . DB_PREFIX . "vod SET vod_down_from = REPLACE(vod_down_from, ?, ?) WHERE vod_down_from LIKE ?",
+            [$oldName, $newName, '%' . $oldName . '%']
+        );
+
+        $this->log('重命名播放源', '视频', "'{$oldName}' -> '{$newName}'，影响 {$affected} 条");
+        $this->success("重命名完成，共影响 {$affected} 条记录");
+    }
+
+    /**
      * 获取表单数据
      */
     private function getFormData(): array

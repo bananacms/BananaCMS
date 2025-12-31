@@ -28,10 +28,11 @@ class BaseController
         }
         
         try {
+            require_once MODEL_PATH . 'Stats.php';
             $stats = new XpkStats();
             $stats->log('page', 0);
         } catch (Exception $e) {
-            // 静默失败，不影响页面加载
+            // 静默失败，不影响页面正常访问
         }
     }
 
