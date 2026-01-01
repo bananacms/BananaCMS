@@ -14,7 +14,7 @@ include $netflixLayoutPath . 'header.php';
         </div>
         <?php endif; ?>
 
-        <form action="/user/login" method="post" class="space-y-6">
+        <form action="/user/login" method="post" data-ajax class="space-y-6">
             <input type="hidden" name="redirect" value="<?php echo htmlspecialchars($redirect ?? ''); ?>">
             <div>
                 <input type="text" name="username" placeholder="用户名或邮箱" required

@@ -117,6 +117,7 @@
         </div>
     </nav>
 
+    <script src="/static/js/xpk.js"></script>
     <script>
         // 移动端菜单
         function toggleMobileMenu() {

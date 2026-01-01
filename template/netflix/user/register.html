@@ -14,7 +14,7 @@ include $netflixLayoutPath . 'header.php';
         </div>
         <?php endif; ?>
 
-        <form action="/user/register" method="post" class="space-y-6">
+        <form action="/user/register" method="post" data-ajax class="space-y-6">
             <input type="hidden" name="_token" value="<?php echo htmlspecialchars($csrfToken); ?>">
             <input type="hidden" name="redirect" value="<?php echo htmlspecialchars($redirect ?? ''); ?>">
             <div>

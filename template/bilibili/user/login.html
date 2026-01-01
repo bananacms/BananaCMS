@@ -13,7 +13,7 @@
             </div>
         <?php endif; ?>
 
-        <form action="/user/login" method="post" class="space-y-4">
+        <form action="/user/login" method="post" data-ajax class="space-y-4">
             <input type="hidden" name="redirect" value="<?php echo htmlspecialchars($redirect ?? ''); ?>">
             <div>
                 <label class="block text-gray-600 text-sm mb-2">用户名</label>
