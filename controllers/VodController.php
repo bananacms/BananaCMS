@@ -143,9 +143,7 @@ class VodController extends BaseController
         } catch (Exception $e) {}
         
         // 解析播放地址
-        $playFroms = explode('$
-</content>
-</file>, $vod['vod_play_from'] ?? '');
+        $playFroms = explode('$$$', $vod['vod_play_from'] ?? '');
         $playUrls = $this->parsePlayUrl($vod['vod_play_url'] ?? '');
         
         // 获取当前播放源和地址
