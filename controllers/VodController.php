@@ -113,6 +113,21 @@ class VodController extends BaseController
         $this->assign('vod', $vod);
         $this->assign('relatedList', $relatedList);
         
+        // 兼容不同模板的播放列表变量名
+        // play_list 格式: [{from, sid, episodes: [{name, url, nid}], count}]
+        // playUrls 格式: [{name, urls: [{name, url}]}] (sid 从 1 开始)
+        $playUrls = [];
+        if (!empty($vod['play_list'])) {
+            foreach ($vod['play_list'] as $source) {
+                $playUrls[] = [
+                    'name' => $source['from'],
+                    'urls' => $source['episodes']
+                ];
+            }
+        }
+        $this->assign('playUrls', $playUrls);
+        $this->assign('playList', $vod['play_list'] ?? []); // Netflix 模板用这个
+        
         // SEO
         $seoVars = ['name' => $vod['vod_name'], 'actor' => $vod['vod_actor'] ?? '', 'type' => $vod['type_name'] ?? '', 'year' => $vod['vod_year'] ?? '', 'area' => $vod['vod_area'] ?? ''];
         $this->assign('title', $this->seoTitle('vod_detail', $seoVars));
