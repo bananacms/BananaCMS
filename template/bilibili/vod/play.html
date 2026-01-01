@@ -103,9 +103,15 @@
             <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
                 <span class="text-pink-500 mr-2">📺</span>选集播放
             </h2>
+            <?php $sourceCount = count($playUrls); ?>
             <?php foreach ($playUrls as $sidIdx => $source): ?>
                 <div class="mb-4">
-                    <h3 class="text-sm text-gray-500 mb-2"><?php echo htmlspecialchars($source['name']); ?></h3>
+                    <h3 class="text-sm text-gray-500 mb-2">
+                        <?php if ($sourceCount > 1): ?>
+                            <span class="<?php echo (($sidIdx + 1) == $currentSid) ? 'bg-pink-500 text-white' : 'bg-gray-200'; ?> px-2 py-1 rounded mr-2"><?php echo htmlspecialchars($source['name']); ?></span>
+                        <?php endif; ?>
+                        共<?php echo count($source['urls']); ?>集
+                    </h3>
                     <div class="flex flex-wrap gap-2">
                         <?php foreach ($source['urls'] as $nidIdx => $ep): ?>
                             <?php $isActive = (($sidIdx + 1) == $currentSid && ($nidIdx + 1) == $currentNid); ?>

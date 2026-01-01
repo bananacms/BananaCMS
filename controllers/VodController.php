@@ -245,7 +245,19 @@ class VodController extends BaseController
         $this->assign('relatedList', $relatedList);
         
         // SEO
-        $this->assign('title', $vod['vod_name'] . ' 播放 - ' . $this->data['siteName']);
+        $epName = $currentEp['name'] ?? '第' . $nid . '集';
+        $seoVars = [
+            'name' => $vod['vod_name'],
+            'episode' => $epName,
+            'actor' => $vod['vod_actor'] ?? '',
+            'type' => $vod['type_name'] ?? '',
+            'year' => $vod['vod_year'] ?? '',
+            'area' => $vod['vod_area'] ?? '',
+            'description' => mb_substr(strip_tags($vod['vod_content'] ?? ''), 0, 100)
+        ];
+        $this->assign('title', $vod['vod_name'] . ' ' . $epName . ' 在线播放 - ' . $this->data['siteName']);
+        $this->assign('keywords', $vod['vod_name'] . ',' . $epName . ',在线观看,' . ($vod['vod_actor'] ?? '') . ',' . ($vod['type_name'] ?? ''));
+        $this->assign('description', $vod['vod_name'] . ' ' . $epName . ' 在线播放，' . ($vod['vod_actor'] ? '主演：' . $vod['vod_actor'] . '，' : '') . mb_substr(strip_tags($vod['vod_content'] ?? ''), 0, 120));
         
         $this->render('vod/play');
     }

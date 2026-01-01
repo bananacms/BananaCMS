@@ -120,11 +120,14 @@
     <?php if (!empty($playUrls)): ?>
         <div class="mb-6">
             <h2 class="text-lg font-bold mb-3">播放列表</h2>
+            <?php $sourceCount = count($playUrls); ?>
             <?php foreach ($playUrls as $sIndex => $source): ?>
                 <div class="mb-4">
                     <p class="text-sm text-gray-500 mb-2">
-                        <?php echo htmlspecialchars($source['name'] ?? '播放源 ' . ($sIndex + 1)); ?>
-                        <span class="text-gray-400">(<?php echo count($source['urls'] ?? []); ?>集)</span>
+                        <?php if ($sourceCount > 1): ?>
+                            <span class="<?php echo (($sIndex + 1) == $sid) ? 'bg-red-600 text-white' : 'bg-gray-200'; ?> px-2 py-1 rounded mr-2"><?php echo htmlspecialchars($source['name'] ?? '播放源 ' . ($sIndex + 1)); ?></span>
+                        <?php endif; ?>
+                        共<?php echo count($source['urls'] ?? []); ?>集
                     </p>
                     <div class="flex flex-wrap gap-2">
                         <?php foreach (($source['urls'] ?? []) as $nIndex => $ep): ?>
