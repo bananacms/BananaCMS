@@ -38,7 +38,39 @@
                 <li>已添加本站链接</li>
             </ul>
         </div>
+        
+        <!-- 本站信息 -->
+        <div class="mt-4 p-3 bg-green-50 rounded text-sm">
+            <p class="text-gray-700">本站名称：<strong><?= htmlspecialchars($siteName) ?></strong></p>
+            <p class="text-gray-700">本站地址：<strong><?= htmlspecialchars($siteUrl) ?></strong></p>
+        </div>
+        
+        <!-- 复制本站链接代码 -->
+        <div class="mt-4 p-3 bg-gray-50 rounded">
+            <p class="text-sm font-medium text-gray-700 mb-2">本站链接代码：</p>
+            <div class="bg-white border rounded p-2 text-xs text-gray-600 font-mono break-all">&lt;a href="<?= htmlspecialchars($siteUrl) ?>" target="_blank"&gt;<?= htmlspecialchars($siteName) ?>&lt;/a&gt;</div>
+            <button type="button" onclick="copyLinkCode()" class="mt-2 w-full py-1.5 bg-green-500 text-white rounded text-sm hover:bg-green-600 transition">
+                📋 复制代码
+            </button>
+        </div>
     </div>
 </div>
+
+<script>
+function copyLinkCode() {
+    const code = '<a href="<?= htmlspecialchars($siteUrl) ?>" target="_blank"><?= htmlspecialchars($siteName) ?></a>';
+    navigator.clipboard.writeText(code).then(() => {
+        alert('代码已复制到剪贴板');
+    }).catch(() => {
+        const input = document.createElement('textarea');
+        input.value = code;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        alert('代码已复制到剪贴板');
+    });
+}
+</script>
 
 <?php include TPL_PATH . 'iqiyi/layouts/footer.php'; ?>

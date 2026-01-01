@@ -32,8 +32,8 @@ class LinkController extends BaseController
      */
     public function apply(): void
     {
-        if (!$this->verifyCsrf()) {
-            $this->error('非法请求');
+        if (!$this->verifyCsrfToken()) {
+            $this->error('非法请求，请刷新页面重试');
         }
 
         $name = trim($this->post('link_name', ''));

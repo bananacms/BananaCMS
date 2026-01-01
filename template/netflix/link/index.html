@@ -30,10 +30,36 @@ include $netflixLayoutPath . 'header.php';
         <h2 class="text-lg font-bold mb-4">申请友链</h2>
         <p class="text-gray-400 text-sm mb-4">如需交换友情链接，请联系管理员。</p>
         <div class="text-gray-500 text-sm space-y-1">
-            <p>本站名称：<?php echo SITE_NAME; ?></p>
-            <p>本站地址：<?php echo SITE_URL; ?></p>
+            <p>本站名称：<?= htmlspecialchars($siteName ?? SITE_NAME) ?></p>
+            <p>本站地址：<?= htmlspecialchars($siteUrl ?? SITE_URL) ?></p>
+        </div>
+        
+        <!-- 复制本站链接代码 -->
+        <div class="mt-4 p-3 bg-gray-800 rounded">
+            <p class="text-sm font-medium text-gray-300 mb-2">本站链接代码：</p>
+            <div class="bg-gray-700 rounded p-2 text-xs text-gray-300 font-mono break-all">&lt;a href="<?= htmlspecialchars($siteUrl ?? SITE_URL) ?>" target="_blank"&gt;<?= htmlspecialchars($siteName ?? SITE_NAME) ?>&lt;/a&gt;</div>
+            <button type="button" onclick="copyLinkCode()" class="mt-2 w-full py-1.5 bg-red-600 text-white rounded text-sm hover:bg-red-700 transition">
+                📋 复制代码
+            </button>
         </div>
     </div>
 </div>
+
+<script>
+function copyLinkCode() {
+    const code = '<a href="<?= htmlspecialchars($siteUrl ?? SITE_URL) ?>" target="_blank"><?= htmlspecialchars($siteName ?? SITE_NAME) ?></a>';
+    navigator.clipboard.writeText(code).then(() => {
+        alert('代码已复制到剪贴板');
+    }).catch(() => {
+        const input = document.createElement('textarea');
+        input.value = code;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        alert('代码已复制到剪贴板');
+    });
+}
+</script>
 
 <?php include $netflixLayoutPath . 'footer.php'; ?>
