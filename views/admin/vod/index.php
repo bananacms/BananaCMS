@@ -131,7 +131,7 @@
                 <td class="px-4 py-3 text-sm space-x-2">
                     <a href="/admin.php/vod/edit/<?= $vod['vod_id'] ?>" class="text-blue-500 hover:underline">编辑</a>
                     <button onclick="toggleLock(<?= $vod['vod_id'] ?>)" class="<?= !empty($vod['vod_lock']) ? 'text-yellow-500' : 'text-gray-400' ?> hover:underline"><?= !empty($vod['vod_lock']) ? '解锁' : '锁定' ?></button>
-                    <button onclick="deleteItem('/admin.php/vod/delete', [<?= $vod['vod_id'] ?>])" class="text-red-500 hover:underline">删除</button>
+                    <button onclick="deleteSingleVod(<?= $vod['vod_id'] ?>)" class="text-red-500 hover:underline">删除</button>
                 </td>
             </tr>
             <?php endforeach; ?>
@@ -224,21 +224,35 @@ function batchLock(lock) {
 
 function batchDelete() {
     const ids = getSelectedIds();
-    if (ids.length === 0) return;
-    deleteItem('/admin.php/vod/delete', ids);
-}
-
-function deleteItem(url, ids) {
-    if (!ids || ids.length === 0) {
+    if (ids.length === 0) {
         xpkToast('请选择要删除的视频', 'warning');
         return;
     }
-    xpkConfirm('确定要删除吗？', function() {
+    xpkConfirm('确定要删除选中的 ' + ids.length + ' 个视频吗？', function() {
         const formData = new FormData();
         ids.forEach(id => formData.append('ids[]', id));
-        fetch(url, {
+        fetch('/admin.php/vod/delete', {
             method: 'POST',
             body: formData
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.code === 0) {
+                xpkToast(data.msg, 'success');
+                location.reload();
+            } else {
+                xpkToast(data.msg, 'error');
+            }
+        });
+    });
+}
+
+function deleteSingleVod(id) {
+    xpkConfirm('确定要删除吗？', function() {
+        fetch('/admin.php/vod/delete', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'id=' + id
         })
         .then(r => r.json())
         .then(data => {

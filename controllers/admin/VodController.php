@@ -187,9 +187,13 @@ class AdminVodController extends AdminBaseController
      */
     public function delete(): void
     {
+        // 兼容单个删除(id)和批量删除(ids[])
         $ids = $_POST['ids'] ?? [];
+        if (empty($ids) && isset($_POST['id'])) {
+            $ids = [(int)$_POST['id']];
+        }
         if (!is_array($ids)) {
-            $this->error('请选择要删除的视频');
+            $ids = [$ids];
         }
         // 过滤空值并转为整数
         $ids = array_filter(array_map('intval', $ids), fn($id) => $id > 0);
@@ -201,7 +205,7 @@ class AdminVodController extends AdminBaseController
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
         $db->execute(
             "DELETE FROM " . DB_PREFIX . "vod WHERE vod_id IN ({$placeholders})",
-            array_map('intval', $ids)
+            $ids
         );
 
         $this->log('删除', '视频', "IDs:" . implode(',', $ids));

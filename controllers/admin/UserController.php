@@ -82,14 +82,10 @@ class AdminUserController extends AdminBaseController
     }
 
     /**
-     * 处理编辑
+     * 处理编辑 (AJAX)
      */
     public function doEdit(int $id): void
     {
-        if (!$this->verifyCsrf()) {
-            $this->error('非法请求');
-        }
-
         $user = $this->userModel->find($id);
         if (!$user) {
             $this->error('用户不存在');
@@ -110,8 +106,7 @@ class AdminUserController extends AdminBaseController
         $this->userModel->update($id, $data);
         $this->log('编辑', '用户', "ID:{$id} {$user['user_name']}");
 
-        $this->flash('success', '保存成功');
-        $this->redirect('/admin.php/user');
+        $this->success('保存成功');
     }
 
     /**
