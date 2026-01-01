@@ -21,6 +21,20 @@ if (APP_DEBUG) {
 // 加载核心类
 require_once CORE_PATH . 'Database.php';
 require_once CORE_PATH . 'Cache.php';
+require_once CORE_PATH . 'RedisSession.php';
+
+// 初始化 Session（用于前端收藏等功能）
+if (session_status() === PHP_SESSION_NONE) {
+    xpk_init_redis_session();
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path' => '/',
+        'secure' => isset($_SERVER['HTTPS']),
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
+    session_start();
+}
 
 // 加载模型
 require_once MODEL_PATH . 'Model.php';
@@ -141,6 +155,7 @@ class XpkApi
             // 广告
             case 'ad.get': $this->adGet(); break;
             case 'ad.click': $this->adClick(); break;
+            case 'ad.show': $this->adShow(); break;
             
             // 首页
             case 'home': $this->home(); break;
@@ -1009,6 +1024,19 @@ class XpkApi
         if ($id > 0) {
             require_once MODEL_PATH . 'Ad.php';
             (new XpkAd())->incrementClick($id);
+        }
+        $this->success('ok');
+    }
+
+    /**
+     * 广告展示统计
+     */
+    private function adShow(): void
+    {
+        $id = (int)($this->input('id', 0));
+        if ($id > 0) {
+            require_once MODEL_PATH . 'Ad.php';
+            (new XpkAd())->incrementShow($id);
         }
         $this->success('ok');
     }

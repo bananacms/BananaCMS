@@ -196,6 +196,16 @@ class VodController extends BaseController
                 if (!empty($vod['vod_pic'])) {
                     $playerUrl .= '&pic=' . urlencode($vod['vod_pic']);
                 }
+                
+                // 添加暂停广告参数
+                require_once MODEL_PATH . 'Ad.php';
+                $adModel = new XpkAd();
+                $pauseAd = $adModel->getOne('play_pause');
+                if ($pauseAd && $pauseAd['ad_type'] === 'image' && !empty($pauseAd['ad_image'])) {
+                    $playerUrl .= '&pause_ad_image=' . urlencode($pauseAd['ad_image']);
+                    $playerUrl .= '&pause_ad_link=' . urlencode($pauseAd['ad_link'] ?? '');
+                    $playerUrl .= '&pause_ad_id=' . $pauseAd['ad_id'];
+                }
             }
         }
         

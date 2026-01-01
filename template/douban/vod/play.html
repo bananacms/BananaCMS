@@ -15,7 +15,51 @@
 
     <!-- 播放器 -->
     <div class="bg-black rounded overflow-hidden mb-6">
-        <div class="aspect-video">
+        <div class="aspect-video relative">
+            <!-- 片头广告 -->
+            <?php 
+            $playBeforeAd = xpk_ads('play_before');
+            if (!empty($playBeforeAd)): 
+                $adItem = $playBeforeAd[0];
+            ?>
+            <div id="playBeforeAd" class="absolute inset-0 z-50 bg-black flex items-center justify-center">
+                <?php if ($adItem['ad_type'] === 'video' && !empty($adItem['ad_video'])): ?>
+                <video id="adVideo" src="<?= htmlspecialchars($adItem['ad_video']) ?>" autoplay playsinline class="w-full h-full object-contain"></video>
+                <?php elseif ($adItem['ad_type'] === 'image' && !empty($adItem['ad_image'])): ?>
+                <a href="<?= htmlspecialchars($adItem['ad_link']) ?>" target="_blank" rel="nofollow" class="flex items-center justify-center w-full h-full">
+                    <img src="<?= htmlspecialchars($adItem['ad_image']) ?>" class="max-w-full max-h-full object-contain" alt="广告">
+                </a>
+                <?php endif; ?>
+                <div class="absolute top-2 right-2 bg-black/70 text-white px-3 py-1 rounded text-sm">
+                    广告 <span id="adCountdown"><?= (int)($adItem['ad_skip_time'] ?: 5) ?></span>s
+                </div>
+                <button id="skipAdBtn" onclick="skipAd()" class="absolute bottom-4 right-4 bg-white/90 text-gray-800 px-4 py-2 rounded hover:bg-white hidden">
+                    跳过广告
+                </button>
+            </div>
+            <script>
+            (function() {
+                var countdown = <?= (int)($adItem['ad_skip_time'] ?: 5) ?>;
+                var countdownEl = document.getElementById('adCountdown');
+                var skipBtn = document.getElementById('skipAdBtn');
+                var adContainer = document.getElementById('playBeforeAd');
+                var timer = setInterval(function() {
+                    countdown--;
+                    if (countdown <= 0) {
+                        clearInterval(timer);
+                        skipBtn.classList.remove('hidden');
+                        countdownEl.parentElement.innerHTML = '广告';
+                    } else {
+                        countdownEl.textContent = countdown;
+                    }
+                }, 1000);
+                window.skipAd = function() { adContainer.style.display = 'none'; };
+                var adVideo = document.getElementById('adVideo');
+                if (adVideo) { adVideo.addEventListener('ended', function() { adContainer.style.display = 'none'; }); }
+            })();
+            </script>
+            <?php endif; ?>
+
             <?php if (!empty($playerUrl)): ?>
                 <iframe src="<?php echo htmlspecialchars($playerUrl); ?>" class="w-full h-full" allowfullscreen frameborder="0" scrolling="no"></iframe>
             <?php else: ?>
@@ -81,5 +125,21 @@
     <!-- 广告位 -->
     <?= xpk_ad('play_bottom') ?>
 </div>
+
+<!-- 播放器广告消息监听 -->
+<script>
+window.addEventListener('message', function(e) {
+    if (e.data && typeof e.data === 'object') {
+        if (e.data.type === 'ad_show' || e.data.type === 'ad_click') {
+            var action = e.data.type === 'ad_click' ? 'click' : 'show';
+            fetch('/api.php?action=ad.' + action, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'id=' + e.data.id
+            });
+        }
+    }
+});
+</script>
 
 <?php include TPL_PATH . 'douban/layouts/footer.php'; ?>

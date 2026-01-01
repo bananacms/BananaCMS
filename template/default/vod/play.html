@@ -14,62 +14,61 @@
 </nav>
 
 <div class="max-w-5xl mx-auto">
-    <!-- 片头广告 -->
-    <?php 
-    $playBeforeAd = xpk_ads('play_before');
-    if (!empty($playBeforeAd)): 
-        $adItem = $playBeforeAd[0];
-    ?>
-    <div id="playBeforeAd" class="mb-4 relative bg-black rounded-lg overflow-hidden" style="aspect-ratio: 16/9; max-height: 70vh;">
-        <?php if ($adItem['ad_type'] === 'video' && !empty($adItem['ad_video'])): ?>
-        <video id="adVideo" src="<?= htmlspecialchars($adItem['ad_video']) ?>" autoplay playsinline class="w-full h-full object-contain"></video>
-        <?php elseif ($adItem['ad_type'] === 'image' && !empty($adItem['ad_image'])): ?>
-        <a href="<?= htmlspecialchars($adItem['ad_link']) ?>" target="_blank" rel="nofollow" class="flex items-center justify-center w-full h-full">
-            <img src="<?= htmlspecialchars($adItem['ad_image']) ?>" class="max-w-full max-h-full object-contain" alt="广告">
-        </a>
-        <?php endif; ?>
-        <div class="absolute top-2 right-2 bg-black/70 text-white px-3 py-1 rounded text-sm">
-            广告 <span id="adCountdown"><?= (int)($adItem['ad_skip_time'] ?: 5) ?></span>s
-        </div>
-        <button id="skipAdBtn" onclick="skipAd()" class="absolute bottom-4 right-4 bg-white/90 text-gray-800 px-4 py-2 rounded hover:bg-white hidden">
-            跳过广告
-        </button>
-    </div>
-    <script>
-    (function() {
-        var countdown = <?= (int)($adItem['ad_skip_time'] ?: 5) ?>;
-        var countdownEl = document.getElementById('adCountdown');
-        var skipBtn = document.getElementById('skipAdBtn');
-        var adContainer = document.getElementById('playBeforeAd');
-        var timer = setInterval(function() {
-            countdown--;
-            if (countdown <= 0) {
-                clearInterval(timer);
-                skipBtn.classList.remove('hidden');
-                countdownEl.parentElement.innerHTML = '广告';
-            } else {
-                countdownEl.textContent = countdown;
-            }
-        }, 1000);
-        
-        window.skipAd = function() {
-            adContainer.style.display = 'none';
-        };
-        
-        // 视频广告结束后自动隐藏
-        var adVideo = document.getElementById('adVideo');
-        if (adVideo) {
-            adVideo.addEventListener('ended', function() {
-                adContainer.style.display = 'none';
-            });
-        }
-    })();
-    </script>
-    <?php endif; ?>
-
     <!-- 播放器 -->
     <div class="mb-6">
-        <div class="player-container rounded-lg overflow-hidden">
+        <div class="player-container rounded-lg overflow-hidden relative">
+            <!-- 片头广告（覆盖在播放器上方） -->
+            <?php 
+            $playBeforeAd = xpk_ads('play_before');
+            if (!empty($playBeforeAd)): 
+                $adItem = $playBeforeAd[0];
+            ?>
+            <div id="playBeforeAd" class="absolute inset-0 z-50 bg-black flex items-center justify-center">
+                <?php if ($adItem['ad_type'] === 'video' && !empty($adItem['ad_video'])): ?>
+                <video id="adVideo" src="<?= htmlspecialchars($adItem['ad_video']) ?>" autoplay playsinline class="w-full h-full object-contain"></video>
+                <?php elseif ($adItem['ad_type'] === 'image' && !empty($adItem['ad_image'])): ?>
+                <a href="<?= htmlspecialchars($adItem['ad_link']) ?>" target="_blank" rel="nofollow" class="flex items-center justify-center w-full h-full">
+                    <img src="<?= htmlspecialchars($adItem['ad_image']) ?>" class="max-w-full max-h-full object-contain" alt="广告">
+                </a>
+                <?php endif; ?>
+                <div class="absolute top-2 right-2 bg-black/70 text-white px-3 py-1 rounded text-sm">
+                    广告 <span id="adCountdown"><?= (int)($adItem['ad_skip_time'] ?: 5) ?></span>s
+                </div>
+                <button id="skipAdBtn" onclick="skipAd()" class="absolute bottom-4 right-4 bg-white/90 text-gray-800 px-4 py-2 rounded hover:bg-white hidden">
+                    跳过广告
+                </button>
+            </div>
+            <script>
+            (function() {
+                var countdown = <?= (int)($adItem['ad_skip_time'] ?: 5) ?>;
+                var countdownEl = document.getElementById('adCountdown');
+                var skipBtn = document.getElementById('skipAdBtn');
+                var adContainer = document.getElementById('playBeforeAd');
+                var timer = setInterval(function() {
+                    countdown--;
+                    if (countdown <= 0) {
+                        clearInterval(timer);
+                        skipBtn.classList.remove('hidden');
+                        countdownEl.parentElement.innerHTML = '广告';
+                    } else {
+                        countdownEl.textContent = countdown;
+                    }
+                }, 1000);
+                
+                window.skipAd = function() {
+                    adContainer.style.display = 'none';
+                };
+                
+                // 视频广告结束后自动隐藏
+                var adVideo = document.getElementById('adVideo');
+                if (adVideo) {
+                    adVideo.addEventListener('ended', function() {
+                        adContainer.style.display = 'none';
+                    });
+                }
+            })();
+            </script>
+            <?php endif; ?>
             <?php if (!empty($currentUrl)): ?>
                 <?php if (strpos($currentUrl, 'http://') === 0 || strpos($currentUrl, 'https://') === 0 || strpos($currentUrl, '//') === 0): ?>
                     <iframe src="<?php echo htmlspecialchars($currentUrl); ?>" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"></iframe>
@@ -200,6 +199,20 @@
         container.addEventListener('mouseenter', function() { btn.style.display = 'block'; });
         container.addEventListener('mouseleave', function() { btn.style.display = 'none'; });
     }
+    
+    // 监听播放器广告消息（暂停广告展示/点击统计）
+    window.addEventListener('message', function(e) {
+        if (e.data && typeof e.data === 'object') {
+            if (e.data.type === 'ad_show' || e.data.type === 'ad_click') {
+                var action = e.data.type === 'ad_click' ? 'click' : 'show';
+                fetch('/api.php?action=ad.' + action, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'id=' + e.data.id
+                });
+            }
+        }
+    });
 })();
 </script>
 
