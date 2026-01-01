@@ -141,6 +141,7 @@ $router->post('admin.php/user/delete', fn() => (new AdminUserController())->dele
 // 系统配置
 $router->get('admin.php/config', fn() => (new AdminConfigController())->index());
 $router->post('admin.php/config', fn() => (new AdminConfigController())->save());
+$router->post('admin.php/config/save', fn() => (new AdminConfigController())->save());
 $router->post('admin.php/config/upload', fn() => (new AdminConfigController())->upload());
 $router->post('admin.php/config/uploadTemplate', fn() => (new AdminConfigController())->uploadTemplate());
 $router->post('admin.php/config/deleteTemplate', fn() => (new AdminConfigController())->deleteTemplate());
