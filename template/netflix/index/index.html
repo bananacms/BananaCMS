@@ -17,7 +17,7 @@ include $netflixLayoutPath . 'header.php';
     </div>
     <div class="absolute bottom-20 md:bottom-32 left-4 md:left-12 max-w-xl z-10">
         <h1 class="text-3xl md:text-5xl font-bold mb-4"><?php echo htmlspecialchars($featured['vod_name']); ?></h1>
-        <p class="text-gray-300 text-sm md:text-base mb-6 line-clamp-3"><?php echo htmlspecialchars($featured['vod_blurb'] ?: mb_substr(strip_tags($featured['vod_content']), 0, 100)); ?></p>
+        <p class="text-gray-300 text-sm md:text-base mb-6 line-clamp-3"><?php echo htmlspecialchars(($featured['vod_blurb'] ?? '') ?: mb_substr(strip_tags($featured['vod_content'] ?? ''), 0, 100)); ?></p>
         <div class="flex space-x-4">
             <a href="<?php echo xpk_page_url('vod_play', ['id' => $featured['vod_id'], 'slug' => $featured['vod_slug'], 'sid' => 1, 'nid' => 1]); ?>" class="bg-white text-black px-6 md:px-8 py-2 md:py-3 rounded font-semibold flex items-center hover:bg-gray-200 transition">
                 <svg class="w-5 h-5 md:w-6 md:h-6 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>

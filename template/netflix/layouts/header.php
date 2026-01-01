@@ -22,7 +22,7 @@
 </head>
 <body class="bg-[#141414] text-white min-h-screen pb-16 md:pb-0">
     <!-- 顶部导航 -->
-    <nav class="fixed w-full z-50 transition-all duration-300" id="navbar">
+    <nav class="fixed w-full z-50 transition-all duration-300 bg-black/80" id="navbar">
         <div class="bg-gradient-to-b from-black/80 to-transparent">
             <div class="max-w-7xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
                 <div class="flex items-center space-x-4 md:space-x-8">
