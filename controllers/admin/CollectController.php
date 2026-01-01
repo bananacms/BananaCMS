@@ -586,7 +586,7 @@ class AdminCollectController extends AdminBaseController
                 }
                 
                 // 新增视频
-                $this->insertNewVideo($video, $localTypeId, $picUrl, $opts, $db);
+                $this->insertNewVideo($video, $localTypeId, $picUrl, $opts, $db, $id);
                 $added++;
             }
         }
@@ -820,7 +820,7 @@ class AdminCollectController extends AdminBaseController
     /**
      * 新增视频
      */
-    private function insertNewVideo(array $video, int $localTypeId, string $picUrl, array $opts, XpkDatabase $db): void
+    private function insertNewVideo(array $video, int $localTypeId, string $picUrl, array $opts, XpkDatabase $db, int $collectId = 0): void
     {
         // 生成随机点击量
         $hits = 0;
@@ -848,8 +848,8 @@ class AdminCollectController extends AdminBaseController
                 (vod_type_id, vod_type_id_1, vod_name, vod_sub, vod_en, vod_slug, vod_pic, vod_actor, vod_director, 
                  vod_year, vod_area, vod_lang, vod_letter, vod_tag, vod_class, vod_isend, vod_serial, vod_total, 
                  vod_weekday, vod_state, vod_version, vod_score, vod_hits, vod_remarks, vod_content, 
-                 vod_play_from, vod_play_url, vod_down_from, vod_down_url, vod_status, vod_time, vod_time_add)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)",
+                 vod_play_from, vod_play_url, vod_down_from, vod_down_url, vod_status, vod_collect_id, vod_time, vod_time_add)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)",
             [
                 $localTypeId,
                 $topLevelId,
@@ -880,6 +880,7 @@ class AdminCollectController extends AdminBaseController
                 $video['vod_play_url'],
                 $video['vod_down_from'] ?? '',
                 $video['vod_down_url'] ?? '',
+                $collectId,
                 time(),
                 time()
             ]

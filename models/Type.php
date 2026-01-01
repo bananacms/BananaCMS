@@ -14,6 +14,12 @@ class XpkType extends XpkModel
      */
     public function getList(int $pid = 0): array
     {
+        // 当 pid=0 时，直接使用硬编码避免参数绑定问题
+        if ($pid === 0) {
+            return $this->db->query(
+                "SELECT * FROM {$this->table} WHERE type_pid = 0 AND type_status = 1 ORDER BY type_sort ASC, type_id ASC"
+            );
+        }
         return $this->db->query(
             "SELECT * FROM {$this->table} WHERE type_pid = ? AND type_status = 1 ORDER BY type_sort ASC, type_id ASC",
             [$pid]
