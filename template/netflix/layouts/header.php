@@ -81,8 +81,8 @@
     </nav>
 
     <!-- 移动端菜单 -->
-    <div id="mobileMenu" class="fixed inset-0 bg-black/95 z-40 hidden">
-        <div class="p-6 pt-20">
+    <div id="mobileMenu" class="fixed inset-0 bg-black/95 z-40 hidden overflow-y-auto">
+        <div class="p-6 pt-20 pb-20">
             <button class="absolute top-4 right-4 text-white" onclick="toggleMobileMenu()">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -91,11 +91,15 @@
             <div class="space-y-4">
                 <a href="/" class="block text-2xl text-white py-2">首页</a>
                 <a href="/hot" class="block text-2xl text-gray-400 py-2 hover:text-white">热门</a>
-                <?php if (!empty($navTypes)): ?>
-                    <?php foreach ($navTypes as $type): ?>
-                        <a href="<?php echo xpk_page_url('type', ['id' => $type['type_id'], 'slug' => $type['type_en']]); ?>" class="block text-2xl text-gray-400 py-2 hover:text-white"><?php echo htmlspecialchars($type['type_name']); ?></a>
-                    <?php endforeach; ?>
-                <?php endif; ?>
+                <div class="border-t border-gray-700 pt-4 mt-4">
+                    <p class="text-sm text-gray-500 mb-3">分类</p>
+                    <?php if (!empty($navTypes)): ?>
+                        <?php foreach ($navTypes as $type): ?>
+                            <a href="<?php echo xpk_page_url('type', ['id' => $type['type_id'], 'slug' => $type['type_en']]); ?>" class="block text-xl text-gray-400 py-2 hover:text-white"><?php echo htmlspecialchars($type['type_name']); ?></a>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                    <a href="/type/all" class="block text-xl text-red-500 py-2 mt-2 hover:text-red-400">查看全部分类 →</a>
+                </div>
             </div>
         </div>
     </div>
