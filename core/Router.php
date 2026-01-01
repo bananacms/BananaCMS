@@ -174,6 +174,15 @@ function xpk_page_url(string $type, array $params = []): string
         $config = xpk_cache()->get('site_config') ?: [];
     }
     
+    // 类型别名映射
+    $typeAliases = [
+        'detail' => 'vod_detail',
+        'play' => 'vod_play',
+        'actor' => 'actor_detail',
+        'art' => 'art_detail',
+    ];
+    $type = $typeAliases[$type] ?? $type;
+    
     $mode = $config['url_mode'] ?? '4';
     
     // 预设URL规则
