@@ -139,15 +139,15 @@ function addToFavorite(vodId) {
     .then(r => r.json())
     .then(data => {
         if (data.code === 0) {
-            alert(data.msg);
+            xpk.toast(data.msg, 'success');
         } else if (data.code === 2) {
-            alert('请先登录');
-            window.location.href = '/user/login';
+            xpk.toast('请先登录', 'warning');
+            setTimeout(() => window.location.href = '/user/login', 1500);
         } else {
-            alert(data.msg || '操作失败');
+            xpk.toast(data.msg || '操作失败', 'error');
         }
     })
-    .catch(() => alert('请求失败'));
+    .catch(() => xpk.toast('请求失败', 'error'));
 }
 </script>
 
