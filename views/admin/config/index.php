@@ -265,10 +265,18 @@
             <h3 class="font-bold text-gray-700 border-b pb-2 mb-4">站点状态</h3>
             <div class="space-y-4">
                 <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">调试模式</label>
+                    <select name="app_debug" class="w-full border rounded px-3 py-2">
+                        <option value="1" <?= (($config['app_debug'] ?? (APP_DEBUG ? '1' : '0')) == '1') ? 'selected' : '' ?>>开启</option>
+                        <option value="0" <?= (($config['app_debug'] ?? (APP_DEBUG ? '1' : '0')) == '0') ? 'selected' : '' ?>>关闭</option>
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">开启后显示详细错误信息，生产环境建议关闭</p>
+                </div>
+                <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">站点状态</label>
                     <select name="site_status" class="w-full border rounded px-3 py-2">
-                        <option value="1" <?= ($config['site_status'] ?? '1') === '1' ? 'selected' : '' ?>>开启</option>
-                        <option value="0" <?= ($config['site_status'] ?? '1') === '0' ? 'selected' : '' ?>>关闭</option>
+                        <option value="1" <?= (($config['site_status'] ?? '1') == '1') ? 'selected' : '' ?>>开启</option>
+                        <option value="0" <?= (($config['site_status'] ?? '1') == '0') ? 'selected' : '' ?>>关闭</option>
                     </select>
                 </div>
                 <div>
@@ -285,8 +293,8 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">开放注册</label>
                     <select name="user_register" class="w-full border rounded px-3 py-2">
-                        <option value="1" <?= ($config['user_register'] ?? '1') === '1' ? 'selected' : '' ?>>开启</option>
-                        <option value="0" <?= ($config['user_register'] ?? '1') === '0' ? 'selected' : '' ?>>关闭</option>
+                        <option value="1" <?= (($config['user_register'] ?? '1') == '1') ? 'selected' : '' ?>>开启</option>
+                        <option value="0" <?= (($config['user_register'] ?? '1') == '0') ? 'selected' : '' ?>>关闭</option>
                     </select>
                 </div>
                 <div>
@@ -382,8 +390,9 @@
                     </div>
                     <div>
                         <span class="text-gray-500">调试模式:</span>
-                        <span class="ml-2 font-medium <?= APP_DEBUG ? 'text-orange-600' : 'text-green-600' ?>">
-                            <?= APP_DEBUG ? '开启' : '关闭' ?>
+                        <?php $debugOn = xpk_config('app_debug', APP_DEBUG); ?>
+                        <span class="ml-2 font-medium <?= $debugOn ? 'text-orange-600' : 'text-green-600' ?>">
+                            <?= $debugOn ? '开启' : '关闭' ?>
                         </span>
                     </div>
                 </div>

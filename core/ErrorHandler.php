@@ -9,6 +9,26 @@ class XpkErrorHandler
     private static bool $registered = false;
 
     /**
+     * 检查是否开启调试模式
+     */
+    private static function isDebug(): bool
+    {
+        // 优先从数据库配置读取（如果可用）
+        if (function_exists('xpk_config')) {
+            try {
+                $dbDebug = xpk_config('app_debug', null);
+                if ($dbDebug !== null) {
+                    return (bool)$dbDebug;
+                }
+            } catch (Exception $e) {
+                // 数据库不可用，使用常量
+            }
+        }
+        // 回退到常量配置
+        return defined('APP_DEBUG') && APP_DEBUG;
+    }
+
+    /**
      * 注册错误处理
      */
     public static function register(): void
@@ -42,7 +62,7 @@ class XpkErrorHandler
 
         self::logError($error);
 
-        if (APP_DEBUG) {
+        if (self::isDebug()) {
             throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
         }
 
@@ -64,7 +84,7 @@ class XpkErrorHandler
 
         self::logError($error);
 
-        if (APP_DEBUG) {
+        if (self::isDebug()) {
             self::renderDebugError($error);
         } else {
             self::renderProductionError();
@@ -80,7 +100,7 @@ class XpkErrorHandler
         if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
             self::logError($error);
             
-            if (!APP_DEBUG) {
+            if (!self::isDebug()) {
                 self::renderProductionError();
             }
         }

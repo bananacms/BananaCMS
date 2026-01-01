@@ -323,3 +323,50 @@ function xpk_cache(): XpkCache
 {
     return XpkCache::getInstance();
 }
+
+/**
+ * 获取站点配置（从数据库）
+ * @param string $key 配置键名
+ * @param mixed $default 默认值
+ * @return mixed
+ */
+function xpk_config(string $key, mixed $default = null): mixed
+{
+    static $configs = null;
+    
+    // 首次调用时从缓存或数据库加载所有配置
+    if ($configs === null) {
+        $cache = xpk_cache();
+        $configs = $cache->get('site_config');
+        
+        if ($configs === null) {
+            try {
+                $db = XpkDatabase::getInstance();
+                $rows = $db->query("SELECT config_name, config_value FROM " . DB_PREFIX . "config");
+                $configs = [];
+                foreach ($rows as $row) {
+                    $configs[$row['config_name']] = $row['config_value'];
+                }
+                $cache->set('site_config', $configs, 3600);
+            } catch (Exception $e) {
+                $configs = [];
+            }
+        }
+    }
+    
+    if (!isset($configs[$key])) {
+        return $default;
+    }
+    
+    $value = $configs[$key];
+    
+    // 处理布尔值
+    if ($value === '1' || $value === 1) {
+        return true;
+    }
+    if ($value === '0' || $value === 0) {
+        return false;
+    }
+    
+    return $value;
+}

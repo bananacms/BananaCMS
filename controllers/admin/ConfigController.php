@@ -98,6 +98,8 @@ class AdminConfigController extends AdminBaseController
             'site_template' => trim($this->post('site_template', 'default')),
             'site_status' => trim($this->post('site_status', '1')),
             'site_close_tip' => trim($this->post('site_close_tip', '')),
+            // 调试模式
+            'app_debug' => trim($this->post('app_debug', '0')),
             // 用户设置
             'user_register' => trim($this->post('user_register', '1')),
             'user_register_limit' => trim($this->post('user_register_limit', '5')),
