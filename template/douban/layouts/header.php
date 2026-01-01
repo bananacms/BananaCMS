@@ -15,7 +15,7 @@
         .scroll-hide { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="bg-white text-gray-800 min-h-screen">
+<body class="bg-white text-gray-800 min-h-screen pb-16 md:pb-0">
     <!-- 顶部导航 -->
     <nav class="bg-white border-b sticky top-0 z-50">
         <div class="max-w-5xl mx-auto px-4">

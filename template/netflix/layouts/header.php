@@ -20,7 +20,7 @@
         .gradient-mask { mask-image: linear-gradient(to right, black 90%, transparent); -webkit-mask-image: linear-gradient(to right, black 90%, transparent); }
     </style>
 </head>
-<body class="bg-[#141414] text-white min-h-screen">
+<body class="bg-[#141414] text-white min-h-screen pb-16 md:pb-0">
     <!-- 顶部导航 -->
     <nav class="fixed w-full z-50 transition-all duration-300" id="navbar">
         <div class="bg-gradient-to-b from-black/80 to-transparent">
