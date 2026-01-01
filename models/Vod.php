@@ -132,7 +132,7 @@ class XpkVod extends XpkModel
     public function getDetail(int $id): ?array
     {
         return $this->db->queryOne(
-            "SELECT v.*, t.type_name FROM {$this->table} v 
+            "SELECT v.*, t.type_name, t.type_id, t.type_en FROM {$this->table} v 
              LEFT JOIN " . DB_PREFIX . "type t ON v.vod_type_id = t.type_id 
              WHERE v.vod_id = ? AND v.vod_status = 1",
             [$id]
