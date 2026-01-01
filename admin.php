@@ -225,7 +225,8 @@ $router->post('admin.php/link/saveSetting', fn() => (new AdminLinkController())-
 // 广告管理
 require_once CTRL_PATH . 'admin/AdController.php';
 $router->get('admin.php/ad', fn() => (new AdminAdController())->index());
-$router->get('admin.php/ad/get', fn() => (new AdminAdController())->get());
+$router->get('admin.php/ad/get', fn() => (new AdminAdController())->getOne());
+$router->get('admin.php/ad/getOne', fn() => (new AdminAdController())->getOne());
 $router->get('admin.php/ad/add', fn() => (new AdminAdController())->add());
 $router->post('admin.php/ad/add', fn() => (new AdminAdController())->add());
 $router->get('admin.php/ad/edit/{id}', fn($id) => (new AdminAdController())->edit((int)$id));
