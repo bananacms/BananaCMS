@@ -63,11 +63,14 @@
     <?php if (!empty($vod['play_list'])): ?>
     <div class="mb-8 bg-white rounded-lg p-6 shadow-sm">
         <h2 class="text-lg font-bold mb-4">播放列表</h2>
+        <?php $sourceCount = count($vod['play_list']); ?>
         <?php foreach ($vod['play_list'] as $source): ?>
         <div class="mb-4 last:mb-0">
             <div class="flex items-center mb-3">
+                <?php if ($sourceCount > 1): ?>
                 <span class="bg-red-600 text-white text-xs px-2 py-1 rounded"><?php echo htmlspecialchars($source['from']); ?></span>
-                <span class="text-gray-400 text-sm ml-2">共<?php echo $source['count']; ?>集</span>
+                <?php endif; ?>
+                <span class="text-gray-400 text-sm <?php echo $sourceCount > 1 ? 'ml-2' : ''; ?>">共<?php echo $source['count']; ?>集</span>
             </div>
             <div class="flex flex-wrap gap-2">
                 <?php foreach ($source['episodes'] as $ep): ?>

@@ -71,9 +71,12 @@
     <?php if (!empty($playUrls)): ?>
         <div class="bg-white rounded-lg shadow p-4 md:p-6 mb-6">
             <h2 class="text-lg font-bold text-gray-800 mb-4">播放列表</h2>
+            <?php $sourceCount = count($playUrls); ?>
             <?php foreach ($playUrls as $sidIdx => $source): ?>
                 <div class="mb-4">
+                    <?php if ($sourceCount > 1): ?>
                     <h3 class="text-sm text-gray-500 mb-2"><?php echo htmlspecialchars($source['name']); ?></h3>
+                    <?php endif; ?>
                     <div class="flex flex-wrap gap-2">
                         <?php foreach ($source['urls'] as $nidIdx => $ep): ?>
                             <a href="<?php echo xpk_page_url('play', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug'], 'sid' => $sidIdx + 1, 'nid' => $nidIdx + 1]); ?>" class="px-4 py-2 bg-gray-100 hover:bg-green-500 hover:text-white rounded text-sm transition"><?php echo htmlspecialchars($ep['name']); ?></a>
