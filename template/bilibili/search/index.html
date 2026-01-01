@@ -1,14 +1,6 @@
 <?php include TPL_PATH . 'bilibili/layouts/header.php'; ?>
 
 <div class="max-w-7xl mx-auto px-4 py-6">
-    <!-- 搜索框 -->
-    <div class="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-6">
-        <form action="/search" method="get" class="flex">
-            <input type="text" name="wd" value="<?php echo htmlspecialchars($keyword ?? ''); ?>" placeholder="搜索视频..." class="flex-1 bg-gray-100 rounded-l-full px-6 py-3 focus:outline-none focus:ring-2 focus:ring-pink-500">
-            <button type="submit" class="bg-pink-500 text-white px-8 py-3 rounded-r-full hover:bg-pink-600 transition">搜索</button>
-        </form>
-    </div>
-
     <!-- 搜索结果 -->
     <?php if (!empty($keyword)): ?>
         <div class="mb-4">
@@ -54,6 +46,13 @@
             </div>
         <?php endif; ?>
     <?php else: ?>
+        <!-- 搜索框（无关键词时显示） -->
+        <div class="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-6">
+            <form action="/search" method="get" class="flex">
+                <input type="text" name="wd" placeholder="搜索视频..." class="flex-1 bg-gray-100 rounded-l-full px-6 py-3 focus:outline-none focus:ring-2 focus:ring-pink-500">
+                <button type="submit" class="bg-pink-500 text-white px-8 py-3 rounded-r-full hover:bg-pink-600 transition">搜索</button>
+            </form>
+        </div>
         <!-- 热门搜索 -->
         <?php if (!empty($hotKeywords)): ?>
             <div class="bg-white rounded-lg shadow-sm p-4 md:p-6">
