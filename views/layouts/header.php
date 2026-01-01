@@ -76,9 +76,9 @@
                     <p class="text-sm font-medium mb-2">分类</p>
                 </div>
                 <?php if (!empty($navTypes)): ?>
-                    <?php foreach ($navTypes as $type): ?>
-                        <a href="<?php echo xpk_page_url('type', ['id' => $type['type_id'], 'slug' => $type['type_en']]); ?>" class="flex items-center px-6 py-2 hover:bg-gray-100">
-                            <span class="text-sm"><?php echo htmlspecialchars($type['type_name']); ?></span>
+                    <?php foreach ($navTypes as $navType): ?>
+                        <a href="<?php echo xpk_page_url('type', ['id' => $navType['type_id'], 'slug' => $navType['type_en']]); ?>" class="flex items-center px-6 py-2 hover:bg-gray-100">
+                            <span class="text-sm"><?php echo htmlspecialchars($navType['type_name']); ?></span>
                         </a>
                     <?php endforeach; ?>
                 <?php endif; ?>
