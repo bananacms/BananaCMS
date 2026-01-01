@@ -13,7 +13,30 @@ class BaseController
     {
         $this->view = new XpkTemplate();
         $this->initCommon();
+        $this->checkSiteStatus();
         $this->logPageView();
+    }
+
+    /**
+     * 检查站点状态
+     */
+    protected function checkSiteStatus(): void
+    {
+        $config = $this->data['siteConfig'] ?? [];
+        $siteStatus = $config['site_status'] ?? '1';
+        
+        // 站点关闭时显示关闭提示
+        if ($siteStatus == '0' || $siteStatus === 0) {
+            $closeTip = $config['site_close_tip'] ?? '网站维护中，请稍后访问';
+            http_response_code(503);
+            header('Content-Type: text/html; charset=utf-8');
+            echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>网站维护中</title>';
+            echo '<style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#f5f5f5}';
+            echo '.box{text-align:center;padding:40px;background:#fff;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.1)}';
+            echo 'h1{color:#333;font-size:24px;margin:0 0 20px}p{color:#666;margin:0}</style></head>';
+            echo '<body><div class="box"><h1>🔧 网站维护中</h1><p>' . htmlspecialchars($closeTip) . '</p></div></body></html>';
+            exit;
+        }
     }
 
     /**

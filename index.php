@@ -7,7 +7,7 @@
 // 加载配置
 require_once __DIR__ . '/config/config.php';
 
-// 调试模式
+// 初始调试模式（使用常量配置）
 if (APP_DEBUG) {
     error_reporting(E_ALL);
     ini_set('display_errors', 1);
@@ -32,6 +32,18 @@ require_once CORE_PATH . 'RedisSession.php';
 
 // 注册错误处理
 XpkErrorHandler::register();
+
+// 从数据库读取调试模式配置并应用
+$dbDebug = xpk_config('app_debug', null);
+if ($dbDebug !== null) {
+    if ($dbDebug) {
+        error_reporting(E_ALL);
+        ini_set('display_errors', 1);
+    } else {
+        error_reporting(0);
+        ini_set('display_errors', 0);
+    }
+}
 
 // 加载模型
 require_once MODEL_PATH . 'Model.php';

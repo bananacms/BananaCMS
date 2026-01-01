@@ -83,9 +83,11 @@ class UserController extends BaseController
         
         // 检查是否开放注册
         $config = $this->data['siteConfig'] ?? [];
-        if (($config['user_register'] ?? '1') !== '1') {
+        $registerOpen = ($config['user_register'] ?? '1');
+        if ($registerOpen != '1' && $registerOpen != 1) {
             $this->assign('title', '注册已关闭 - ' . SITE_NAME);
             $this->assign('error', '网站暂未开放注册');
+            $this->assign('csrfToken', ''); // 防止模板报错
             $this->render('user/register');
             return;
         }
@@ -105,7 +107,8 @@ class UserController extends BaseController
         
         // 检查是否开放注册
         $config = $this->data['siteConfig'] ?? [];
-        if (($config['user_register'] ?? '1') !== '1') {
+        $registerOpen = ($config['user_register'] ?? '1');
+        if ($registerOpen != '1' && $registerOpen != 1) {
             $this->error('网站暂未开放注册');
             return;
         }
