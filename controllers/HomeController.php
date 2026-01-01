@@ -46,7 +46,7 @@ class HomeController extends BaseController
             foreach ($types as $type) {
                 $result[$type['type_id']] = [
                     'type' => $type,
-                    'vods' => $vodModel->getList(10, 'time', $type['type_id'])
+                    'vods' => $vodModel->getList(12, 'time', $type['type_id'])
                 ];
             }
             return $result;
