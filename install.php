@@ -194,6 +194,15 @@ $envPass = !in_array(false, array_column($envChecks, 3));
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>安装向导 - 香蕉CMS</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+    .install-toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:8px;color:#fff;font-size:14px;z-index:9999;animation:toastIn .3s}
+    .install-toast.success{background:#22c55e}
+    .install-toast.error{background:#ef4444}
+    @keyframes toastIn{from{opacity:0;top:0}to{opacity:1;top:20px}}
+    </style>
+    <script>
+    function showToast(msg,type){var t=document.createElement('div');t.className='install-toast '+(type||'success');t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.remove()},3000)}
+    </script>
 </head>
 <body class="bg-gradient-to-br from-yellow-400 to-orange-500 min-h-screen py-10">
 <div class="max-w-2xl mx-auto px-4">
@@ -339,10 +348,10 @@ $envPass = !in_array(false, array_column($envChecks, 3));
                         el.querySelector('span').classList.remove('text-gray-700');
                         el.querySelector('button').outerHTML = '<span class="text-xs text-green-500">已删除</span>';
                     } else {
-                        alert(data.msg || '删除失败');
+                        showToast(data.msg || '删除失败', 'error');
                     }
                 })
-                .catch(() => alert('删除失败'));
+                .catch(() => showToast('删除失败', 'error'));
         }
         
         function deleteAllFiles() {
@@ -357,8 +366,8 @@ $envPass = !in_array(false, array_column($envChecks, 3));
                     .then(data => {
                         deleted++;
                         if (deleted === files.length) {
-                            alert('文件已删除完成');
-                            location.href = '/admin.php';
+                            showToast('文件已删除完成', 'success');
+                            setTimeout(() => location.href = '/admin.php', 1500);
                         }
                     });
             });
