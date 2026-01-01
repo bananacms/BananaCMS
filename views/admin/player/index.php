@@ -52,9 +52,9 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <?php if ($player['player_parse']): ?>
-                    <span class="text-green-600" title="<?= htmlspecialchars($player['player_parse']) ?>">已配置</span>
+                    <span class="text-blue-600" title="<?= htmlspecialchars($player['player_parse']) ?>">🔗 解析接口</span>
                     <?php else: ?>
-                    <span class="text-gray-400">未配置</span>
+                    <span class="text-green-600">▶️ 内置DPlayer</span>
                     <?php endif; ?>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -77,12 +77,12 @@
 </div>
 
 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
-    <h3 class="font-medium text-blue-800 mb-2">💡 提示</h3>
+    <h3 class="font-medium text-blue-800 mb-2">💡 使用说明</h3>
     <ul class="text-sm text-blue-700 space-y-1">
-        <li>• 播放器标识需与资源站返回的 vod_play_from 字段值一致</li>
+        <li>• <strong>播放器标识</strong>：需与资源站返回的 vod_play_from 字段值一致</li>
+        <li>• <strong>解析接口</strong>：填写第三方解析地址（如 https://jx.xxx.com/?url=），视频地址会追加到末尾</li>
+        <li>• <strong>内置播放器</strong>：解析接口留空时，自动使用内置 DPlayer 播放器（支持 m3u8/mp4 直链）</li>
         <li>• 采集时只会入库已启用的播放器对应的播放源</li>
-        <li>• 解析接口用于需要解析的播放源，如优酷、爱奇艺等</li>
-        <li>• 排序数字越小越靠前</li>
     </ul>
 </div>
 

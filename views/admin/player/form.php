@@ -23,7 +23,7 @@
             <label class="block text-sm font-medium text-gray-700 mb-1">解析接口</label>
             <input type="text" name="player_parse" value="<?= htmlspecialchars($player['player_parse'] ?? '') ?>"
                 class="w-full border rounded px-3 py-2" placeholder="如：https://jx.example.com/?url=">
-            <p class="text-xs text-gray-500 mt-1">需要解析的播放源填写解析接口地址，直链播放留空</p>
+            <p class="text-xs text-gray-500 mt-1">填写解析接口地址，视频地址会追加到末尾。<strong class="text-green-600">留空则使用内置 DPlayer 播放器（支持 m3u8/mp4）</strong></p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>播放器</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dplayer@1.27.1/dist/DPlayer.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+        #dplayer { width: 100%; height: 100%; }
+        .error-msg { 
+            color: #fff; 
+            text-align: center; 
+            padding: 50px 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        .error-msg h2 { margin-bottom: 10px; color: #f59e0b; }
+        .error-msg p { color: #9ca3af; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div id="dplayer"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dplayer@1.27.1/dist/DPlayer.min.js"></script>
+    <script>
+    (function() {
+        // 获取URL参数
+        var params = new URLSearchParams(window.location.search);
+        var url = params.get('url');
+        var type = params.get('type') || 'auto';
+        var pic = params.get('pic') || '';
+        var title = params.get('title') || '';
+
+        if (!url) {
+            document.getElementById('dplayer').innerHTML = '<div class="error-msg"><h2>⚠️ 播放失败</h2><p>未提供视频地址</p></div>';
+            return;
+        }
+
+        // 自动检测视频类型
+        if (type === 'auto') {
+            if (url.includes('.m3u8') || url.includes('m3u8')) {
+                type = 'hls';
+            } else if (url.includes('.flv')) {
+                type = 'flv';
+            } else {
+                type = 'normal';
+            }
+        }
+
+        // 初始化播放器
+        var options = {
+            container: document.getElementById('dplayer'),
+            autoplay: true,
+            theme: '#EF4444',
+            lang: 'zh-cn',
+            hotkey: true,
+            preload: 'auto',
+            screenshot: true,
+            video: {
+                url: url,
+                pic: pic,
+                type: type
+            }
+        };
+
+        // HLS 支持
+        if (type === 'hls') {
+            options.video.type = 'customHls';
+            options.video.customType = {
+                customHls: function(video, player) {
+                    if (Hls.isSupported()) {
+                        var hls = new Hls({
+                            maxBufferLength: 30,
+                            maxMaxBufferLength: 60
+                        });
+                        hls.loadSource(video.src);
+                        hls.attachMedia(video);
+                        hls.on(Hls.Events.ERROR, function(event, data) {
+                            if (data.fatal) {
+                                switch(data.type) {
+                                    case Hls.ErrorTypes.NETWORK_ERROR:
+                                        console.log('网络错误，尝试恢复...');
+                                        hls.startLoad();
+                                        break;
+                                    case Hls.ErrorTypes.MEDIA_ERROR:
+                                        console.log('媒体错误，尝试恢复...');
+                                        hls.recoverMediaError();
+                                        break;
+                                    default:
+                                        hls.destroy();
+                                        break;
+                                }
+                            }
+                        });
+                    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                        // iOS Safari 原生支持
+                        video.src = video.src;
+                    }
+                }
+            };
+        }
+
+        try {
+            var dp = new DPlayer(options);
+            
+            // 播放结束通知父页面
+            dp.on('ended', function() {
+                if (window.parent !== window) {
+                    window.parent.postMessage('ended', '*');
+                }
+            });
+
+            // 错误处理
+            dp.on('error', function() {
+                console.log('播放器错误');
+            });
+        } catch (e) {
+            document.getElementById('dplayer').innerHTML = '<div class="error-msg"><h2>⚠️ 播放器初始化失败</h2><p>' + e.message + '</p></div>';
+        }
+    })();
+    </script>
+</body>
+</html>

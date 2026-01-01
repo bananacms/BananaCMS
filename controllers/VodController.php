@@ -153,17 +153,24 @@ class VodController extends BaseController
         // 获取播放器配置
         $playerUrl = '';
         $playerInfo = null;
+        $useBuiltinPlayer = false;
+        
         if (!empty($currentFrom) && !empty($currentUrl)) {
             require_once MODEL_PATH . 'Player.php';
             $playerModel = new XpkPlayer();
             $playerInfo = $playerModel->findByCode($currentFrom);
             
-            if ($playerInfo && !empty($playerInfo['player_url'])) {
+            if ($playerInfo && !empty($playerInfo['player_parse'])) {
                 // 使用播放器解析地址
-                $playerUrl = str_replace('{url}', urlencode($currentUrl), $playerInfo['player_url']);
+                $playerUrl = str_replace('{url}', urlencode($currentUrl), $playerInfo['player_parse']);
             } else {
-                // 没有配置播放器，直接使用原地址
-                $playerUrl = $currentUrl;
+                // 没有配置解析接口，使用内置 DPlayer
+                $useBuiltinPlayer = true;
+                $playerUrl = '/static/player.html?url=' . urlencode($currentUrl);
+                // 添加封面图
+                if (!empty($vod['vod_pic'])) {
+                    $playerUrl .= '&pic=' . urlencode($vod['vod_pic']);
+                }
             }
         }
         
@@ -176,6 +183,7 @@ class VodController extends BaseController
         $this->assign('rawUrl', $currentUrl);
         $this->assign('currentFrom', $currentFrom);
         $this->assign('playerInfo', $playerInfo);
+        $this->assign('useBuiltinPlayer', $useBuiltinPlayer);
         
         // SEO
         $this->assign('title', $vod['vod_name'] . ' 播放 - ' . $this->data['siteName']);
