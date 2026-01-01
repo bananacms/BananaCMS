@@ -26,10 +26,12 @@ class HomeController extends BaseController
         // 轮播/推荐视频（缓存5分钟）
         $slideList = $cache->remember('home_slide', 300, fn() => $this->vodModel->getList(5, 'time'));
         $this->assign('slideList', $slideList);
+        $this->assign('slides', $slideList); // 兼容别名
         
         // 最新视频（缓存5分钟）
         $newList = $cache->remember('home_new', 300, fn() => $this->vodModel->getList(12, 'time'));
         $this->assign('newList', $newList);
+        $this->assign('recommendList', $newList); // 兼容别名
         
         // 热门视频（缓存10分钟）
         $hotList = $cache->remember('home_hot', 600, fn() => $this->vodModel->getHot(12));
@@ -48,6 +50,13 @@ class HomeController extends BaseController
             return $result;
         });
         $this->assign('typeVods', $typeVods);
+        
+        // 构建 typeVideos 兼容格式（按分类ID直接映射视频列表）
+        $typeVideos = [];
+        foreach ($typeVods as $typeId => $item) {
+            $typeVideos[$typeId] = $item['vods'];
+        }
+        $this->assign('typeVideos', $typeVideos);
         
         // SEO（使用数据库配置）
         $this->assign('title', $this->data['siteName']);
