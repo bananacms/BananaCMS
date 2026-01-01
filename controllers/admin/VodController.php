@@ -25,6 +25,7 @@ class AdminVodController extends AdminBaseController
         $typeId = (int)($this->get('type', 0));
         $status = $this->get('status', '');
         $keyword = trim($this->get('keyword', ''));
+        $collectId = $this->get('collect_id', '');
 
         $db = XpkDatabase::getInstance();
         $where = [];
@@ -38,6 +39,11 @@ class AdminVodController extends AdminBaseController
         if ($status !== '') {
             $where[] = 'v.vod_status = ?';
             $params[] = (int)$status;
+        }
+
+        if ($collectId !== '') {
+            $where[] = 'v.vod_collect_id = ?';
+            $params[] = (int)$collectId;
         }
 
         if ($keyword) {
@@ -64,6 +70,11 @@ class AdminVodController extends AdminBaseController
         )['cnt'] ?? 0;
 
         $types = $this->typeModel->getAll();
+        
+        // 获取采集站列表
+        require_once MODEL_PATH . 'Collect.php';
+        $collectModel = new XpkCollect();
+        $collects = $collectModel->getAll();
 
         $this->assign('list', $list);
         $this->assign('total', $total);
@@ -71,8 +82,10 @@ class AdminVodController extends AdminBaseController
         $this->assign('pageSize', $pageSize);
         $this->assign('totalPages', ceil($total / $pageSize));
         $this->assign('types', $types);
+        $this->assign('collects', $collects);
         $this->assign('typeId', $typeId);
         $this->assign('status', $status);
+        $this->assign('collectId', $collectId);
         $this->assign('keyword', $keyword);
         $this->assign('flash', $this->getFlash());
 

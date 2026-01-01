@@ -294,8 +294,8 @@ function runCollect(array $options): void {
                     $slug = xpk_slug_unique($video['vod_name'], 'vod', 'vod_slug');
                     
                     $db->execute(
-                        "INSERT INTO " . DB_PREFIX . "vod (vod_type_id, vod_name, vod_sub, vod_en, vod_slug, vod_pic, vod_actor, vod_director, vod_year, vod_area, vod_lang, vod_score, vod_hits, vod_remarks, vod_content, vod_play_from, vod_play_url, vod_status, vod_time, vod_time_add) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)",
-                        [$localTypeId, $video['vod_name'], $video['vod_sub'], $video['vod_en'], $slug, $video['vod_pic'], $video['vod_actor'], $video['vod_director'], $video['vod_year'], $video['vod_area'], $video['vod_lang'], $score, $hits, $video['vod_remarks'], $video['vod_content'], $video['vod_play_from'], $video['vod_play_url'], time(), time()]
+                        "INSERT INTO " . DB_PREFIX . "vod (vod_type_id, vod_name, vod_sub, vod_en, vod_slug, vod_pic, vod_actor, vod_director, vod_year, vod_area, vod_lang, vod_score, vod_hits, vod_remarks, vod_content, vod_play_from, vod_play_url, vod_status, vod_collect_id, vod_time, vod_time_add) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)",
+                        [$localTypeId, $video['vod_name'], $video['vod_sub'], $video['vod_en'], $slug, $video['vod_pic'], $video['vod_actor'], $video['vod_director'], $video['vod_year'], $video['vod_area'], $video['vod_lang'], $score, $hits, $video['vod_remarks'], $video['vod_content'], $video['vod_play_from'], $video['vod_play_url'], $collect['collect_id'], time(), time()]
                     );
                     $added++;
                 }

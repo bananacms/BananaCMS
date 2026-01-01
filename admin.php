@@ -166,6 +166,7 @@ $router->post('admin.php/collect/add', fn() => (new AdminCollectController())->d
 $router->get('admin.php/collect/edit/{id}', fn($id) => (new AdminCollectController())->edit((int)$id));
 $router->post('admin.php/collect/edit/{id}', fn($id) => (new AdminCollectController())->doEdit((int)$id));
 $router->post('admin.php/collect/delete', fn() => (new AdminCollectController())->delete());
+$router->post('admin.php/collect/deleteVods', fn() => (new AdminCollectController())->deleteVods());
 $router->get('admin.php/collect/bind/{id}', fn($id) => (new AdminCollectController())->bind((int)$id));
 $router->post('admin.php/collect/savebind/{id}', fn($id) => (new AdminCollectController())->saveBind((int)$id));
 $router->post('admin.php/collect/copyBind', fn() => (new AdminCollectController())->copyBind());

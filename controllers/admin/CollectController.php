@@ -141,6 +141,43 @@ class AdminCollectController extends AdminBaseController
     }
 
     /**
+     * 删除采集站的所有视频
+     */
+    public function deleteVods(): void
+    {
+        $collectId = (int)$this->post('collect_id', 0);
+        if ($collectId <= 0) {
+            $this->error('参数错误');
+        }
+
+        $collect = $this->collectModel->find($collectId);
+        if (!$collect) {
+            $this->error('采集站不存在');
+        }
+
+        $db = XpkDatabase::getInstance();
+        
+        // 统计数量
+        $count = $db->queryOne(
+            "SELECT COUNT(*) as cnt FROM " . DB_PREFIX . "vod WHERE vod_collect_id = ?",
+            [$collectId]
+        )['cnt'] ?? 0;
+
+        if ($count == 0) {
+            $this->error('该采集站暂无视频');
+        }
+
+        // 删除视频
+        $db->execute(
+            "DELETE FROM " . DB_PREFIX . "vod WHERE vod_collect_id = ?",
+            [$collectId]
+        );
+
+        $this->log('清空视频', '采集', "采集站:{$collect['collect_name']} 删除{$count}条");
+        $this->success("已删除 {$count} 条视频");
+    }
+
+    /**
      * 分类绑定页面
      */
     public function bind(int $id): void

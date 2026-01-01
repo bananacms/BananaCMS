@@ -34,6 +34,18 @@
             </select>
         </div>
         <div>
+            <label class="block text-sm text-gray-600 mb-1">采集站</label>
+            <select name="collect_id" class="border rounded px-3 py-2">
+                <option value="">全部来源</option>
+                <option value="0" <?= $collectId === '0' ? 'selected' : '' ?>>手动添加</option>
+                <?php foreach ($collects as $c): ?>
+                <option value="<?= $c['collect_id'] ?>" <?= $collectId == $c['collect_id'] && $collectId !== '' ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($c['collect_name']) ?>
+                </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div>
             <label class="block text-sm text-gray-600 mb-1">状态</label>
             <select name="status" class="border rounded px-3 py-2">
                 <option value="">全部状态</option>
@@ -130,7 +142,7 @@
 
 <!-- 分页 -->
 <?php 
-$baseUrl = "/admin.php/vod?type={$typeId}&status={$status}&keyword=" . urlencode($keyword);
+$baseUrl = "/admin.php/vod?type={$typeId}&status={$status}&collect_id={$collectId}&keyword=" . urlencode($keyword);
 include __DIR__ . '/../components/pagination.php'; 
 ?>
 

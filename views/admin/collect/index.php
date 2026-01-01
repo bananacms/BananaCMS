@@ -59,6 +59,7 @@
                     <a href="/admin.php/collect/bind/<?= $c['collect_id'] ?>" class="text-purple-500 hover:underline">绑定</a>
                     <a href="/admin.php/collect/run/<?= $c['collect_id'] ?>" class="text-green-500 hover:underline">采集</a>
                     <a href="/admin.php/collect/edit/<?= $c['collect_id'] ?>" class="text-blue-500 hover:underline">编辑</a>
+                    <button onclick="deleteCollectVods(<?= $c['collect_id'] ?>, '<?= htmlspecialchars(addslashes($c['collect_name'])) ?>')" class="text-orange-500 hover:underline">清空视频</button>
                     <button onclick="deleteItem('/admin.php/collect/delete', <?= $c['collect_id'] ?>)" class="text-red-500 hover:underline">删除</button>
                 </td>
             </tr>
@@ -79,3 +80,24 @@
         </div>
     </div>
 </div>
+
+<script>
+function deleteCollectVods(collectId, collectName) {
+    xpkConfirm(`确定要删除采集站「${collectName}」的所有视频吗？\n\n此操作不可撤销！`, function() {
+        fetch('/admin.php/collect/deleteVods', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'collect_id=' + collectId
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.code === 0) {
+                xpkToast(data.msg, 'success');
+            } else {
+                xpkToast(data.msg || '删除失败', 'error');
+            }
+        })
+        .catch(() => xpkToast('请求失败', 'error'));
+    });
+}
+</script>
