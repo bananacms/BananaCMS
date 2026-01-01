@@ -38,13 +38,15 @@ class HomeController extends BaseController
         $this->assign('hotList', $hotList);
         
         // 分类及其视频（缓存10分钟）
-        $typeVods = $cache->remember('home_type_vods', 600, function() {
-            $types = $this->typeModel->getList(0);
+        $typeModel = $this->typeModel;
+        $vodModel = $this->vodModel;
+        $typeVods = $cache->remember('home_type_vods', 600, function() use ($typeModel, $vodModel) {
+            $types = $typeModel->getList(0);
             $result = [];
             foreach ($types as $type) {
                 $result[$type['type_id']] = [
                     'type' => $type,
-                    'vods' => $this->vodModel->getList(6, 'time', $type['type_id'])
+                    'vods' => $vodModel->getList(6, 'time', $type['type_id'])
                 ];
             }
             return $result;

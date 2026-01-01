@@ -71,6 +71,12 @@ if (session_status() === PHP_SESSION_NONE) {
 // 初始化路由
 $router = new XpkRouter();
 
+// Sitemap（兼容无伪静态环境）
+$router->get('sitemap.xml', function() {
+    require ROOT_PATH . 'sitemap.php';
+    exit;
+});
+
 // 首页
 $router->get('', fn() => (new HomeController())->index());
 $router->get('index.html', fn() => (new HomeController())->index());

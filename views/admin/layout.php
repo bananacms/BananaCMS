@@ -23,12 +23,12 @@
 <body class="bg-gray-100 min-h-screen">
     <div class="flex">
         <!-- 侧边栏 -->
-        <aside class="w-64 bg-gray-900 min-h-screen text-white fixed left-0 top-0 bottom-0">
-            <div class="p-4 border-b border-gray-800">
+        <aside class="w-64 bg-gray-900 min-h-screen text-white fixed left-0 top-0 bottom-0 flex flex-col">
+            <div class="p-4 border-b border-gray-800 flex-shrink-0">
                 <h1 class="text-xl font-bold text-yellow-400">🍌 香蕉CMS</h1>
                 <p class="text-xs text-gray-400 mt-1">轻量级影视CMS</p>
             </div>
-            <nav class="p-4 space-y-1">
+            <nav class="flex-1 overflow-y-auto p-4 space-y-1">
                 <a href="/admin.php/dashboard" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/dashboard') !== false ? 'active' : '' ?>">
                     📊 仪表盘
                 </a>
@@ -78,7 +78,7 @@
                     ⚙️ 系统配置
                 </a>
             </nav>
-            <div class="absolute bottom-0 w-64 p-4 border-t border-gray-800">
+            <div class="flex-shrink-0 p-4 border-t border-gray-800">
                 <div class="text-sm text-gray-400 mb-2">
                     👋 <?= htmlspecialchars($admin['name'] ?? 'Admin') ?>
                 </div>
