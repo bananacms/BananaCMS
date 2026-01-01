@@ -1094,7 +1094,7 @@ class XpkApi
             session_start();
         }
         
-        $userId = $_SESSION['user_id'] ?? 0;
+        $userId = $_SESSION['user_id'] ?? ($_SESSION['user']['user_id'] ?? 0);
         if (!$userId) {
             $this->error('请先登录', 2);
         }
@@ -1106,26 +1106,31 @@ class XpkApi
             $this->error('参数错误');
         }
 
-        $table = DB_PREFIX . 'collect';
+        // 目前只支持视频收藏
+        if ($type !== 'vod') {
+            $this->error('暂不支持该类型收藏');
+        }
+
+        $table = DB_PREFIX . 'user_favorite';
         
         // 检查是否已收藏
         $exists = $this->db->queryOne(
-            "SELECT collect_id FROM {$table} WHERE user_id = ? AND collect_type = ? AND collect_rel_id = ?",
-            [$userId, $type, $id]
+            "SELECT fav_id FROM {$table} WHERE user_id = ? AND vod_id = ?",
+            [$userId, $id]
         );
 
         if ($exists) {
             // 取消收藏
             $this->db->execute(
-                "DELETE FROM {$table} WHERE collect_id = ?",
-                [$exists['collect_id']]
+                "DELETE FROM {$table} WHERE fav_id = ?",
+                [$exists['fav_id']]
             );
             $this->success('已取消收藏');
         } else {
             // 添加收藏
             $this->db->execute(
-                "INSERT INTO {$table} (user_id, collect_type, collect_rel_id, collect_time) VALUES (?, ?, ?, ?)",
-                [$userId, $type, $id, time()]
+                "INSERT INTO {$table} (user_id, vod_id, fav_time) VALUES (?, ?, ?)",
+                [$userId, $id, time()]
             );
             $this->success('收藏成功');
         }

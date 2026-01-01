@@ -4,65 +4,101 @@
     <!-- 用户信息 -->
     <div class="flex items-center space-x-4 mb-8 pb-6 border-b">
         <div class="w-16 h-16 bg-green-700 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-            <?php echo mb_substr($user['user_nick_name'], 0, 1); ?>
+            <?php echo mb_substr($user['user_nick_name'] ?? $user['user_name'], 0, 1); ?>
         </div>
-        <div>
-            <h1 class="text-xl font-bold text-gray-800"><?php echo htmlspecialchars($user['user_nick_name']); ?></h1>
-            <p class="text-gray-500 text-sm mt-1"><?php echo htmlspecialchars($user['user_email'] ?? ''); ?></p>
+        <div class="flex-1">
+            <h1 class="text-xl font-bold text-gray-800"><?php echo htmlspecialchars($user['user_nick_name'] ?? $user['user_name']); ?></h1>
+            <p class="text-gray-500 text-sm mt-1">ID: <?php echo $user['user_id']; ?> · 注册于 <?php echo date('Y-m-d', $user['user_reg_time']); ?></p>
         </div>
+        <a href="<?= xpk_url('user/logout') ?>" class="text-gray-500 hover:text-red-500">退出登录</a>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <!-- 左侧菜单 -->
-        <div class="md:col-span-1">
-            <div class="space-y-1">
-                <a href="/user/center" class="block px-4 py-2 bg-green-50 text-green-700 rounded">个人中心</a>
-                <a href="/user/favorites" class="block px-4 py-2 text-gray-600 hover:bg-gray-50 rounded">我的收藏</a>
-                <a href="/user/history" class="block px-4 py-2 text-gray-600 hover:bg-gray-50 rounded">观看历史</a>
-                <a href="/user/profile" class="block px-4 py-2 text-gray-600 hover:bg-gray-50 rounded">修改资料</a>
-                <a href="/user/password" class="block px-4 py-2 text-gray-600 hover:bg-gray-50 rounded">修改密码</a>
-                <a href="/user/logout" class="block px-4 py-2 text-gray-600 hover:bg-gray-50 hover:text-red-500 rounded">退出登录</a>
-            </div>
-        </div>
+    <!-- 统计数据 -->
+    <div class="grid grid-cols-3 gap-4 mb-6">
+        <a href="?tab=favorite" class="text-center py-4 border rounded hover:border-green-700 transition <?php echo $tab === 'favorite' ? 'border-green-700 bg-green-50' : ''; ?>">
+            <div class="text-2xl font-bold text-green-700"><?php echo $favCount; ?></div>
+            <div class="text-gray-500 text-sm mt-1">收藏</div>
+        </a>
+        <a href="?tab=history" class="text-center py-4 border rounded hover:border-green-700 transition <?php echo $tab === 'history' ? 'border-green-700 bg-green-50' : ''; ?>">
+            <div class="text-2xl font-bold text-green-700"><?php echo $historyCount; ?></div>
+            <div class="text-gray-500 text-sm mt-1">看过</div>
+        </a>
+        <a href="?tab=comment" class="text-center py-4 border rounded hover:border-green-700 transition <?php echo $tab === 'comment' ? 'border-green-700 bg-green-50' : ''; ?>">
+            <div class="text-2xl font-bold text-green-700"><?php echo $commentCount; ?></div>
+            <div class="text-gray-500 text-sm mt-1">评论</div>
+        </a>
+    </div>
 
-        <!-- 右侧内容 -->
-        <div class="md:col-span-3">
-            <!-- 统计数据 -->
-            <div class="grid grid-cols-3 gap-4 mb-6">
-                <div class="text-center py-4 border rounded">
-                    <div class="text-2xl font-bold text-green-700"><?php echo $stats['favorites'] ?? 0; ?></div>
-                    <div class="text-gray-500 text-sm mt-1">收藏</div>
-                </div>
-                <div class="text-center py-4 border rounded">
-                    <div class="text-2xl font-bold text-green-700"><?php echo $stats['history'] ?? 0; ?></div>
-                    <div class="text-gray-500 text-sm mt-1">看过</div>
-                </div>
-                <div class="text-center py-4 border rounded">
-                    <div class="text-2xl font-bold text-green-700"><?php echo $stats['comments'] ?? 0; ?></div>
-                    <div class="text-gray-500 text-sm mt-1">评论</div>
-                </div>
-            </div>
+    <!-- 内容区域 -->
+    <div>
+        <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">
+            <?php echo $tab === 'favorite' ? '我的收藏' : ($tab === 'history' ? '观看历史' : '我的评论'); ?>
+            <span class="text-sm font-normal text-gray-400 ml-2">共 <?php echo $total; ?> 条</span>
+        </h2>
 
-            <!-- 最近观看 -->
-            <div>
-                <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">最近观看</h2>
-                <?php if (!empty($recentHistory)): ?>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                        <?php foreach (array_slice($recentHistory, 0, 8) as $item): ?>
-                            <a href="<?php echo xpk_page_url('detail', ['id' => $item['vod_id'], 'slug' => $item['vod_slug']]); ?>" class="cursor-pointer group">
-                                <img src="<?php echo htmlspecialchars($item['vod_pic']); ?>" alt="<?php echo htmlspecialchars($item['vod_name']); ?>" class="w-full aspect-[2/3] object-cover rounded shadow-md" loading="lazy">
-                                <h3 class="mt-2 text-sm font-medium group-hover:text-green-700 line-clamp-1"><?php echo htmlspecialchars($item['vod_name']); ?></h3>
-                            </a>
-                        <?php endforeach; ?>
+        <?php if ($tab === 'comment'): ?>
+            <?php if (!empty($list)): ?>
+            <div class="space-y-4">
+                <?php foreach ($list as $item): ?>
+                <div class="border-b pb-4 last:border-0">
+                    <div class="flex items-center justify-between mb-2">
+                        <a href="<?php echo xpk_page_url('vod_detail', ['id' => $item['target_id'], 'slug' => $item['vod_slug'] ?? '']); ?>" class="text-sm text-green-700 hover:underline">
+                            <?php echo htmlspecialchars($item['vod_name'] ?? '视频'); ?>
+                        </a>
+                        <span class="text-xs text-gray-400"><?php echo date('Y-m-d H:i', $item['comment_time']); ?></span>
                     </div>
-                    <a href="/user/history" class="block text-center text-green-700 text-sm mt-4 hover:text-green-800">查看全部 &gt;</a>
-                <?php else: ?>
-                    <div class="text-center text-gray-400 py-8">
-                        暂无观看记录
+                    <p class="text-gray-600 text-sm"><?php echo htmlspecialchars($item['comment_content']); ?></p>
+                    <div class="mt-2 text-xs text-gray-400">
+                        <span class="mr-3">👍 <?php echo $item['comment_up'] ?? 0; ?></span>
+                        <span>👎 <?php echo $item['comment_down'] ?? 0; ?></span>
                     </div>
-                <?php endif; ?>
+                </div>
+                <?php endforeach; ?>
             </div>
+            <?php else: ?>
+            <div class="text-center text-gray-400 py-8">暂无评论</div>
+            <?php endif; ?>
+        <?php else: ?>
+            <?php if (!empty($list)): ?>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                <?php foreach ($list as $item): ?>
+                <?php 
+                    $url = $tab === 'history' 
+                        ? xpk_page_url('vod_play', ['id' => $item['vod_id'], 'slug' => $item['vod_slug'] ?? '', 'sid' => $item['sid'] ?? 1, 'nid' => $item['nid'] ?? 1])
+                        : xpk_page_url('vod_detail', ['id' => $item['vod_id'], 'slug' => $item['vod_slug'] ?? '']);
+                ?>
+                <a href="<?php echo $url; ?>" class="cursor-pointer group">
+                    <div class="relative">
+                        <img src="<?php echo $item['vod_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($item['vod_name'] ?? ''); ?>" class="w-full aspect-[2/3] object-cover rounded shadow-md bg-gray-100" loading="lazy">
+                        <?php if ($tab === 'history' && !empty($item['nid'])): ?>
+                        <span class="absolute bottom-1 right-1 bg-black/70 text-white text-xs px-1 rounded">第<?php echo $item['nid']; ?>集</span>
+                        <?php elseif (!empty($item['vod_remarks'])): ?>
+                        <span class="absolute bottom-1 right-1 bg-black/70 text-white text-xs px-1 rounded"><?php echo htmlspecialchars($item['vod_remarks']); ?></span>
+                        <?php endif; ?>
+                    </div>
+                    <h3 class="mt-2 text-sm font-medium group-hover:text-green-700 line-clamp-1"><?php echo htmlspecialchars($item['vod_name'] ?? '已删除'); ?></h3>
+                </a>
+                <?php endforeach; ?>
+            </div>
+            <?php else: ?>
+            <div class="text-center text-gray-400 py-8"><?php echo $tab === 'history' ? '暂无观看记录' : '暂无收藏'; ?></div>
+            <?php endif; ?>
+        <?php endif; ?>
+
+        <!-- 分页 -->
+        <?php if ($totalPages > 1): ?>
+        <div class="flex justify-center mt-6 gap-2">
+            <?php if ($page > 1): ?>
+            <a href="?tab=<?php echo $tab; ?>&page=<?php echo $page - 1; ?>" class="px-3 py-1 border rounded hover:border-green-700">上一页</a>
+            <?php endif; ?>
+            <?php for ($i = max(1, $page - 2); $i <= min($totalPages, $page + 2); $i++): ?>
+            <a href="?tab=<?php echo $tab; ?>&page=<?php echo $i; ?>" class="px-3 py-1 rounded <?php echo $i === $page ? 'bg-green-700 text-white' : 'border hover:border-green-700'; ?>"><?php echo $i; ?></a>
+            <?php endfor; ?>
+            <?php if ($page < $totalPages): ?>
+            <a href="?tab=<?php echo $tab; ?>&page=<?php echo $page + 1; ?>" class="px-3 py-1 border rounded hover:border-green-700">下一页</a>
+            <?php endif; ?>
         </div>
+        <?php endif; ?>
     </div>
 </div>
 

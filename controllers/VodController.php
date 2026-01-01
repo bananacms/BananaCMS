@@ -245,7 +245,7 @@ class VodController extends BaseController
         $this->assign('relatedList', $relatedList);
         
         // SEO
-        $epName = $currentEp['name'] ?? '第' . $nid . '集';
+        $epName = !empty($currentEp['name']) ? $currentEp['name'] : '第' . $nid . '集';
         $seoVars = [
             'name' => $vod['vod_name'],
             'episode' => $epName,
@@ -255,9 +255,10 @@ class VodController extends BaseController
             'area' => $vod['vod_area'] ?? '',
             'description' => mb_substr(strip_tags($vod['vod_content'] ?? ''), 0, 100)
         ];
-        $this->assign('title', $vod['vod_name'] . ' ' . $epName . ' 在线播放 - ' . $this->data['siteName']);
+        $this->assign('title', $vod['vod_name'] . ' ' . $epName . ' 在线播放 - ' . ($this->data['siteName'] ?? SITE_NAME));
         $this->assign('keywords', $vod['vod_name'] . ',' . $epName . ',在线观看,' . ($vod['vod_actor'] ?? '') . ',' . ($vod['type_name'] ?? ''));
-        $this->assign('description', $vod['vod_name'] . ' ' . $epName . ' 在线播放，' . ($vod['vod_actor'] ? '主演：' . $vod['vod_actor'] . '，' : '') . mb_substr(strip_tags($vod['vod_content'] ?? ''), 0, 120));
+        $descContent = mb_substr(strip_tags($vod['vod_content'] ?? ''), 0, 120);
+        $this->assign('description', $vod['vod_name'] . ' ' . $epName . ' 在线播放。' . ($vod['vod_actor'] ? '主演：' . $vod['vod_actor'] . '。' : '') . ($descContent ? $descContent : '高清在线观看，免费播放。'));
         
         $this->render('vod/play');
     }

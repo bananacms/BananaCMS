@@ -16,6 +16,7 @@ include $netflixLayoutPath . 'header.php';
 
         <form action="/user/register" method="post" class="space-y-6">
             <input type="hidden" name="_token" value="<?php echo htmlspecialchars($csrfToken); ?>">
+            <input type="hidden" name="redirect" value="<?php echo htmlspecialchars($redirect ?? ''); ?>">
             <div>
                 <input type="text" name="username" placeholder="用户名" required
                        class="w-full bg-gray-800 border border-gray-700 rounded px-4 py-4 text-white placeholder-gray-500 focus:outline-none focus:border-red-500">
@@ -46,7 +47,7 @@ include $netflixLayoutPath . 'header.php';
         <div class="mt-8 text-center">
             <p class="text-gray-400">
                 已有账号？
-                <a href="/user/login" class="text-white hover:underline">立即登录</a>
+                <a href="/user/login<?php echo !empty($redirect) ? '?redirect=' . urlencode($redirect) : ''; ?>" class="text-white hover:underline">立即登录</a>
             </p>
         </div>
     </div>
