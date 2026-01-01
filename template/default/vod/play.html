@@ -70,7 +70,7 @@
             </script>
             <?php endif; ?>
             <?php if (!empty($currentUrl)): ?>
-                <?php if (strpos($currentUrl, 'http://') === 0 || strpos($currentUrl, 'https://') === 0 || strpos($currentUrl, '//') === 0): ?>
+                <?php if (strpos($currentUrl, 'http://') === 0 || strpos($currentUrl, 'https://') === 0 || strpos($currentUrl, '//') === 0 || strpos($currentUrl, '/static/player.html') === 0): ?>
                     <iframe src="<?php echo htmlspecialchars($currentUrl); ?>" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"></iframe>
                 <?php else: ?>
                     <div class="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 text-white p-4">
