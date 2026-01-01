@@ -31,13 +31,13 @@
             <?php endif; ?>
         </div>
         <div class="space-y-4">
-            <div class="bg-white rounded-lg p-4 shadow-sm">
+            <div class="bg-white rounded-lg p-4 shadow-sm h-full">
                 <h3 class="font-bold text-pink-500 mb-3 flex items-center">
                     <span class="mr-2">🔥</span>热门排行
                 </h3>
                 <div class="space-y-2 text-sm">
                     <?php if (!empty($hotList)): ?>
-                        <?php foreach (array_slice($hotList, 0, 8) as $index => $hot): ?>
+                        <?php foreach (array_slice($hotList, 0, 7) as $index => $hot): ?>
                             <a href="<?php echo xpk_page_url('detail', ['id' => $hot['vod_id'], 'slug' => $hot['vod_slug']]); ?>" class="flex items-center hover:text-pink-500">
                                 <span class="<?php echo $index < 3 ? 'text-pink-500' : 'text-gray-400'; ?> font-bold mr-2 w-4"><?php echo $index + 1; ?></span>
                                 <span class="truncate"><?php echo htmlspecialchars($hot['vod_name']); ?></span>
