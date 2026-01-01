@@ -101,6 +101,8 @@ class AdminConfigController extends AdminBaseController
             // 用户设置
             'user_register' => trim($this->post('user_register', '1')),
             'user_register_limit' => trim($this->post('user_register_limit', '5')),
+            // 导航设置
+            'nav_type_limit' => trim($this->post('nav_type_limit', '10')),
             // URL规则
             'url_mode' => trim($this->post('url_mode', '4')),
             'url_vod_detail' => trim($this->post('url_vod_detail', '')),

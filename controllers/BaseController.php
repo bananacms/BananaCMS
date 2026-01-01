@@ -41,12 +41,13 @@ class BaseController
      */
     protected function initCommon(): void
     {
-        // 导航分类
-        $typeModel = new XpkType();
-        $this->data['navTypes'] = $typeModel->getNav();
-        
-        // 加载站点配置
+        // 先加载站点配置
         $this->loadSiteConfig();
+        
+        // 导航分类（从配置读取显示数量，0表示不限制）
+        $typeModel = new XpkType();
+        $navLimit = (int)($this->data['siteConfig']['nav_type_limit'] ?? 10);
+        $this->data['navTypes'] = $typeModel->getNav($navLimit);
         
         // 当前用户
         $this->data['user'] = $_SESSION['user'] ?? null;

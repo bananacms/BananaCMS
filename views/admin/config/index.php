@@ -298,6 +298,19 @@
             </div>
         </div>
 
+        <!-- 导航设置 -->
+        <div>
+            <h3 class="font-bold text-gray-700 border-b pb-2 mb-4">导航设置</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">导航分类显示数量</label>
+                    <input type="number" name="nav_type_limit" value="<?= htmlspecialchars($config['nav_type_limit'] ?? '10') ?>"
+                        class="w-full border rounded px-3 py-2" min="0" max="50">
+                    <p class="text-xs text-gray-500 mt-1">0表示显示全部顶级分类</p>
+                </div>
+            </div>
+        </div>
+
         <!-- Sitemap 站点地图 -->
         <div>
             <h3 class="font-bold text-gray-700 border-b pb-2 mb-4">Sitemap 站点地图</h3>

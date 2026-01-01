@@ -207,12 +207,15 @@ class XpkType extends XpkModel
 
     /**
      * 获取导航分类
+     * @param int $limit 显示数量，0表示不限制
      */
-    public function getNav(): array
+    public function getNav(int $limit = 10): array
     {
-        return $this->db->query(
-            "SELECT * FROM {$this->table} WHERE type_pid = 0 AND type_status = 1 ORDER BY type_sort ASC LIMIT 10"
-        );
+        $sql = "SELECT * FROM {$this->table} WHERE type_pid = 0 AND type_status = 1 ORDER BY type_sort ASC";
+        if ($limit > 0) {
+            $sql .= " LIMIT {$limit}";
+        }
+        return $this->db->query($sql);
     }
 
     /**
