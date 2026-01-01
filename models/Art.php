@@ -14,11 +14,11 @@ class XpkArt extends XpkModel
      */
     public function getList(int $num = 10, string $order = 'time'): array
     {
-        $orderField = match($order) {
-            'hits' => 'art_hits DESC',
-            'time' => 'art_time DESC',
-            default => 'art_id DESC',
-        };
+        $orderField = 'art_id DESC';
+        switch ($order) {
+            case 'hits': $orderField = 'art_hits DESC'; break;
+            case 'time': $orderField = 'art_time DESC'; break;
+        }
 
         return $this->db->query(
             "SELECT * FROM {$this->table} WHERE art_status = 1 ORDER BY {$orderField} LIMIT ?",

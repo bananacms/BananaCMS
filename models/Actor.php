@@ -14,12 +14,12 @@ class XpkActor extends XpkModel
      */
     public function getList(int $num = 10, string $order = 'id'): array
     {
-        $orderField = match($order) {
-            'hits' => 'actor_hits DESC',
-            'time' => 'actor_time DESC',
-            'name' => 'actor_name ASC',
-            default => 'actor_id DESC',
-        };
+        $orderField = 'actor_id DESC';
+        switch ($order) {
+            case 'hits': $orderField = 'actor_hits DESC'; break;
+            case 'time': $orderField = 'actor_time DESC'; break;
+            case 'name': $orderField = 'actor_name ASC'; break;
+        }
 
         return $this->db->query(
             "SELECT * FROM {$this->table} WHERE actor_status = 1 ORDER BY {$orderField} LIMIT ?",

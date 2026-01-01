@@ -76,80 +76,80 @@ class XpkApi
             $this->checkAuth();
         }
 
-        match ($action) {
+        switch ($action) {
             // 系统
-            'config' => $this->config(),
-            'init' => $this->appInit(),
+            case 'config': $this->config(); break;
+            case 'init': $this->appInit(); break;
             
             // 用户
-            'user.register' => $this->userRegister(),
-            'user.login' => $this->userLogin(),
-            'user.info' => $this->userInfo(),
-            'user.update' => $this->userUpdate(),
-            'user.password' => $this->userPassword(),
+            case 'user.register': $this->userRegister(); break;
+            case 'user.login': $this->userLogin(); break;
+            case 'user.info': $this->userInfo(); break;
+            case 'user.update': $this->userUpdate(); break;
+            case 'user.password': $this->userPassword(); break;
             
             // 视频
-            'vod.list' => $this->vodList(),
-            'vod.detail' => $this->vodDetail(),
-            'vod.play' => $this->vodPlay(),
-            'vod.related' => $this->vodRelated(),
+            case 'vod.list': $this->vodList(); break;
+            case 'vod.detail': $this->vodDetail(); break;
+            case 'vod.play': $this->vodPlay(); break;
+            case 'vod.related': $this->vodRelated(); break;
             
             // 分类
-            'type.list' => $this->typeList(),
-            'type.vods' => $this->typeVods(),
+            case 'type.list': $this->typeList(); break;
+            case 'type.vods': $this->typeVods(); break;
             
             // 演员
-            'actor.list' => $this->actorList(),
-            'actor.detail' => $this->actorDetail(),
+            case 'actor.list': $this->actorList(); break;
+            case 'actor.detail': $this->actorDetail(); break;
             
             // 文章
-            'art.list' => $this->artList(),
-            'art.detail' => $this->artDetail(),
+            case 'art.list': $this->artList(); break;
+            case 'art.detail': $this->artDetail(); break;
             
             // 搜索
-            'search' => $this->search(),
-            'search.hot' => $this->searchHot(),
-            'search.suggest' => $this->searchSuggest(),
+            case 'search': $this->search(); break;
+            case 'search.hot': $this->searchHot(); break;
+            case 'search.suggest': $this->searchSuggest(); break;
             
             // 收藏
-            'favorite.list' => $this->favoriteList(),
-            'favorite.add' => $this->favoriteAdd(),
-            'favorite.remove' => $this->favoriteRemove(),
-            'favorite.check' => $this->favoriteCheck(),
+            case 'favorite.list': $this->favoriteList(); break;
+            case 'favorite.add': $this->favoriteAdd(); break;
+            case 'favorite.remove': $this->favoriteRemove(); break;
+            case 'favorite.check': $this->favoriteCheck(); break;
             
             // 历史
-            'history.list' => $this->historyList(),
-            'history.add' => $this->historyAdd(),
-            'history.remove' => $this->historyRemove(),
-            'history.clear' => $this->historyClear(),
+            case 'history.list': $this->historyList(); break;
+            case 'history.add': $this->historyAdd(); break;
+            case 'history.remove': $this->historyRemove(); break;
+            case 'history.clear': $this->historyClear(); break;
             
             // 评论
-            'comment.list' => $this->commentList(),
-            'comment.post' => $this->commentPost(),
-            'comment.delete' => $this->commentDelete(),
-            'comment.vote' => $this->commentVote(),
+            case 'comment.list': $this->commentList(); break;
+            case 'comment.post': $this->commentPost(); break;
+            case 'comment.delete': $this->commentDelete(); break;
+            case 'comment.vote': $this->commentVote(); break;
             
             // 评分
-            'score.submit' => $this->scoreSubmit(),
-            'score.stats' => $this->scoreStats(),
+            case 'score.submit': $this->scoreSubmit(); break;
+            case 'score.stats': $this->scoreStats(); break;
             
             // 短视频
-            'short.list' => $this->shortList(),
-            'short.detail' => $this->shortDetail(),
-            'short.like' => $this->shortLike(),
+            case 'short.list': $this->shortList(); break;
+            case 'short.detail': $this->shortDetail(); break;
+            case 'short.like': $this->shortLike(); break;
             
             // 广告
-            'ad.get' => $this->adGet(),
-            'ad.click' => $this->adClick(),
+            case 'ad.get': $this->adGet(); break;
+            case 'ad.click': $this->adClick(); break;
             
             // 首页
-            'home' => $this->home(),
+            case 'home': $this->home(); break;
             
             // 前端收藏（简化版）
-            'collect' => $this->collect(),
+            case 'collect': $this->collect(); break;
             
-            default => $this->error('未知接口'),
-        };
+            default: $this->error('未知接口'); break;
+        }
     }
 
     // ==================== 系统接口 ====================

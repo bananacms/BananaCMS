@@ -19,14 +19,14 @@ class XpkVod extends XpkModel
             $num = min($num, 5); // 未授权限制数量
         }
 
-        $orderField = match($order) {
-            'time' => 'vod_time DESC',
-            'hits' => 'vod_hits DESC',
-            'score' => 'vod_score DESC',
-            'up' => 'vod_up DESC',
-            'down' => 'vod_down ASC',
-            default => 'vod_id DESC',
-        };
+        $orderField = 'vod_id DESC';
+        switch ($order) {
+            case 'time': $orderField = 'vod_time DESC'; break;
+            case 'hits': $orderField = 'vod_hits DESC'; break;
+            case 'score': $orderField = 'vod_score DESC'; break;
+            case 'up': $orderField = 'vod_up DESC'; break;
+            case 'down': $orderField = 'vod_down ASC'; break;
+        }
 
         $sql = "SELECT * FROM {$this->table} WHERE vod_status = 1";
         $params = [];
@@ -92,13 +92,13 @@ class XpkVod extends XpkModel
             return ['list' => [], 'total' => 0, 'page' => 1, 'pageSize' => $pageSize, 'totalPages' => 0];
         }
 
-        $orderField = match($order) {
-            'time' => 'vod_time DESC',
-            'hits' => 'vod_hits DESC',
-            'score' => 'vod_score DESC',
-            'up' => 'vod_up DESC',
-            default => 'vod_id DESC',
-        };
+        $orderField = 'vod_id DESC';
+        switch ($order) {
+            case 'time': $orderField = 'vod_time DESC'; break;
+            case 'hits': $orderField = 'vod_hits DESC'; break;
+            case 'score': $orderField = 'vod_score DESC'; break;
+            case 'up': $orderField = 'vod_up DESC'; break;
+        }
 
         $offset = ($page - 1) * $pageSize;
         
