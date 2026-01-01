@@ -1,0 +1,42 @@
+<?php include VIEW_PATH . 'layouts/header.php'; ?>
+
+<!-- 面包屑导航 -->
+<nav class="text-sm text-gray-500 mb-4">
+    <a href="/" class="hover:text-red-600">首页</a>
+    <span class="mx-2">/</span>
+    <span class="text-gray-700">全部分类</span>
+</nav>
+
+<div class="mb-6">
+    <h1 class="text-2xl font-bold mb-4">全部分类</h1>
+</div>
+
+<!-- 广告位 -->
+<?= xpk_ad('type_top') ?>
+
+<?php if (!empty($typeList)): ?>
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
+    <?php foreach ($typeList as $type): ?>
+    <a href="<?= xpk_page_url('type', ['id' => $type['type_id'], 'slug' => $type['type_en']]) ?>" 
+       class="bg-white border rounded-lg p-6 text-center hover:shadow-md hover:border-red-500 transition group">
+        <div class="text-3xl mb-2">📁</div>
+        <h3 class="font-medium text-gray-800 group-hover:text-red-600"><?= htmlspecialchars($type['type_name']) ?></h3>
+        <?php if (!empty($type['type_des'])): ?>
+        <p class="text-gray-400 text-xs mt-1 line-clamp-1"><?= htmlspecialchars($type['type_des']) ?></p>
+        <?php endif; ?>
+    </a>
+    <?php endforeach; ?>
+</div>
+<?php else: ?>
+<div class="text-center py-20 text-gray-500">
+    <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+    </svg>
+    <p>暂无分类</p>
+</div>
+<?php endif; ?>
+
+<!-- 广告位 -->
+<?= xpk_ad('type_bottom') ?>
+
+<?php include VIEW_PATH . 'layouts/footer.php'; ?>

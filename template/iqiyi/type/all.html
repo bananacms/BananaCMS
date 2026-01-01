@@ -1,0 +1,35 @@
+<?php include TPL_PATH . 'iqiyi/layouts/header.php'; ?>
+
+<div class="max-w-7xl mx-auto px-4 py-6">
+    <!-- 页面标题 -->
+    <div class="bg-white rounded-lg shadow p-4 mb-6">
+        <h1 class="text-xl font-bold text-gray-800">全部分类</h1>
+    </div>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('type_top') ?>
+
+    <!-- 分类列表 -->
+    <?php if (!empty($typeList)): ?>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <?php foreach ($typeList as $type): ?>
+                <a href="<?php echo xpk_page_url('type', ['id' => $type['type_id'], 'slug' => $type['type_en']]); ?>" class="bg-white rounded-lg shadow p-6 text-center hover:shadow-md hover:border-green-500 border-2 border-transparent transition group">
+                    <div class="text-3xl mb-2">📺</div>
+                    <h3 class="font-medium text-gray-800 group-hover:text-green-500"><?php echo htmlspecialchars($type['type_name']); ?></h3>
+                    <?php if (!empty($type['type_des'])): ?>
+                        <p class="text-gray-400 text-xs mt-1"><?php echo htmlspecialchars($type['type_des']); ?></p>
+                    <?php endif; ?>
+                </a>
+            <?php endforeach; ?>
+        </div>
+    <?php else: ?>
+        <div class="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+            暂无分类
+        </div>
+    <?php endif; ?>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('type_bottom') ?>
+</div>
+
+<?php include TPL_PATH . 'iqiyi/layouts/footer.php'; ?>

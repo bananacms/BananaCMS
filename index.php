@@ -108,6 +108,10 @@ $router->get('video/{slug}.html', fn($slug) => (new VodController())->detailBySl
 $router->get('watch/{slug}/{sid}/{nid}', fn($slug, $sid, $nid) => (new VodController())->playBySlug($slug, (int)$sid, (int)$nid));
 $router->get('watch/{slug}-{sid}-{nid}.html', fn($slug, $sid, $nid) => (new VodController())->playBySlug($slug, (int)$sid, (int)$nid));
 
+// 全部分类
+$router->get('type', fn() => (new TypeController())->all());
+$router->get('types', fn() => (new TypeController())->all());
+
 // 分类 - 模式1
 $router->get('type/{id}', fn($id) => (new TypeController())->index((int)$id));
 $router->get('type/{id}/page/{page}', fn($id, $page) => (new TypeController())->index((int)$id, (int)$page));

@@ -17,6 +17,22 @@ class TypeController extends BaseController
     }
 
     /**
+     * 全部分类页
+     */
+    public function all(): void
+    {
+        $typeList = $this->typeModel->getList(0); // 获取所有一级分类
+        
+        $this->assign('typeList', $typeList);
+        $this->assign('types', $typeList); // 兼容 netflix 模板
+        $this->assign('title', '全部分类 - ' . SITE_NAME);
+        $this->assign('keywords', '分类,视频分类,' . SITE_KEYWORDS);
+        $this->assign('description', '浏览全部视频分类 - ' . SITE_DESCRIPTION);
+        
+        $this->render('type/all');
+    }
+
+    /**
      * 分类页
      */
     public function index(int $id, int $page = 1): void
