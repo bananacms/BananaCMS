@@ -1,81 +1,79 @@
-<?php include VIEW_PATH . 'admin/layouts/header.php'; ?>
-
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="mb-0">上传视频</h4>
-    <a href="/admin.php/transcode" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-arrow-left"></i> 返回列表
-    </a>
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold">上传视频</h1>
+    <a href="/admin.php/transcode" class="text-gray-500 hover:text-gray-700">← 返回列表</a>
 </div>
 
-<div class="row">
-    <div class="col-lg-8">
-        <div class="card">
-            <div class="card-body">
-                <!-- 上传区域 -->
-                <div id="dropZone" class="border-2 border-dashed rounded-3 p-5 text-center bg-light" style="cursor: pointer;">
-                    <i class="bi bi-cloud-upload fs-1 text-muted"></i>
-                    <p class="mt-3 mb-1">拖拽视频文件到此处，或点击选择文件</p>
-                    <p class="text-muted small">支持 MP4, AVI, MKV, MOV, WMV, FLV, WebM 格式，最大 10GB</p>
-                    <input type="file" id="fileInput" accept=".mp4,.avi,.mkv,.mov,.wmv,.flv,.webm,.m4v" style="display: none;">
-                </div>
-
-                <!-- 上传进度 -->
-                <div id="uploadProgress" class="mt-4" style="display: none;">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span id="fileName" class="text-truncate" style="max-width: 70%;"></span>
-                        <span id="uploadPercent">0%</span>
-                    </div>
-                    <div class="progress" style="height: 8px;">
-                        <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%"></div>
-                    </div>
-                    <div class="d-flex justify-content-between mt-2 small text-muted">
-                        <span id="uploadedSize">0 MB</span>
-                        <span id="uploadSpeed">-- MB/s</span>
-                        <span id="totalSize">0 MB</span>
-                    </div>
-                </div>
-
-                <!-- 上传完成 -->
-                <div id="uploadComplete" class="mt-4 text-center" style="display: none;">
-                    <i class="bi bi-check-circle text-success fs-1"></i>
-                    <p class="mt-2 mb-1">上传完成！</p>
-                    <p class="text-muted small">转码任务已创建，任务ID: <span id="taskId"></span></p>
-                    <div class="mt-3">
-                        <button class="btn btn-primary" onclick="location.reload()">继续上传</button>
-                        <a href="/admin.php/transcode" class="btn btn-outline-secondary">查看任务</a>
-                    </div>
-                </div>
-
-                <!-- 错误提示 -->
-                <div id="uploadError" class="alert alert-danger mt-4" style="display: none;"></div>
+<div class="grid grid-cols-3 gap-6">
+    <div class="col-span-2">
+        <div class="bg-white rounded-lg shadow p-6">
+            <!-- 上传区域 -->
+            <div id="dropZone" class="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition">
+                <svg class="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                </svg>
+                <p class="mt-4 text-lg text-gray-600">拖拽视频文件到此处，或点击选择文件</p>
+                <p class="mt-2 text-sm text-gray-400">支持 MP4, AVI, MKV, MOV, WMV, FLV, WebM 格式，最大 10GB</p>
+                <input type="file" id="fileInput" accept=".mp4,.avi,.mkv,.mov,.wmv,.flv,.webm,.m4v" class="hidden">
             </div>
+
+            <!-- 上传进度 -->
+            <div id="uploadProgress" class="mt-6 hidden">
+                <div class="flex justify-between items-center mb-2">
+                    <span id="fileName" class="text-sm text-gray-600 truncate max-w-md"></span>
+                    <span id="uploadPercent" class="text-sm font-medium text-blue-600">0%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div id="progressBar" class="bg-blue-500 h-2 rounded-full transition-all" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between mt-2 text-xs text-gray-400">
+                    <span id="uploadedSize">0 MB</span>
+                    <span id="uploadSpeed">-- MB/s</span>
+                    <span id="totalSize">0 MB</span>
+                </div>
+            </div>
+
+            <!-- 上传完成 -->
+            <div id="uploadComplete" class="mt-6 text-center hidden">
+                <svg class="w-16 h-16 mx-auto text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <p class="mt-4 text-lg text-gray-700">上传完成！</p>
+                <p class="mt-1 text-sm text-gray-500">转码任务已创建，任务ID: <span id="taskId" class="font-medium text-blue-600"></span></p>
+                <div class="mt-6 flex justify-center gap-4">
+                    <button onclick="location.reload()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded">继续上传</button>
+                    <a href="/admin.php/transcode" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2 rounded">查看任务</a>
+                </div>
+            </div>
+
+            <!-- 错误提示 -->
+            <div id="uploadError" class="mt-6 bg-red-50 text-red-600 px-4 py-3 rounded hidden"></div>
         </div>
     </div>
 
-    <div class="col-lg-4">
-        <div class="card">
-            <div class="card-header">
-                <h6 class="mb-0">使用说明</h6>
-            </div>
-            <div class="card-body">
-                <ol class="mb-0 ps-3">
-                    <li class="mb-2">选择或拖拽视频文件上传</li>
-                    <li class="mb-2">上传完成后自动创建转码任务</li>
-                    <li class="mb-2">转码完成后可获取 m3u8 播放地址</li>
-                    <li class="mb-2">视频会自动加密，防止被下载</li>
-                </ol>
-                <hr>
-                <h6>支持格式</h6>
-                <p class="text-muted small mb-0">MP4, AVI, MKV, MOV, WMV, FLV, WebM, M4V</p>
-                <hr>
-                <h6>转码参数</h6>
-                <ul class="text-muted small mb-0 ps-3">
-                    <li>视频编码: H.264</li>
-                    <li>音频编码: AAC 128kbps</li>
-                    <li>切片时长: 10秒</li>
-                    <li>加密方式: AES-128</li>
-                </ul>
-            </div>
+    <div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="font-medium text-gray-700 mb-4">使用说明</h3>
+            <ol class="text-sm text-gray-600 space-y-2 list-decimal list-inside">
+                <li>选择或拖拽视频文件上传</li>
+                <li>上传完成后自动创建转码任务</li>
+                <li>转码完成后可获取 m3u8 播放地址</li>
+                <li>视频会自动加密，防止被下载</li>
+            </ol>
+            
+            <hr class="my-4">
+            
+            <h3 class="font-medium text-gray-700 mb-2">支持格式</h3>
+            <p class="text-sm text-gray-500">MP4, AVI, MKV, MOV, WMV, FLV, WebM, M4V</p>
+            
+            <hr class="my-4">
+            
+            <h3 class="font-medium text-gray-700 mb-2">转码参数</h3>
+            <ul class="text-sm text-gray-500 space-y-1">
+                <li>• 视频编码: H.264</li>
+                <li>• 音频编码: AAC 128kbps</li>
+                <li>• 切片时长: 10秒</li>
+                <li>• 加密方式: AES-128</li>
+            </ul>
         </div>
     </div>
 </div>
@@ -92,7 +90,6 @@ const r = new Resumable({
     testChunks: true,
     throttleProgressCallbacks: 1,
     query: { _token: csrfToken },
-    headers: {},
     maxFiles: 1,
     fileType: ['mp4', 'avi', 'mkv', 'mov', 'wmv', 'flv', 'webm', 'm4v'],
     maxFileSize: 10 * 1024 * 1024 * 1024, // 10GB
@@ -108,14 +105,20 @@ r.assignBrowse(fileInput);
 dropZone.addEventListener('click', () => fileInput.click());
 
 // 拖拽样式
-dropZone.addEventListener('dragover', () => dropZone.classList.add('border-primary', 'bg-primary', 'bg-opacity-10'));
-dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-primary', 'bg-primary', 'bg-opacity-10'));
-dropZone.addEventListener('drop', () => dropZone.classList.remove('border-primary', 'bg-primary', 'bg-opacity-10'));
+dropZone.addEventListener('dragover', () => {
+    dropZone.classList.add('border-blue-400', 'bg-blue-50');
+});
+dropZone.addEventListener('dragleave', () => {
+    dropZone.classList.remove('border-blue-400', 'bg-blue-50');
+});
+dropZone.addEventListener('drop', () => {
+    dropZone.classList.remove('border-blue-400', 'bg-blue-50');
+});
 
 // 文件添加
 r.on('fileAdded', function(file) {
-    document.getElementById('dropZone').style.display = 'none';
-    document.getElementById('uploadProgress').style.display = 'block';
+    document.getElementById('dropZone').classList.add('hidden');
+    document.getElementById('uploadProgress').classList.remove('hidden');
     document.getElementById('fileName').textContent = file.fileName;
     document.getElementById('totalSize').textContent = formatSize(file.size);
     r.upload();
@@ -149,8 +152,8 @@ r.on('fileSuccess', function(file, response) {
     try {
         const data = JSON.parse(response);
         if (data.success && data.complete) {
-            document.getElementById('uploadProgress').style.display = 'none';
-            document.getElementById('uploadComplete').style.display = 'block';
+            document.getElementById('uploadProgress').classList.add('hidden');
+            document.getElementById('uploadComplete').classList.remove('hidden');
             document.getElementById('taskId').textContent = data.task_id;
         } else if (!data.success) {
             showError(data.error || '上传失败');
@@ -166,8 +169,8 @@ r.on('fileError', function(file, message) {
 });
 
 function showError(msg) {
-    document.getElementById('uploadProgress').style.display = 'none';
-    document.getElementById('uploadError').style.display = 'block';
+    document.getElementById('uploadProgress').classList.add('hidden');
+    document.getElementById('uploadError').classList.remove('hidden');
     document.getElementById('uploadError').textContent = msg;
 }
 
@@ -179,5 +182,3 @@ function formatSize(bytes) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 </script>
-
-<?php include VIEW_PATH . 'admin/layouts/footer.php'; ?>

@@ -108,12 +108,26 @@ class XpkChunkUpload
     {
         $table = DB_PREFIX . 'upload_chunk';
         
-        // 使用 REPLACE INTO 避免重复
-        $this->db->execute(
-            "REPLACE INTO {$table} (upload_id, chunk_index, chunk_path, total_chunks, file_name, file_size, created_at) 
-             VALUES (?, ?, ?, ?, ?, ?, ?)",
-            [$uploadId, $chunkIndex, $this->chunkDir . $uploadId . '/' . $chunkIndex, $totalChunks, $fileName, $fileSize, time()]
+        // 检查是否已存在
+        $exists = $this->db->queryOne(
+            "SELECT chunk_id FROM {$table} WHERE upload_id = ? AND chunk_index = ?",
+            [$uploadId, $chunkIndex]
         );
+        
+        if ($exists) {
+            // 更新
+            $this->db->execute(
+                "UPDATE {$table} SET chunk_path = ?, total_chunks = ?, file_name = ?, file_size = ? WHERE chunk_id = ?",
+                [$this->chunkDir . $uploadId . '/' . $chunkIndex, $totalChunks, $fileName, $fileSize, $exists['chunk_id']]
+            );
+        } else {
+            // 插入
+            $this->db->execute(
+                "INSERT INTO {$table} (upload_id, chunk_index, chunk_path, total_chunks, file_name, file_size, created_at) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?)",
+                [$uploadId, $chunkIndex, $this->chunkDir . $uploadId . '/' . $chunkIndex, $totalChunks, $fileName, $fileSize, time()]
+            );
+        }
     }
     
     /**

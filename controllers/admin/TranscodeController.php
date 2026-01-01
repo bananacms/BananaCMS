@@ -216,7 +216,7 @@ class AdminTranscodeController extends AdminBaseController
     }
 
     /**
-     * 手动执行转码（测试用）
+     * 手动触发转码（通过后台执行 cron 脚本，避免 PHP 超时）
      */
     public function process(): void
     {
@@ -230,52 +230,81 @@ class AdminTranscodeController extends AdminBaseController
             $this->error('没有待处理的任务');
         }
         
-        // 标记为处理中
-        $this->transcodeModel->updateStatus($task['transcode_id'], XpkTranscode::STATUS_PROCESSING);
-        
-        require_once CORE_PATH . 'Transcoder.php';
-        $transcoder = new XpkTranscoder();
-        
-        // 获取视频信息
-        $info = $transcoder->getVideoInfo($task['source_file']);
-        if (isset($info['error'])) {
-            $this->transcodeModel->updateStatus($task['transcode_id'], XpkTranscode::STATUS_FAILED, [
-                'error_msg' => $info['error']
-            ]);
-            $this->error($info['error']);
+        // 检查任务状态
+        if ($task['transcode_status'] == XpkTranscode::STATUS_PROCESSING) {
+            $this->error('任务正在处理中');
+        }
+        if ($task['transcode_status'] == XpkTranscode::STATUS_COMPLETED) {
+            $this->error('任务已完成');
         }
         
-        // 更新时长信息
-        $this->transcodeModel->update($task['transcode_id'], [
-            'duration' => $info['duration'],
-            'resolution' => $info['width'] . 'x' . $info['height'],
-        ]);
-        
-        // 执行转码
-        $keyUrl = rtrim(SITE_URL, '/') . '/api.php?m=transcode&a=key&id=' . $task['transcode_id'];
-        $result = $transcoder->transcodeToHLS($task['source_file'], $task['output_dir'], [
-            'key_url' => $keyUrl,
-            'encrypt' => true,
-        ]);
-        
-        if ($result['success']) {
-            // 计算相对路径
-            $m3u8Url = str_replace(ROOT_PATH, '/', $result['m3u8']);
-            
-            $this->transcodeModel->updateStatus($task['transcode_id'], XpkTranscode::STATUS_COMPLETED, [
-                'transcode_progress' => 100,
-                'encrypt_key' => $result['key'],
-                'm3u8_url' => $m3u8Url,
+        // 确保任务状态为待处理
+        if ($task['transcode_status'] != XpkTranscode::STATUS_PENDING) {
+            $this->transcodeModel->updateStatus($task['transcode_id'], XpkTranscode::STATUS_PENDING, [
+                'error_msg' => ''
             ]);
-            
-            $this->log('转码完成', '转码', "任务 ID:{$task['transcode_id']}");
-            $this->success('转码完成');
+        }
+        
+        // 后台执行 cron 脚本（不等待结果）
+        $cronScript = ROOT_PATH . 'cron_transcode.php';
+        $logFile = RUNTIME_PATH . 'transcode_manual.log';
+        
+        if (PHP_OS_FAMILY === 'Windows') {
+            // Windows: 使用 start /B 后台执行
+            $cmd = sprintf('start /B php "%s" >> "%s" 2>&1', $cronScript, $logFile);
+            pclose(popen($cmd, 'r'));
         } else {
-            $this->transcodeModel->updateStatus($task['transcode_id'], XpkTranscode::STATUS_FAILED, [
-                'error_msg' => $result['error'] ?: '转码失败'
-            ]);
-            $this->error($result['error'] ?: '转码失败');
+            // Linux: 使用 nohup 后台执行
+            $cmd = sprintf('nohup php "%s" >> "%s" 2>&1 &', $cronScript, $logFile);
+            exec($cmd);
         }
+        
+        $this->log('触发转码', '转码', "任务 ID:{$task['transcode_id']}");
+        $this->success('已触发转码，请稍后刷新查看状态');
+    }
+    
+    /**
+     * 轮询获取转码进度（供前端 JS 调用）
+     */
+    public function progress(): void
+    {
+        $id = (int)$this->get('id', 0);
+        
+        if ($id <= 0) {
+            $this->json(['success' => false, 'error' => '参数错误']);
+            return;
+        }
+        
+        $task = $this->transcodeModel->find($id);
+        if (!$task) {
+            $this->json(['success' => false, 'error' => '任务不存在']);
+            return;
+        }
+        
+        // 如果正在处理，尝试从日志获取实时进度
+        $progress = $task['transcode_progress'];
+        if ($task['transcode_status'] == XpkTranscode::STATUS_PROCESSING && $task['duration'] > 0) {
+            $logFile = $task['output_dir'] . 'transcode.log';
+            if (file_exists($logFile)) {
+                require_once CORE_PATH . 'Transcoder.php';
+                $transcoder = new XpkTranscoder();
+                $realProgress = $transcoder->getProgress($logFile, $task['duration']);
+                if ($realProgress > $progress) {
+                    $progress = $realProgress;
+                }
+            }
+        }
+        
+        $this->json([
+            'success' => true,
+            'data' => [
+                'id' => $task['transcode_id'],
+                'status' => $task['transcode_status'],
+                'progress' => $progress,
+                'error_msg' => $task['error_msg'],
+                'm3u8_url' => $task['m3u8_url'],
+            ]
+        ]);
     }
 
     /**
@@ -294,7 +323,7 @@ class AdminTranscodeController extends AdminBaseController
         // 生成带签名的 m3u8 URL
         $time = time();
         $token = md5($id . $time . (defined('ENCRYPT_SECRET') ? ENCRYPT_SECRET : 'xpk_secret'));
-        $m3u8Url = rtrim(SITE_URL, '/') . '/api.php?m=transcode&a=m3u8&id=' . $id . '&t=' . $time . '&token=' . $token;
+        $m3u8Url = rtrim(SITE_URL, '/') . '/api.php?action=transcode.m3u8&id=' . $id . '&t=' . $time . '&token=' . $token;
         
         $this->json([
             'success' => true,

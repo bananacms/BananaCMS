@@ -34,9 +34,12 @@ class XpkTranscoder
      */
     private function commandExists(string $cmd): bool
     {
-        $return = shell_exec(sprintf("which %s 2>/dev/null || where %s 2>nul", 
-            escapeshellarg($cmd), escapeshellarg($cmd)));
-        return !empty($return);
+        if (PHP_OS_FAMILY === 'Windows') {
+            $return = shell_exec(sprintf("where %s 2>nul", escapeshellarg($cmd)));
+        } else {
+            $return = shell_exec(sprintf("which %s 2>/dev/null", escapeshellarg($cmd)));
+        }
+        return !empty(trim($return ?? ''));
     }
     
     /**
