@@ -77,6 +77,9 @@
             </div>
             
             <div class="text-gray-400 text-sm text-center">
+                <?php if (!empty($siteConfig['site_icp'])): ?>
+                <p class="mb-2"><a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow" class="hover:text-green-500"><?= htmlspecialchars($siteConfig['site_icp']) ?></a></p>
+                <?php endif; ?>
                 Powered by <a href="https://xpornkit.com" class="text-green-500 hover:text-green-600" target="_blank">香蕉CMS</a>
             </div>
         </div>

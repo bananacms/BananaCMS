@@ -28,6 +28,9 @@
             <?php endif; ?>
             <div class="flex flex-col md:flex-row justify-between items-center">
                 <div class="text-gray-500 text-sm">
+                    <?php if (!empty($siteConfig['site_icp'])): ?>
+                    <a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow" class="hover:text-red-600 mr-4"><?= htmlspecialchars($siteConfig['site_icp']) ?></a>
+                    <?php endif; ?>
                     Powered by <a href="https://xpornkit.com" class="text-red-600 hover:underline" target="_blank">香蕉CMS</a>
                 </div>
                 <div class="flex space-x-6 mt-4 md:mt-0">
