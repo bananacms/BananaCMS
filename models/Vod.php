@@ -347,6 +347,8 @@ class XpkVod extends XpkModel
         // 获取该分类及其所有子分类的ID
         $typeModel = new XpkType();
         $typeIds = $typeModel->getChildIds($typeId);
+        // 确保数组键连续（array_unique 可能导致键不连续）
+        $typeIds = array_values($typeIds);
         
         $offset = ($page - 1) * $pageSize;
         $placeholders = implode(',', array_fill(0, count($typeIds), '?'));

@@ -130,7 +130,7 @@ class XpkType extends XpkModel
         
         // 如果有子分类，直接返回
         if (count($ids) > 1) {
-            return array_unique($ids);
+            return array_values(array_unique($ids));
         }
         
         // 没有子分类时，检查当前分类是否有视频
@@ -153,7 +153,7 @@ class XpkType extends XpkModel
             }
         }
         
-        return array_unique($ids);
+        return array_values(array_unique($ids));
     }
 
     /**
