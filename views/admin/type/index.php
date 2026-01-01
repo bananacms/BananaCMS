@@ -235,10 +235,11 @@ function batchDelete() {
     }
     
     xpkConfirm('确定删除选中的 ' + ids.length + ' 个分类？\n注意：有子分类或视频的分类无法删除', function() {
+        const formData = new FormData();
+        ids.forEach(id => formData.append('ids[]', id));
         fetch('/admin.php/type/batchDelete', {
             method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: ids.map(id => 'ids[]=' + id).join('&')
+            body: formData
         })
         .then(r => r.json())
         .then(data => {

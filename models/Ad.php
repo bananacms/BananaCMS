@@ -40,14 +40,14 @@ class XpkAd
     {
         return [
             self::POS_HOME_TOP => '首页顶部横幅',
-            self::POS_HOME_FLOAT => '首页悬浮广告',
+            self::POS_HOME_FLOAT => '全站悬浮广告',
             self::POS_DETAIL_TOP => '详情页顶部',
             self::POS_DETAIL_BOTTOM => '详情页底部',
-            self::POS_PLAY_PAUSE => '播放器暂停广告',
+            self::POS_PLAY_PAUSE => '播放器暂停广告（需自建播放器）',
             self::POS_PLAY_BEFORE => '片头广告',
             self::POS_SIDEBAR => '侧边栏广告',
             self::POS_LIST_INSERT => '列表页插入广告',
-            self::POS_POPUP => '弹窗广告',
+            self::POS_POPUP => '全站弹窗广告（每天一次）',
             self::POS_CUSTOM => '自定义位置',
         ];
     }

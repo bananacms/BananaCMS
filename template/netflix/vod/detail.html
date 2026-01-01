@@ -130,7 +130,24 @@ include $netflixLayoutPath . 'header.php';
 
 <script>
 function addToFavorite(vodId) {
-    alert('收藏功能需要登录');
+    fetch('/api.php?action=collect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        credentials: 'same-origin',
+        body: 'type=vod&id=' + vodId
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.code === 0) {
+            alert(data.msg);
+        } else if (data.code === 2) {
+            alert('请先登录');
+            window.location.href = '/user/login';
+        } else {
+            alert(data.msg || '操作失败');
+        }
+    })
+    .catch(() => alert('请求失败'));
 }
 </script>
 

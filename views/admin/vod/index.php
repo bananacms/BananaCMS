@@ -217,11 +217,16 @@ function batchDelete() {
 }
 
 function deleteItem(url, ids) {
+    if (!ids || ids.length === 0) {
+        xpkToast('请选择要删除的视频', 'warning');
+        return;
+    }
     xpkConfirm('确定要删除吗？', function() {
+        const formData = new FormData();
+        ids.forEach(id => formData.append('ids[]', id));
         fetch(url, {
             method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: 'ids[]=' + ids.join('&ids[]=')
+            body: formData
         })
         .then(r => r.json())
         .then(data => {

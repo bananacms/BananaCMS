@@ -182,6 +182,7 @@ function xpkCollect(vodId) {
     fetch('/api.php?action=collect', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        credentials: 'same-origin',
         body: 'type=vod&id=' + vodId
     })
     .then(r => r.json())

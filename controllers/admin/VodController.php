@@ -175,7 +175,12 @@ class AdminVodController extends AdminBaseController
     public function delete(): void
     {
         $ids = $_POST['ids'] ?? [];
-        if (empty($ids) || !is_array($ids)) {
+        if (!is_array($ids)) {
+            $this->error('请选择要删除的视频');
+        }
+        // 过滤空值并转为整数
+        $ids = array_filter(array_map('intval', $ids), fn($id) => $id > 0);
+        if (empty($ids)) {
             $this->error('请选择要删除的视频');
         }
 

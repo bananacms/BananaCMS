@@ -201,15 +201,22 @@ class AdminCollectController extends AdminBaseController
             $this->error('获取远程分类失败');
         }
 
-        // 获取本地已有分类ID
+        // 获取本地已有分类（ID和名称）
         $localTypes = $this->typeModel->getAll();
-        $localIds = array_column($localTypes, 'type_id');
+        $localById = [];
+        $localByName = [];
+        foreach ($localTypes as $t) {
+            $localById[$t['type_id']] = $t['type_name'];
+            $localByName[$t['type_name']] = $t['type_id'];
+        }
 
         $added = 0;
         $skipped = 0;
+        $conflicts = [];
         $db = XpkDatabase::getInstance();
         $bindModel = new XpkCollectBind();
         $remoteNames = [];
+        $bindData = [];
 
         // 先处理一级分类（pid=0）
         foreach ($remoteCategories as $cat) {
@@ -220,7 +227,30 @@ class AdminCollectController extends AdminBaseController
             $name = trim($cat['name']);
             $remoteNames[$remoteId] = $name;
             
-            if (in_array($remoteId, $localIds)) {
+            // 检查本地是否有同ID分类
+            if (isset($localById[$remoteId])) {
+                // ID相同，检查名称是否匹配
+                if ($localById[$remoteId] === $name) {
+                    // 名称也相同，直接绑定
+                    $bindData[$remoteId] = $remoteId;
+                    $skipped++;
+                } else {
+                    // ID相同但名称不同，尝试按名称匹配
+                    if (isset($localByName[$name])) {
+                        $bindData[$remoteId] = $localByName[$name];
+                        $skipped++;
+                    } else {
+                        // 记录冲突，不自动绑定
+                        $conflicts[] = "远程「{$name}」(ID:{$remoteId}) 与本地「{$localById[$remoteId]}」(ID:{$remoteId}) ID冲突";
+                        $skipped++;
+                    }
+                }
+                continue;
+            }
+            
+            // 检查本地是否有同名分类
+            if (isset($localByName[$name])) {
+                $bindData[$remoteId] = $localByName[$name];
                 $skipped++;
                 continue;
             }
@@ -234,7 +264,9 @@ class AdminCollectController extends AdminBaseController
                 "INSERT INTO " . DB_PREFIX . "type (type_id, type_pid, type_name, type_en, type_sort, type_status) VALUES (?, 0, ?, ?, ?, 1)",
                 [$remoteId, $name, $slug, $remoteId]
             );
-            $localIds[] = $remoteId;
+            $localById[$remoteId] = $name;
+            $localByName[$name] = $remoteId;
+            $bindData[$remoteId] = $remoteId;
             $added++;
         }
 
@@ -248,13 +280,33 @@ class AdminCollectController extends AdminBaseController
             $remotePid = (int)$pid;
             $remoteNames[$remoteId] = $name;
             
-            if (in_array($remoteId, $localIds)) {
+            // 检查本地是否有同ID分类
+            if (isset($localById[$remoteId])) {
+                if ($localById[$remoteId] === $name) {
+                    $bindData[$remoteId] = $remoteId;
+                    $skipped++;
+                } else {
+                    if (isset($localByName[$name])) {
+                        $bindData[$remoteId] = $localByName[$name];
+                        $skipped++;
+                    } else {
+                        $conflicts[] = "远程「{$name}」(ID:{$remoteId}) 与本地「{$localById[$remoteId]}」(ID:{$remoteId}) ID冲突";
+                        $skipped++;
+                    }
+                }
+                continue;
+            }
+
+            // 检查本地是否有同名分类
+            if (isset($localByName[$name])) {
+                $bindData[$remoteId] = $localByName[$name];
                 $skipped++;
                 continue;
             }
 
             // 检查父分类是否存在
-            if (!in_array($remotePid, $localIds)) {
+            $localPid = $bindData[$remotePid] ?? 0;
+            if (!$localPid) {
                 continue;
             }
 
@@ -265,21 +317,24 @@ class AdminCollectController extends AdminBaseController
             // 直接使用远程ID插入
             $db->execute(
                 "INSERT INTO " . DB_PREFIX . "type (type_id, type_pid, type_name, type_en, type_sort, type_status) VALUES (?, ?, ?, ?, ?, 1)",
-                [$remoteId, $remotePid, $name, $slug, $remoteId]
+                [$remoteId, $localPid, $name, $slug, $remoteId]
             );
-            $localIds[] = $remoteId;
+            $localById[$remoteId] = $name;
+            $localByName[$name] = $remoteId;
+            $bindData[$remoteId] = $remoteId;
             $added++;
         }
 
-        // 绑定关系就是 1:1，保存到绑定表
-        $bindData = [];
-        foreach ($remoteCategories as $cat) {
-            $bindData[$cat['id']] = (int)$cat['id'];
-        }
+        // 保存绑定关系
         $bindModel->saveBinds($id, $bindData, $remoteNames);
 
-        $this->log('同步分类', '采集', "ID:{$id} 新增{$added}个，跳过{$skipped}个");
-        $this->success("同步完成！新增 {$added} 个分类，跳过 {$skipped} 个已存在");
+        $this->log('同步分类', '采集', "ID:{$id} 新增{$added}个，跳过{$skipped}个，冲突" . count($conflicts) . "个");
+        
+        $msg = "同步完成！新增 {$added} 个，已匹配 {$skipped} 个";
+        if (!empty($conflicts)) {
+            $msg .= "，有 " . count($conflicts) . " 个ID冲突需手动绑定";
+        }
+        $this->success($msg);
     }
 
     /**

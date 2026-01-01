@@ -116,6 +116,7 @@ $router->post('admin.php/type/add', fn() => (new AdminTypeController())->add());
 $router->get('admin.php/type/edit/{id}', fn($id) => (new AdminTypeController())->edit((int)$id));
 $router->post('admin.php/type/edit/{id}', fn($id) => (new AdminTypeController())->edit((int)$id));
 $router->post('admin.php/type/delete', fn() => (new AdminTypeController())->delete());
+$router->post('admin.php/type/batchDelete', fn() => (new AdminTypeController())->batchDelete());
 
 // 演员管理
 $router->get('admin.php/actor', fn() => (new AdminActorController())->index());

@@ -20,16 +20,16 @@
     if (!empty($playBeforeAd)): 
         $adItem = $playBeforeAd[0];
     ?>
-    <div id="playBeforeAd" class="mb-4 relative bg-black rounded-lg overflow-hidden" style="aspect-ratio: 16/9;">
+    <div id="playBeforeAd" class="mb-4 relative bg-black rounded-lg overflow-hidden" style="aspect-ratio: 16/9; max-height: 70vh;">
         <?php if ($adItem['ad_type'] === 'video' && !empty($adItem['ad_video'])): ?>
         <video id="adVideo" src="<?= htmlspecialchars($adItem['ad_video']) ?>" autoplay playsinline class="w-full h-full object-contain"></video>
         <?php elseif ($adItem['ad_type'] === 'image' && !empty($adItem['ad_image'])): ?>
-        <a href="<?= htmlspecialchars($adItem['ad_link']) ?>" target="_blank" rel="nofollow" class="block w-full h-full">
-            <img src="<?= htmlspecialchars($adItem['ad_image']) ?>" class="w-full h-full object-contain" alt="广告">
+        <a href="<?= htmlspecialchars($adItem['ad_link']) ?>" target="_blank" rel="nofollow" class="flex items-center justify-center w-full h-full">
+            <img src="<?= htmlspecialchars($adItem['ad_image']) ?>" class="max-w-full max-h-full object-contain" alt="广告">
         </a>
         <?php endif; ?>
         <div class="absolute top-2 right-2 bg-black/70 text-white px-3 py-1 rounded text-sm">
-            <span id="adCountdown"><?= (int)($adItem['ad_skip_time'] ?: 5) ?></span>秒后可跳过
+            广告 <span id="adCountdown"><?= (int)($adItem['ad_skip_time'] ?: 5) ?></span>s
         </div>
         <button id="skipAdBtn" onclick="skipAd()" class="absolute bottom-4 right-4 bg-white/90 text-gray-800 px-4 py-2 rounded hover:bg-white hidden">
             跳过广告
