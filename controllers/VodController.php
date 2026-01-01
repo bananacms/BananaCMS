@@ -61,6 +61,7 @@ class VodController extends BaseController
         $this->render('vod/hot');
     }
 
+
     /**
      * 按一级分类筛选
      */
@@ -114,8 +115,6 @@ class VodController extends BaseController
         $this->assign('relatedList', $relatedList);
         
         // 兼容不同模板的播放列表变量名
-        // play_list 格式: [{from, sid, episodes: [{name, url, nid}], count}]
-        // playUrls 格式: [{name, urls: [{name, url}]}] (sid 从 1 开始)
         $playUrls = [];
         if (!empty($vod['play_list'])) {
             foreach ($vod['play_list'] as $source) {
@@ -126,7 +125,7 @@ class VodController extends BaseController
             }
         }
         $this->assign('playUrls', $playUrls);
-        $this->assign('playList', $vod['play_list'] ?? []); // Netflix 模板用这个
+        $this->assign('playList', $playUrls); // Netflix 模板用这个
         
         // SEO
         $seoVars = ['name' => $vod['vod_name'], 'actor' => $vod['vod_actor'] ?? '', 'type' => $vod['type_name'] ?? '', 'year' => $vod['vod_year'] ?? '', 'area' => $vod['vod_area'] ?? ''];
@@ -136,6 +135,7 @@ class VodController extends BaseController
         
         $this->render('vod/detail');
     }
+
 
     /**
      * 视频播放
@@ -159,11 +159,24 @@ class VodController extends BaseController
         
         // 解析播放地址
         $playFroms = explode('$$$', $vod['vod_play_from'] ?? '');
-        $playUrls = $this->parsePlayUrl($vod['vod_play_url'] ?? '');
+        $rawPlayUrls = $this->parsePlayUrl($vod['vod_play_url'] ?? '');
         
-        // 获取当前播放源和地址
+        // 构建兼容模板的 playUrls 格式: [{name, urls: [{name, url}]}]
+        $playUrls = [];
+        foreach ($playFroms as $index => $from) {
+            $from = trim($from);
+            if (empty($from)) continue;
+            $playUrls[] = [
+                'name' => $from,
+                'urls' => $rawPlayUrls[$index] ?? []
+            ];
+        }
+        
+        // 获取当前播放源和地址 (sid/nid 从 1 开始，数组从 0 开始)
         $currentFrom = $playFroms[$sid - 1] ?? '';
-        $currentUrl = $playUrls[$sid - 1][$nid - 1]['url'] ?? '';
+        $currentEpisodes = $rawPlayUrls[$sid - 1] ?? [];
+        $currentUrl = $currentEpisodes[$nid - 1]['url'] ?? '';
+        $currentEp = $currentEpisodes[$nid - 1] ?? ['name' => '播放', 'url' => ''];
         
         // 获取播放器配置
         $playerUrl = '';
@@ -176,35 +189,57 @@ class VodController extends BaseController
             $playerInfo = $playerModel->findByCode($currentFrom);
             
             if ($playerInfo && !empty($playerInfo['player_parse'])) {
-                // 使用播放器解析地址
                 $playerUrl = str_replace('{url}', urlencode($currentUrl), $playerInfo['player_parse']);
             } else {
-                // 没有配置解析接口，使用内置 DPlayer
                 $useBuiltinPlayer = true;
                 $playerUrl = '/static/player.html?url=' . urlencode($currentUrl);
-                // 添加封面图
                 if (!empty($vod['vod_pic'])) {
                     $playerUrl .= '&pic=' . urlencode($vod['vod_pic']);
                 }
             }
         }
         
+        // 上一集/下一集 (nid 从 1 开始)
+        $prevEpisode = $nid > 1 ? ['nid' => $nid - 1, 'name' => $currentEpisodes[$nid - 2]['name'] ?? ''] : null;
+        $nextEpisode = isset($currentEpisodes[$nid]) ? ['nid' => $nid + 1, 'name' => $currentEpisodes[$nid]['name'] ?? ''] : null;
+        
+        // 当前播放源信息 (Netflix 模板用)
+        $currentSource = [
+            'name' => $currentFrom,
+            'urls' => $currentEpisodes
+        ];
+        
+        // 相关视频
+        $relatedList = $this->vodModel->getRelated($vod['vod_type_id'] ?? 0, $id, 6);
+        
         $this->assign('vod', $vod);
         $this->assign('playUrls', $playUrls);
+        $this->assign('playList', $playUrls); // Netflix 模板用
         $this->assign('playFroms', $playFroms);
         $this->assign('sid', $sid);
         $this->assign('nid', $nid);
+        $this->assign('currentSid', $sid);
+        $this->assign('currentNid', $nid);
         $this->assign('currentUrl', $playerUrl);
+        $this->assign('playerUrl', $playerUrl);
+        $this->assign('playUrl', $playerUrl); // Netflix 模板用
         $this->assign('rawUrl', $currentUrl);
         $this->assign('currentFrom', $currentFrom);
+        $this->assign('currentEp', $currentEp);
+        $this->assign('currentEpisode', $currentEp); // Netflix 模板用
+        $this->assign('currentSource', $currentSource); // Netflix 模板用
+        $this->assign('prevEpisode', $prevEpisode);
+        $this->assign('nextEpisode', $nextEpisode);
         $this->assign('playerInfo', $playerInfo);
         $this->assign('useBuiltinPlayer', $useBuiltinPlayer);
+        $this->assign('relatedList', $relatedList);
         
         // SEO
         $this->assign('title', $vod['vod_name'] . ' 播放 - ' . $this->data['siteName']);
         
         $this->render('vod/play');
     }
+
 
     /**
      * 通过 slug 访问详情
@@ -257,7 +292,7 @@ class VodController extends BaseController
                     continue;
                 }
                 if (strpos($item, '$') !== false) {
-                    [$name, $url] = explode('$', $item, 2);
+                    list($name, $url) = explode('$', $item, 2);
                 } else {
                     $name = '播放';
                     $url = $item;

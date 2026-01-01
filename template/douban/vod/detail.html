@@ -86,12 +86,12 @@
     <?php if (!empty($playUrls)): ?>
         <div class="mb-8">
             <h2 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2">播放列表</h2>
-            <?php foreach ($playUrls as $sid => $source): ?>
+            <?php foreach ($playUrls as $sidIdx => $source): ?>
                 <div class="mb-4">
                     <h3 class="text-sm text-gray-500 mb-2"><?php echo htmlspecialchars($source['name']); ?></h3>
                     <div class="flex flex-wrap gap-2">
-                        <?php foreach ($source['urls'] as $nid => $ep): ?>
-                            <a href="<?php echo xpk_page_url('play', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug'], 'sid' => $sid, 'nid' => $nid]); ?>" class="px-3 py-1 border border-gray-300 rounded text-sm hover:border-green-700 hover:text-green-700"><?php echo htmlspecialchars($ep['name']); ?></a>
+                        <?php foreach ($source['urls'] as $nidIdx => $ep): ?>
+                            <a href="<?php echo xpk_page_url('play', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug'], 'sid' => $sidIdx + 1, 'nid' => $nidIdx + 1]); ?>" class="px-3 py-1 border border-gray-300 rounded text-sm hover:border-green-700 hover:text-green-700"><?php echo htmlspecialchars($ep['name']); ?></a>
                         <?php endforeach; ?>
                     </div>
                 </div>

@@ -35,9 +35,9 @@ include $netflixLayoutPath . 'header.php';
         <div class="mb-6">
             <h3 class="text-sm text-gray-400 mb-3">切换线路</h3>
             <div class="flex flex-wrap gap-2">
-                <?php foreach ($playList as $sid => $source): ?>
-                <a href="<?php echo xpk_page_url('vod_play', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug'], 'sid' => $sid, 'nid' => 1]); ?>" 
-                   class="<?php echo $sid == $currentSid ? 'bg-red-600' : 'bg-gray-800 hover:bg-gray-700'; ?> px-4 py-2 rounded text-sm transition">
+                <?php foreach ($playList as $sidIdx => $source): ?>
+                <a href="<?php echo xpk_page_url('vod_play', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug'], 'sid' => $sidIdx + 1, 'nid' => 1]); ?>" 
+                   class="<?php echo ($sidIdx + 1) == $currentSid ? 'bg-red-600' : 'bg-gray-800 hover:bg-gray-700'; ?> px-4 py-2 rounded text-sm transition">
                     <?php echo htmlspecialchars($source['name']); ?>
                 </a>
                 <?php endforeach; ?>
@@ -49,9 +49,9 @@ include $netflixLayoutPath . 'header.php';
         <div class="mb-6">
             <h3 class="text-sm text-gray-400 mb-3">选集</h3>
             <div class="flex flex-wrap gap-2 max-h-48 overflow-y-auto">
-                <?php foreach ($currentSource['urls'] as $nid => $ep): ?>
-                <a href="<?php echo xpk_page_url('vod_play', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug'], 'sid' => $currentSid, 'nid' => $nid]); ?>" 
-                   class="<?php echo $nid == $currentNid ? 'bg-red-600' : 'bg-gray-800 hover:bg-gray-700'; ?> px-4 py-2 rounded text-sm transition">
+                <?php foreach ($currentSource['urls'] as $nidIdx => $ep): ?>
+                <a href="<?php echo xpk_page_url('vod_play', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug'], 'sid' => $currentSid, 'nid' => $nidIdx + 1]); ?>" 
+                   class="<?php echo ($nidIdx + 1) == $currentNid ? 'bg-red-600' : 'bg-gray-800 hover:bg-gray-700'; ?> px-4 py-2 rounded text-sm transition">
                     <?php echo htmlspecialchars($ep['name']); ?>
                 </a>
                 <?php endforeach; ?>

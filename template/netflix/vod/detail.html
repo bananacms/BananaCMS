@@ -88,12 +88,12 @@ include $netflixLayoutPath . 'header.php';
         <?php if (!empty($playList)): ?>
         <div class="mt-10">
             <h3 class="text-xl font-bold mb-4">选集播放</h3>
-            <?php foreach ($playList as $sid => $source): ?>
+            <?php foreach ($playList as $sidIdx => $source): ?>
             <div class="mb-6">
                 <h4 class="text-gray-400 text-sm mb-3"><?php echo htmlspecialchars($source['name']); ?></h4>
                 <div class="flex flex-wrap gap-2">
-                    <?php foreach ($source['urls'] as $nid => $ep): ?>
-                    <a href="<?php echo xpk_page_url('vod_play', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug'], 'sid' => $sid, 'nid' => $nid]); ?>" 
+                    <?php foreach ($source['urls'] as $nidIdx => $ep): ?>
+                    <a href="<?php echo xpk_page_url('vod_play', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug'], 'sid' => $sidIdx + 1, 'nid' => $nidIdx + 1]); ?>" 
                        class="bg-gray-800 hover:bg-red-600 px-4 py-2 rounded text-sm transition">
                         <?php echo htmlspecialchars($ep['name']); ?>
                     </a>
