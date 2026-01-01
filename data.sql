@@ -533,3 +533,42 @@ INSERT INTO `xpk_player` (`player_name`, `player_code`, `player_parse`, `player_
 ('哔哩哔哩', 'bilibili', '', 24, 1, 'B站视频');
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+
+-- 转码任务表
+DROP TABLE IF EXISTS `xpk_transcode`;
+CREATE TABLE `xpk_transcode` (
+  `transcode_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `vod_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '关联视频ID',
+  `source_file` varchar(500) NOT NULL DEFAULT '' COMMENT '源文件路径',
+  `output_dir` varchar(500) NOT NULL DEFAULT '' COMMENT '输出目录',
+  `transcode_status` tinyint(1) NOT NULL DEFAULT 0 COMMENT '状态:0待处理,1处理中,2完成,3失败',
+  `transcode_progress` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '进度百分比',
+  `duration` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '视频时长(秒)',
+  `resolution` varchar(20) NOT NULL DEFAULT '' COMMENT '分辨率',
+  `bitrate` varchar(20) NOT NULL DEFAULT '' COMMENT '码率',
+  `encrypt_key` varchar(64) NOT NULL DEFAULT '' COMMENT '加密密钥(hex)',
+  `m3u8_url` varchar(500) NOT NULL DEFAULT '' COMMENT '生成的m3u8地址',
+  `error_msg` text COMMENT '错误信息',
+  `created_at` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '创建时间',
+  `updated_at` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '更新时间',
+  `finished_at` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '完成时间',
+  PRIMARY KEY (`transcode_id`),
+  KEY `idx_vod` (`vod_id`),
+  KEY `idx_status` (`transcode_status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='转码任务表';
+
+-- 分片上传临时表
+DROP TABLE IF EXISTS `xpk_upload_chunk`;
+CREATE TABLE `xpk_upload_chunk` (
+  `chunk_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `upload_id` varchar(64) NOT NULL DEFAULT '' COMMENT '上传标识',
+  `chunk_index` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '分片序号',
+  `chunk_path` varchar(500) NOT NULL DEFAULT '' COMMENT '分片路径',
+  `total_chunks` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '总分片数',
+  `file_name` varchar(255) NOT NULL DEFAULT '' COMMENT '原文件名',
+  `file_size` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '文件总大小',
+  `created_at` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '创建时间',
+  PRIMARY KEY (`chunk_id`),
+  UNIQUE KEY `uk_upload_chunk` (`upload_id`, `chunk_index`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='分片上传临时表';

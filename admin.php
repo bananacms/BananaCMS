@@ -181,6 +181,19 @@ $router->post('admin.php/collect/runCron', fn() => (new AdminCollectController()
 $router->get('admin.php/collect/log', fn() => (new AdminCollectController())->logList());
 $router->post('admin.php/collect/cleanLog', fn() => (new AdminCollectController())->cleanLog());
 
+// 云转码
+require_once CTRL_PATH . 'admin/TranscodeController.php';
+$router->get('admin.php/transcode', fn() => (new AdminTranscodeController())->index());
+$router->get('admin.php/transcode/upload', fn() => (new AdminTranscodeController())->upload());
+$router->get('admin.php/transcode/doUpload', fn() => (new AdminTranscodeController())->doUpload());
+$router->post('admin.php/transcode/doUpload', fn() => (new AdminTranscodeController())->doUpload());
+$router->get('admin.php/transcode/status', fn() => (new AdminTranscodeController())->status());
+$router->post('admin.php/transcode/retry', fn() => (new AdminTranscodeController())->retry());
+$router->post('admin.php/transcode/delete', fn() => (new AdminTranscodeController())->delete());
+$router->post('admin.php/transcode/batchDelete', fn() => (new AdminTranscodeController())->batchDelete());
+$router->post('admin.php/transcode/process', fn() => (new AdminTranscodeController())->process());
+$router->get('admin.php/transcode/play', fn() => (new AdminTranscodeController())->play());
+
 // 操作日志
 $router->get('admin.php/log', fn() => (new AdminLogController())->index());
 $router->post('admin.php/log/clean', fn() => (new AdminLogController())->clean());

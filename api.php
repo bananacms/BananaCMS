@@ -163,6 +163,10 @@ class XpkApi
             // 前端收藏（简化版）
             case 'collect': $this->collect(); break;
             
+            // 转码
+            case 'transcode.key': $this->transcodeKey(); break;
+            case 'transcode.m3u8': $this->transcodeM3u8(); break;
+            
             default: $this->error('未知接口'); break;
         }
     }
@@ -1134,6 +1138,125 @@ class XpkApi
             );
             $this->success('收藏成功');
         }
+    }
+
+    // ==================== 转码接口 ====================
+
+    /**
+     * 获取转码视频的加密 Key
+     */
+    private function transcodeKey(): void
+    {
+        $id = (int)($_GET['id'] ?? 0);
+        $token = $_GET['token'] ?? '';
+        $time = (int)($_GET['t'] ?? 0);
+        
+        if ($id <= 0) {
+            http_response_code(400);
+            exit('Bad Request');
+        }
+        
+        // 验证 Referer（可选，防止直接访问）
+        $referer = $_SERVER['HTTP_REFERER'] ?? '';
+        if (!empty($referer)) {
+            $host = parse_url($referer, PHP_URL_HOST);
+            $siteHost = parse_url(SITE_URL, PHP_URL_HOST);
+            if ($host !== $siteHost && $host !== 'localhost' && $host !== '127.0.0.1') {
+                http_response_code(403);
+                exit('Forbidden');
+            }
+        }
+        
+        // 验证 Token（时效2小时）
+        if (!empty($token)) {
+            $secret = defined('ENCRYPT_SECRET') ? ENCRYPT_SECRET : 'xpk_secret';
+            $expected = md5($id . $time . $secret);
+            if (!hash_equals($expected, $token) || time() - $time > 7200) {
+                http_response_code(403);
+                exit('Token Invalid');
+            }
+        }
+        
+        // 获取任务
+        require_once MODEL_PATH . 'Transcode.php';
+        $transcodeModel = new XpkTranscode();
+        $task = $transcodeModel->find($id);
+        
+        if (!$task || $task['transcode_status'] != 2 || empty($task['encrypt_key'])) {
+            http_response_code(404);
+            exit('Not Found');
+        }
+        
+        // 返回二进制 Key
+        header('Content-Type: application/octet-stream');
+        header('Cache-Control: no-cache, no-store, must-revalidate');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+        echo hex2bin($task['encrypt_key']);
+        exit;
+    }
+
+    /**
+     * 获取动态 m3u8（带签名的 Key URL）
+     */
+    private function transcodeM3u8(): void
+    {
+        $id = (int)($_GET['id'] ?? 0);
+        $token = $_GET['token'] ?? '';
+        $time = (int)($_GET['t'] ?? 0);
+        
+        if ($id <= 0) {
+            http_response_code(400);
+            exit('Bad Request');
+        }
+        
+        // 验证 Token
+        $secret = defined('ENCRYPT_SECRET') ? ENCRYPT_SECRET : 'xpk_secret';
+        $expected = md5($id . $time . $secret);
+        if (!hash_equals($expected, $token) || time() - $time > 7200) {
+            http_response_code(403);
+            exit('Token Invalid');
+        }
+        
+        // 获取任务
+        require_once MODEL_PATH . 'Transcode.php';
+        $transcodeModel = new XpkTranscode();
+        $task = $transcodeModel->find($id);
+        
+        if (!$task || $task['transcode_status'] != 2 || empty($task['m3u8_url'])) {
+            http_response_code(404);
+            exit('Not Found');
+        }
+        
+        // 读取 m3u8 文件
+        $m3u8Path = ROOT_PATH . ltrim($task['m3u8_url'], '/');
+        if (!file_exists($m3u8Path)) {
+            http_response_code(404);
+            exit('File Not Found');
+        }
+        
+        $content = file_get_contents($m3u8Path);
+        
+        // 生成新的 Key URL（带时效签名）
+        $newTime = time();
+        $newToken = md5($id . $newTime . $secret);
+        $keyUrl = rtrim(SITE_URL, '/') . '/api.php?action=transcode.key&id=' . $id . '&t=' . $newTime . '&token=' . $newToken;
+        
+        // 替换 Key URL
+        $content = preg_replace(
+            '/#EXT-X-KEY:METHOD=AES-128,URI="[^"]*"/',
+            '#EXT-X-KEY:METHOD=AES-128,URI="' . $keyUrl . '"',
+            $content
+        );
+        
+        // 修正 ts 文件路径为绝对路径
+        $baseUrl = rtrim(SITE_URL, '/') . dirname($task['m3u8_url']) . '/';
+        $content = preg_replace('/^([a-f0-9]+\.ts)$/m', $baseUrl . '$1', $content);
+        
+        header('Content-Type: application/vnd.apple.mpegurl');
+        header('Cache-Control: no-cache');
+        echo $content;
+        exit;
     }
 
     // ==================== 辅助方法 ====================
