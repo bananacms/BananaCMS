@@ -49,7 +49,7 @@ include $netflixLayoutPath . 'header.php';
 function copyLinkCode() {
     const code = '<a href="<?= htmlspecialchars($siteUrl ?? SITE_URL) ?>" target="_blank"><?= htmlspecialchars($siteName ?? SITE_NAME) ?></a>';
     navigator.clipboard.writeText(code).then(() => {
-        alert('代码已复制到剪贴板');
+        xpk.toast('代码已复制到剪贴板', 'success');
     }).catch(() => {
         const input = document.createElement('textarea');
         input.value = code;
@@ -57,7 +57,7 @@ function copyLinkCode() {
         input.select();
         document.execCommand('copy');
         document.body.removeChild(input);
-        alert('代码已复制到剪贴板');
+        xpk.toast('代码已复制到剪贴板', 'success');
     });
 }
 </script>
