@@ -1,29 +1,24 @@
 <?php
 /**
- * 转码定时任务
+ * 转码定时任务（支持广告合并）
  * Powered by https://xpornkit.com
  * 
  * Crontab 配置（每分钟执行）:
  * * * * * * php /www/site/cron_transcode.php >> /www/site/runtime/transcode.log 2>&1
- * 
- * 或使用宝塔面板的计划任务
  */
 
 // 防止重复执行
 $lockFile = __DIR__ . '/runtime/transcode.lock';
 if (file_exists($lockFile)) {
     $lockTime = (int)file_get_contents($lockFile);
-    // 锁定超过30分钟则认为是异常，清除锁
     if (time() - $lockTime < 1800) {
         echo date('Y-m-d H:i:s') . " - 任务正在执行中，跳过\n";
         exit;
     }
 }
 
-// 创建锁
 file_put_contents($lockFile, time());
 
-// 注册退出时清除锁
 register_shutdown_function(function() use ($lockFile) {
     @unlink($lockFile);
 });
@@ -31,8 +26,10 @@ register_shutdown_function(function() use ($lockFile) {
 // 加载配置
 require_once __DIR__ . '/config/config.php';
 require_once CORE_PATH . 'Database.php';
+require_once CORE_PATH . 'Cache.php';
 require_once MODEL_PATH . 'Model.php';
 require_once MODEL_PATH . 'Transcode.php';
+require_once MODEL_PATH . 'TranscodeAd.php';
 require_once CORE_PATH . 'Transcoder.php';
 
 echo date('Y-m-d H:i:s') . " - 开始检查转码任务\n";
@@ -93,6 +90,62 @@ $transcodeModel->update($task['transcode_id'], [
     'bitrate' => $info['bitrate'],
 ]);
 
+// 获取广告配置
+$adModel = new XpkTranscodeAd();
+$adConfig = $adModel->getConfig();
+$ads = [];
+
+if (!empty($adConfig['enable'])) {
+    echo date('Y-m-d H:i:s') . " - 加载广告配置...\n";
+    
+    // 片头广告
+    if (!empty($adConfig['head_enable'])) {
+        $headAds = $adModel->getByPosition('head');
+        if (!empty($headAds)) {
+            $ads['head'] = [];
+            foreach ($headAds as $ad) {
+                $filePath = ROOT_PATH . ltrim($ad['ad_file'], '/');
+                if (file_exists($filePath)) {
+                    $ads['head'][] = ['file' => $filePath, 'duration' => $ad['ad_duration']];
+                    echo "  片头广告: {$ad['ad_name']} ({$ad['ad_duration']}秒)\n";
+                }
+            }
+        }
+    }
+    
+    // 片中广告
+    if (!empty($adConfig['middle_enable'])) {
+        $middleAds = $adModel->getByPosition('middle');
+        if (!empty($middleAds)) {
+            $ads['middle'] = [];
+            $ads['middle_interval'] = $adConfig['middle_interval'] ?? 300;
+            foreach ($middleAds as $ad) {
+                $filePath = ROOT_PATH . ltrim($ad['ad_file'], '/');
+                if (file_exists($filePath)) {
+                    $ads['middle'][] = ['file' => $filePath, 'duration' => $ad['ad_duration']];
+                    echo "  片中广告: {$ad['ad_name']} ({$ad['ad_duration']}秒)\n";
+                }
+            }
+            echo "  片中广告间隔: {$ads['middle_interval']}秒\n";
+        }
+    }
+    
+    // 片尾广告
+    if (!empty($adConfig['tail_enable'])) {
+        $tailAds = $adModel->getByPosition('tail');
+        if (!empty($tailAds)) {
+            $ads['tail'] = [];
+            foreach ($tailAds as $ad) {
+                $filePath = ROOT_PATH . ltrim($ad['ad_file'], '/');
+                if (file_exists($filePath)) {
+                    $ads['tail'][] = ['file' => $filePath, 'duration' => $ad['ad_duration']];
+                    echo "  片尾广告: {$ad['ad_name']} ({$ad['ad_duration']}秒)\n";
+                }
+            }
+        }
+    }
+}
+
 // 执行转码
 echo date('Y-m-d H:i:s') . " - 开始转码...\n";
 
@@ -104,10 +157,10 @@ $result = $transcoder->transcodeToHLS($task['source_file'], $task['output_dir'],
     'segment_time' => 10,
     'preset' => 'fast',
     'crf' => 23,
+    'ads' => $ads,  // 传入广告配置
 ]);
 
 if ($result['success']) {
-    // 计算相对路径
     $m3u8Url = str_replace(ROOT_PATH, '/', $result['m3u8']);
     
     $transcodeModel->updateStatus($task['transcode_id'], XpkTranscode::STATUS_COMPLETED, [
@@ -118,9 +171,6 @@ if ($result['success']) {
     
     echo date('Y-m-d H:i:s') . " - 转码完成!\n";
     echo "  m3u8: {$m3u8Url}\n";
-    
-    // 可选：删除源文件节省空间
-    // @unlink($task['source_file']);
     
 } else {
     $transcodeModel->updateStatus($task['transcode_id'], XpkTranscode::STATUS_FAILED, [

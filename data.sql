@@ -572,3 +572,19 @@ CREATE TABLE `xpk_upload_chunk` (
   PRIMARY KEY (`chunk_id`),
   UNIQUE KEY `uk_upload_chunk` (`upload_id`, `chunk_index`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='分片上传临时表';
+
+-- 转码广告表
+DROP TABLE IF EXISTS `xpk_transcode_ad`;
+CREATE TABLE `xpk_transcode_ad` (
+  `ad_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `ad_name` varchar(100) NOT NULL DEFAULT '' COMMENT '广告名称',
+  `ad_position` varchar(20) NOT NULL DEFAULT 'head' COMMENT '位置:head片头,middle片中,tail片尾',
+  `ad_file` varchar(500) NOT NULL DEFAULT '' COMMENT '广告视频路径',
+  `ad_duration` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '广告时长(秒)',
+  `ad_sort` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '排序',
+  `ad_status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态:0禁用,1启用',
+  `created_at` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '创建时间',
+  `updated_at` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '更新时间',
+  PRIMARY KEY (`ad_id`),
+  KEY `idx_position` (`ad_position`, `ad_status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='转码广告表';

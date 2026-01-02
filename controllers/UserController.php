@@ -315,4 +315,28 @@ class UserController extends BaseController
         $this->assign('noindex', true);
         $this->render('user/center');
     }
+
+    /**
+     * 忘记密码页
+     */
+    public function forgot(): void
+    {
+        if ($this->checkLogin()) {
+            $this->redirect(xpk_url('user/center'));
+            return;
+        }
+        
+        $this->assign('csrfToken', $this->generateCsrfToken());
+        $this->assign('title', '找回密码 - ' . SITE_NAME);
+        $this->assign('noindex', true);
+        $this->render('user/forgot');
+    }
+
+    /**
+     * 处理找回密码（暂不支持，提示联系管理员）
+     */
+    public function doForgot(): void
+    {
+        $this->error('暂不支持在线找回密码，请联系管理员');
+    }
 }

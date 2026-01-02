@@ -4,6 +4,77 @@
 </div>
 <?php endif; ?>
 
+<!-- 使用说明（可折叠） -->
+<?php if (!$ffmpegAvailable): ?>
+<div class="mb-6 bg-amber-50 border border-amber-200 rounded-lg overflow-hidden">
+    <button onclick="toggleHelp()" class="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-amber-100 transition">
+        <span class="font-medium text-amber-800">📖 云转码功能配置指南（点击展开）</span>
+        <svg id="helpArrow" class="w-5 h-5 text-amber-600 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+        </svg>
+    </button>
+    <div id="helpContent" class="hidden px-4 pb-4">
+        <div class="text-sm text-amber-900 space-y-4">
+            <div class="bg-white rounded p-4 border border-amber-100">
+                <h4 class="font-bold mb-2">🎯 功能说明</h4>
+                <p>云转码可将上传的视频转换为加密 HLS 格式（m3u8），支持：</p>
+                <ul class="list-disc list-inside mt-2 space-y-1 text-gray-600">
+                    <li>视频加密防盗链</li>
+                    <li>自动切片分段</li>
+                    <li>广告无缝合并（片头/片中/片尾）</li>
+                    <li>多分辨率转码</li>
+                </ul>
+            </div>
+            
+            <div class="bg-white rounded p-4 border border-amber-100">
+                <h4 class="font-bold mb-2">📦 宝塔面板安装 FFmpeg</h4>
+                <ol class="list-decimal list-inside space-y-2 text-gray-600">
+                    <li>登录宝塔面板</li>
+                    <li>进入 <span class="bg-gray-100 px-1 rounded">软件商店</span></li>
+                    <li>搜索 <span class="bg-gray-100 px-1 rounded">ffmpeg</span></li>
+                    <li>点击安装（推荐安装最新版本）</li>
+                    <li>安装完成后刷新本页面</li>
+                </ol>
+            </div>
+            
+            <div class="bg-white rounded p-4 border border-amber-100">
+                <h4 class="font-bold mb-2">⚙️ PHP 函数配置</h4>
+                <p class="text-gray-600 mb-2">需要在 PHP 中启用以下函数（宝塔默认禁用）：</p>
+                <div class="bg-gray-800 text-green-400 rounded p-3 font-mono text-xs">
+                    exec, shell_exec, proc_open, popen
+                </div>
+                <p class="text-gray-500 mt-2 text-xs">操作步骤：宝塔面板 → 网站 → PHP版本 → 禁用函数 → 删除上述函数</p>
+            </div>
+            
+            <div class="bg-white rounded p-4 border border-amber-100">
+                <h4 class="font-bold mb-2">🔧 命令行安装（可选）</h4>
+                <p class="text-gray-600 mb-2">如果软件商店没有 FFmpeg，可通过命令行安装：</p>
+                <div class="bg-gray-800 text-green-400 rounded p-3 font-mono text-xs space-y-1">
+                    <div># CentOS / RHEL</div>
+                    <div>yum install -y epel-release</div>
+                    <div>yum install -y ffmpeg ffmpeg-devel</div>
+                    <div class="mt-2"># Ubuntu / Debian</div>
+                    <div>apt update && apt install -y ffmpeg</div>
+                </div>
+            </div>
+            
+            <div class="bg-blue-50 rounded p-4 border border-blue-100">
+                <h4 class="font-bold mb-2 text-blue-800">💡 不需要此功能？</h4>
+                <p class="text-blue-700">如果您不需要云转码功能，可以忽略此页面。视频可以直接使用外部播放地址或第三方存储。</p>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+function toggleHelp() {
+    const content = document.getElementById('helpContent');
+    const arrow = document.getElementById('helpArrow');
+    content.classList.toggle('hidden');
+    arrow.classList.toggle('rotate-180');
+}
+</script>
+<?php endif; ?>
+
 <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold">云转码</h1>
     <div class="flex items-center gap-3">
@@ -12,6 +83,9 @@
         <?php else: ?>
             <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm">FFmpeg 未安装</span>
         <?php endif; ?>
+        <a href="/admin.php/transcode/ad" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded">
+            🎬 广告管理
+        </a>
         <a href="/admin.php/transcode/upload" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded <?= $ffmpegAvailable ? '' : 'opacity-50 pointer-events-none' ?>">
             + 上传视频
         </a>

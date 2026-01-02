@@ -194,6 +194,18 @@ $router->post('admin.php/transcode/batchDelete', fn() => (new AdminTranscodeCont
 $router->post('admin.php/transcode/process', fn() => (new AdminTranscodeController())->process());
 $router->get('admin.php/transcode/play', fn() => (new AdminTranscodeController())->play());
 
+// 转码广告管理
+require_once CTRL_PATH . 'admin/TranscodeAdController.php';
+$router->get('admin.php/transcode/ad', fn() => (new AdminTranscodeAdController())->index());
+$router->get('admin.php/transcode/ad/add', fn() => (new AdminTranscodeAdController())->add());
+$router->post('admin.php/transcode/ad/add', fn() => (new AdminTranscodeAdController())->add());
+$router->get('admin.php/transcode/ad/edit/{id}', fn($id) => (new AdminTranscodeAdController())->edit((int)$id));
+$router->post('admin.php/transcode/ad/edit/{id}', fn($id) => (new AdminTranscodeAdController())->edit((int)$id));
+$router->post('admin.php/transcode/ad/delete', fn() => (new AdminTranscodeAdController())->delete());
+$router->post('admin.php/transcode/ad/toggle', fn() => (new AdminTranscodeAdController())->toggle());
+$router->post('admin.php/transcode/ad/saveConfig', fn() => (new AdminTranscodeAdController())->saveConfig());
+$router->post('admin.php/transcode/ad/upload', fn() => (new AdminTranscodeAdController())->upload());
+
 // 操作日志
 $router->get('admin.php/log', fn() => (new AdminLogController())->index());
 $router->post('admin.php/log/clean', fn() => (new AdminLogController())->clean());

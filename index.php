@@ -111,6 +111,7 @@ $router->get('watch/{slug}-{sid}-{nid}.html', fn($slug, $sid, $nid) => (new VodC
 // 全部分类
 $router->get('type', fn() => (new TypeController())->all());
 $router->get('types', fn() => (new TypeController())->all());
+$router->get('type/all', fn() => (new TypeController())->all());
 
 // 分类 - 模式1
 $router->get('type/{id}', fn($id) => (new TypeController())->index((int)$id));
@@ -167,6 +168,8 @@ $router->get('user/register', fn() => (new UserController())->register());
 $router->post('user/register', fn() => (new UserController())->doRegister());
 $router->get('user/logout', fn() => (new UserController())->logout());
 $router->get('user/center', fn() => (new UserController())->center());
+$router->get('user/forgot', fn() => (new UserController())->forgot());
+$router->post('user/forgot', fn() => (new UserController())->doForgot());
 
 // 友链
 require_once CTRL_PATH . 'LinkController.php';
