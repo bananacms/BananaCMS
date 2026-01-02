@@ -21,7 +21,13 @@ class TypeController extends BaseController
      */
     public function all(): void
     {
-        $typeList = $this->typeModel->getList(0); // 获取所有一级分类
+        // 获取所有一级分类
+        $typeList = $this->typeModel->getList(0);
+        
+        // 如果没有一级分类，获取所有分类
+        if (empty($typeList)) {
+            $typeList = $this->typeModel->getAll(['type_status' => 1]);
+        }
         
         $this->assign('typeList', $typeList);
         $this->assign('types', $typeList); // 兼容 netflix 模板

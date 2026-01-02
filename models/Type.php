@@ -217,11 +217,23 @@ class XpkType extends XpkModel
      */
     public function getNav(int $limit = 10): array
     {
+        // 优先获取一级分类
         $sql = "SELECT * FROM {$this->table} WHERE type_pid = 0 AND type_status = 1 ORDER BY type_sort ASC";
         if ($limit > 0) {
             $sql .= " LIMIT {$limit}";
         }
-        return $this->db->query($sql);
+        $result = $this->db->query($sql);
+        
+        // 如果没有一级分类，获取所有分类
+        if (empty($result)) {
+            $sql = "SELECT * FROM {$this->table} WHERE type_status = 1 ORDER BY type_sort ASC, type_id ASC";
+            if ($limit > 0) {
+                $sql .= " LIMIT {$limit}";
+            }
+            $result = $this->db->query($sql);
+        }
+        
+        return $result;
     }
 
     /**
