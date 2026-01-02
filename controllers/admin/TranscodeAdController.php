@@ -51,6 +51,10 @@ class AdminTranscodeAdController extends AdminBaseController
      */
     private function doAdd(): void
     {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+        
         $data = [
             'ad_name' => trim($this->post('ad_name', '')),
             'ad_position' => $this->post('ad_position', 'head'),
@@ -118,6 +122,10 @@ class AdminTranscodeAdController extends AdminBaseController
      */
     private function doEdit(int $id): void
     {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+        
         $data = [
             'ad_name' => trim($this->post('ad_name', '')),
             'ad_position' => $this->post('ad_position', 'head'),
@@ -158,6 +166,10 @@ class AdminTranscodeAdController extends AdminBaseController
      */
     public function delete(): void
     {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+        
         $id = (int)$this->post('id', 0);
         
         if ($id <= 0) {
@@ -190,6 +202,10 @@ class AdminTranscodeAdController extends AdminBaseController
      */
     public function toggle(): void
     {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+        
         $id = (int)$this->post('id', 0);
         
         $ad = $this->adModel->find($id);
@@ -211,6 +227,10 @@ class AdminTranscodeAdController extends AdminBaseController
      */
     public function saveConfig(): void
     {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+        
         $config = [
             'enable' => (bool)$this->post('enable', false),
             'head_enable' => (bool)$this->post('head_enable', false),
