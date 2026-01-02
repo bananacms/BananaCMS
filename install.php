@@ -10,12 +10,35 @@ ini_set('display_errors', 1);
 define('ROOT_PATH', __DIR__ . '/');
 define('CONFIG_PATH', ROOT_PATH . 'config/');
 
+// 获取需要删除的敏感文件列表
+function getSensitiveFiles(): array {
+    $files = [];
+    $sensitiveExts = ['md', 'sql', 'txt', 'rar', 'zip'];
+    $excludeFiles = ['.htaccess', 'index.html', 'robots.txt']; // 排除这些文件
+    
+    foreach (glob(ROOT_PATH . '*') as $file) {
+        if (!is_file($file)) continue;
+        $basename = basename($file);
+        $ext = strtolower(pathinfo($basename, PATHINFO_EXTENSION));
+        
+        // 排除特定文件
+        if (in_array($basename, $excludeFiles)) continue;
+        
+        // 检查扩展名
+        if (in_array($ext, $sensitiveExts) || $basename === 'install.php') {
+            $files[] = $basename;
+        }
+    }
+    
+    return $files;
+}
+
 // 检查是否已安装
 if (file_exists(CONFIG_PATH . 'install.lock')) {
     // 处理删除文件请求
     if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['file'])) {
         header('Content-Type: application/json');
-        $allowedFiles = ['install.php', 'data.sql', 'DEPLOY.md', 'README.md'];
+        $allowedFiles = getSensitiveFiles();
         $file = $_GET['file'];
         
         if (!in_array($file, $allowedFiles)) {
@@ -34,6 +57,13 @@ if (file_exists(CONFIG_PATH . 'install.lock')) {
         } else {
             echo json_encode(['code' => 1, 'msg' => '删除失败，请检查文件权限']);
         }
+        exit;
+    }
+    
+    // 获取文件列表（用于 AJAX）
+    if (isset($_GET['action']) && $_GET['action'] === 'list') {
+        header('Content-Type: application/json');
+        echo json_encode(['code' => 0, 'files' => getSensitiveFiles()]);
         exit;
     }
     
@@ -301,32 +331,42 @@ $envPass = !in_array(false, array_column($envChecks, 3));
             <!-- 安全提示 -->
             <div class="bg-yellow-50 border border-yellow-200 rounded p-4 mb-6 text-left">
                 <h3 class="font-bold text-yellow-800 mb-2">⚠️ 安全提示</h3>
-                <p class="text-sm text-yellow-700 mb-3">为了网站安全，建议删除以下安装相关文件：</p>
-                <div id="deleteFiles" class="space-y-2">
+                <p class="text-sm text-yellow-700 mb-3">为了网站安全，建议删除以下敏感文件（防止被扫描下载）：</p>
+                <div id="deleteFiles" class="space-y-2 max-h-64 overflow-y-auto">
                     <?php 
-                    $installFiles = [
+                    $sensitiveFiles = getSensitiveFiles();
+                    $fileDescriptions = [
                         'install.php' => '安装向导',
-                        'data.sql' => '数据库结构文件',
-                        'DEPLOY.md' => '部署说明',
-                        'README.md' => '项目说明'
+                        'data.sql' => '数据库结构',
+                        'README.md' => '项目说明',
+                        'README.en.md' => '英文说明',
+                        '部署.md' => '部署文档',
+                        '模板制作.md' => '模板文档',
+                        '备注.txt' => '开发备注',
                     ];
-                    foreach ($installFiles as $file => $desc): 
+                    foreach ($sensitiveFiles as $file): 
                         $exists = file_exists(ROOT_PATH . $file);
+                        $desc = $fileDescriptions[$file] ?? pathinfo($file, PATHINFO_EXTENSION) . '文件';
                     ?>
                     <div class="flex items-center justify-between bg-white rounded px-3 py-2 border" id="file-<?= md5($file) ?>">
                         <div class="flex items-center">
-                            <span class="text-sm <?= $exists ? 'text-gray-700' : 'text-gray-400 line-through' ?>"><?= $file ?></span>
-                            <span class="text-xs text-gray-400 ml-2">(<?= $desc ?>)</span>
+                            <span class="text-sm <?= $exists ? 'text-gray-700' : 'text-gray-400 line-through' ?>"><?= htmlspecialchars($file) ?></span>
+                            <span class="text-xs text-gray-400 ml-2">(<?= htmlspecialchars($desc) ?>)</span>
                         </div>
                         <?php if ($exists): ?>
-                        <button onclick="deleteFile('<?= $file ?>', '<?= md5($file) ?>')" class="text-xs bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded">删除</button>
+                        <button onclick="deleteFile('<?= htmlspecialchars($file, ENT_QUOTES) ?>', '<?= md5($file) ?>')" class="text-xs bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded">删除</button>
                         <?php else: ?>
                         <span class="text-xs text-green-500">已删除</span>
                         <?php endif; ?>
                     </div>
                     <?php endforeach; ?>
+                    <?php if (empty($sensitiveFiles)): ?>
+                    <div class="text-center text-green-600 py-4">✓ 所有敏感文件已清理完毕</div>
+                    <?php endif; ?>
                 </div>
-                <button onclick="deleteAllFiles()" class="mt-3 w-full text-sm bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded font-bold">一键删除所有</button>
+                <?php if (!empty($sensitiveFiles)): ?>
+                <button onclick="deleteAllFiles()" class="mt-3 w-full text-sm bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded font-bold">🗑️ 一键删除所有敏感文件</button>
+                <?php endif; ?>
             </div>
             
             <div class="flex justify-center space-x-4">
@@ -347,6 +387,7 @@ $envPass = !in_array(false, array_column($envChecks, 3));
                         el.querySelector('span').classList.add('line-through', 'text-gray-400');
                         el.querySelector('span').classList.remove('text-gray-700');
                         el.querySelector('button').outerHTML = '<span class="text-xs text-green-500">已删除</span>';
+                        showToast(file + ' 已删除', 'success');
                     } else {
                         showToast(data.msg || '删除失败', 'error');
                     }
@@ -355,20 +396,60 @@ $envPass = !in_array(false, array_column($envChecks, 3));
         }
         
         function deleteAllFiles() {
-            if (!confirm('确定要删除所有安装相关文件吗？删除后将无法重新安装！')) return;
+            if (!confirm('确定要删除所有敏感文件吗？\n\n包括：install.php、*.sql、*.md、*.txt、*.rar、*.zip\n\n删除后将无法重新安装！')) return;
             
-            const files = ['install.php', 'data.sql', 'DEPLOY.md', 'README.md'];
+            // 获取当前页面上所有待删除的文件
+            const buttons = document.querySelectorAll('#deleteFiles button');
+            const files = [];
+            buttons.forEach(btn => {
+                const onclick = btn.getAttribute('onclick');
+                if (onclick && onclick.includes('deleteFile')) {
+                    const match = onclick.match(/deleteFile\('([^']+)'/);
+                    if (match) files.push(match[1]);
+                }
+            });
+            
+            if (files.length === 0) {
+                showToast('没有需要删除的文件', 'success');
+                return;
+            }
+            
             let deleted = 0;
+            let errors = 0;
             
             files.forEach(file => {
                 fetch('install.php?action=delete&file=' + encodeURIComponent(file))
                     .then(r => r.json())
                     .then(data => {
                         deleted++;
-                        if (deleted === files.length) {
-                            showToast('文件已删除完成', 'success');
-                            setTimeout(() => location.href = '/admin.php', 1500);
+                        if (data.code !== 0) errors++;
+                        
+                        // 更新UI
+                        const id = Array.from(document.querySelectorAll('#deleteFiles > div')).find(el => 
+                            el.querySelector('span')?.textContent === file
+                        )?.id;
+                        if (id) {
+                            const el = document.getElementById(id);
+                            if (el) {
+                                el.querySelector('span').classList.add('line-through', 'text-gray-400');
+                                el.querySelector('span').classList.remove('text-gray-700');
+                                const btn = el.querySelector('button');
+                                if (btn) btn.outerHTML = '<span class="text-xs text-green-500">已删除</span>';
+                            }
                         }
+                        
+                        if (deleted === files.length) {
+                            if (errors > 0) {
+                                showToast('部分文件删除失败，请检查权限', 'error');
+                            } else {
+                                showToast('所有敏感文件已删除', 'success');
+                                setTimeout(() => location.href = '/admin.php', 1500);
+                            }
+                        }
+                    })
+                    .catch(() => {
+                        deleted++;
+                        errors++;
                     });
             });
         }
