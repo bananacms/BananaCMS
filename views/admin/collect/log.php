@@ -86,8 +86,11 @@
                 <?php endforeach; ?>
             </select>
         </form>
-        <button onclick="cleanLogs()" class="text-red-500 hover:text-red-700 text-sm">
-            🗑️ 清理30天前的日志
+        <button onclick="cleanLogs()" class="text-red-500 hover:text-red-700 text-sm flex items-center">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+            清理30天前的日志
         </button>
     </div>
 </div>
@@ -134,11 +137,26 @@
                 <td class="px-4 py-3 text-sm text-gray-500"><?= $log['log_duration'] ?>秒</td>
                 <td class="px-4 py-3 text-sm">
                     <?php if ($log['log_status'] == 1): ?>
-                    <span class="text-green-600" title="<?= htmlspecialchars($log['log_message']) ?>">✓ 成功</span>
+                    <span class="text-green-600 flex items-center" title="<?= htmlspecialchars($log['log_message']) ?>">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        成功
+                    </span>
                     <?php elseif ($log['log_status'] == 2): ?>
-                    <span class="text-blue-600">⏳ 进行中</span>
+                    <span class="text-blue-600 flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        进行中
+                    </span>
                     <?php else: ?>
-                    <span class="text-red-600" title="<?= htmlspecialchars($log['log_message']) ?>">✗ 失败</span>
+                    <span class="text-red-600 flex items-center" title="<?= htmlspecialchars($log['log_message']) ?>">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                        失败
+                    </span>
                     <?php endif; ?>
                 </td>
             </tr>
@@ -151,7 +169,7 @@
 <!-- 分页 -->
 <?php if ($logs['totalPages'] > 1): ?>
 <?php 
-$baseUrl = "/admin.php/collect/log" . ($collectId ? "?collect_id={$collectId}" : "");
+$baseUrl = "/<?= $adminEntry ?>/collect/log" . ($collectId ? "?collect_id={$collectId}" : "");
 $page = $logs['page'];
 $totalPages = $logs['totalPages'];
 include __DIR__ . '/../components/pagination.php'; 
@@ -161,7 +179,7 @@ include __DIR__ . '/../components/pagination.php';
 <script>
 function cleanLogs() {
     xpkConfirm('确定要清理30天前的采集日志吗？', function() {
-        fetch('/admin.php/collect/cleanLog', {
+        fetch(adminUrl('/collect/cleanLog'), {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
             body: '_token=<?= $csrfToken ?>'

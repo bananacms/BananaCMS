@@ -15,6 +15,26 @@
                 }
             }
         }
+        // 全局后台入口变量
+        window.ADMIN_ENTRY = '<?= $adminEntry ?>';
+        
+        // 辅助函数：构建后台URL
+        window.adminUrl = function(path) {
+            return '/' + window.ADMIN_ENTRY + (path.startsWith('/') ? path : '/' + path);
+        };
+        
+        // 页面加载完成后，自动替换所有硬编码的admin.php链接
+        document.addEventListener('DOMContentLoaded', function() {
+            // 替换所有链接
+            document.querySelectorAll('a[href*="/admin.php/"]').forEach(function(link) {
+                link.href = link.href.replace('/admin.php/', '/' + window.ADMIN_ENTRY + '/');
+            });
+            
+            // 替换所有表单action
+            document.querySelectorAll('form[action*="/admin.php/"]').forEach(function(form) {
+                form.action = form.action.replace('/admin.php/', '/' + window.ADMIN_ENTRY + '/');
+            });
+        });
     </script>
     <style>
         .sidebar-link.active { background-color: #374151; }
@@ -25,67 +45,128 @@
         <!-- 侧边栏 -->
         <aside class="w-64 bg-gray-900 min-h-screen text-white fixed left-0 top-0 bottom-0 flex flex-col">
             <div class="p-4 border-b border-gray-800 flex-shrink-0">
-                <h1 class="text-xl font-bold text-yellow-400">🍌 香蕉CMS</h1>
+                <h1 class="text-xl font-bold text-yellow-400 flex items-center">
+                    <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M17.5 3C19.43 3 21 4.57 21 6.5C21 8.43 19.43 10 17.5 10C16.37 10 15.37 9.5 14.71 8.71L12 11.41L9.29 8.71C8.63 9.5 7.63 10 6.5 10C4.57 10 3 8.43 3 6.5C3 4.57 4.57 3 6.5 3C7.63 3 8.63 3.5 9.29 4.29L12 7L14.71 4.29C15.37 3.5 16.37 3 17.5 3M6.5 5C5.67 5 5 5.67 5 6.5C5 7.33 5.67 8 6.5 8C7.33 8 8 7.33 8 6.5C8 5.67 7.33 5 6.5 5M17.5 5C16.67 5 16 5.67 16 6.5C16 7.33 16.67 8 17.5 8C18.33 8 19 7.33 19 6.5C19 5.67 18.33 5 17.5 5M12 13.5C10.89 13.5 9.85 13.93 9.06 14.66L6.5 17.22C5.57 18.15 5.57 19.65 6.5 20.58C7.43 21.51 8.93 21.51 9.86 20.58L12 18.44L14.14 20.58C15.07 21.51 16.57 21.51 17.5 20.58C18.43 19.65 18.43 18.15 17.5 17.22L14.94 14.66C14.15 13.93 13.11 13.5 12 13.5Z"/>
+                    </svg>
+                    香蕉CMS
+                </h1>
                 <p class="text-xs text-gray-400 mt-1">轻量级影视CMS</p>
             </div>
             <nav class="flex-1 overflow-y-auto p-4 space-y-1">
-                <a href="/admin.php/dashboard" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/dashboard') !== false ? 'active' : '' ?>">
-                    📊 仪表盘
+                <a href="/<?= $adminEntry ?>/dashboard" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/dashboard') !== false ? 'active' : '' ?>">
+                    <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    仪表盘
                 </a>
-                <a href="/admin.php/vod" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/vod') !== false ? 'active' : '' ?>">
-                    🎬 视频管理
+                <a href="/<?= $adminEntry ?>/vod" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/vod') !== false ? 'active' : '' ?>">
+                    <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                    视频管理
                 </a>
-                <a href="/admin.php/type" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/type') !== false ? 'active' : '' ?>">
-                    📁 分类管理
+                <a href="/<?= $adminEntry ?>/type" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/type') !== false ? 'active' : '' ?>">
+                    <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z"></path>
+                    </svg>
+                    分类管理
                 </a>
-                <a href="/admin.php/actor" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/actor') !== false ? 'active' : '' ?>">
-                    👤 演员管理
+                <a href="/<?= $adminEntry ?>/actor" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/actor') !== false ? 'active' : '' ?>">
+                    <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                    演员管理
                 </a>
-                <a href="/admin.php/art" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/art') !== false ? 'active' : '' ?>">
-                    📝 文章管理
+                <a href="/<?= $adminEntry ?>/art" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/art') !== false ? 'active' : '' ?>">
+                    <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    文章管理
                 </a>
-                <a href="/admin.php/user" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/user') !== false ? 'active' : '' ?>">
-                    👥 用户管理
+                <a href="/<?= $adminEntry ?>/user" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/user') !== false ? 'active' : '' ?>">
+                    <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                    </svg>
+                    用户管理
                 </a>
-                <a href="/admin.php/collect" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/collect') !== false ? 'active' : '' ?>">
-                    📥 采集管理
+                <a href="/<?= $adminEntry ?>/collect" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/collect') !== false ? 'active' : '' ?>">
+                    <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
+                    </svg>
+                    采集管理
                 </a>
-                <a href="/admin.php/transcode" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/transcode') !== false ? 'active' : '' ?>">
-                    🎬 云转码
+                <a href="/<?= $adminEntry ?>/transcode" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/transcode') !== false ? 'active' : '' ?>">
+                    <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    云转码
                 </a>
-                <a href="/admin.php/player" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/player') !== false ? 'active' : '' ?>">
-                    ▶️ 播放器管理
+                <a href="/<?= $adminEntry ?>/player" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/player') !== false ? 'active' : '' ?>">
+                    <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293H15M9 10V9a2 2 0 012-2h2a2 2 0 012 2v1M9 10v5a2 2 0 002 2h2a2 2 0 002-2v-5m-6 0h6"></path>
+                    </svg>
+                    播放器管理
                 </a>
-                <a href="/admin.php/link" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/link') !== false ? 'active' : '' ?>">
-                    🔗 友链管理
+                <a href="/<?= $adminEntry ?>/link" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/link') !== false ? 'active' : '' ?>">
+                    <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                    </svg>
+                    友链管理
                 </a>
-                <a href="/admin.php/ad" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/ad') !== false && strpos($_SERVER['REQUEST_URI'], '/admin') === false ? 'active' : '' ?>">
-                    📢 广告管理
+                <a href="/<?= $adminEntry ?>/ad" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/ad') !== false && strpos($_SERVER['REQUEST_URI'], '/' . $adminEntry) === false ? 'active' : '' ?>">
+                    <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path>
+                    </svg>
+                    广告管理
                 </a>
-                <a href="/admin.php/comment" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/comment') !== false ? 'active' : '' ?>">
-                    💬 评论管理
+                <a href="/<?= $adminEntry ?>/comment" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/comment') !== false ? 'active' : '' ?>">
+                    <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                    </svg>
+                    评论管理
                 </a>
-                <a href="/admin.php/short" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/short') !== false ? 'active' : '' ?>">
-                    📱 短视频
+                <a href="/<?= $adminEntry ?>/short" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/short') !== false ? 'active' : '' ?>">
+                    <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                    </svg>
+                    短视频
                 </a>
-                <a href="/admin.php/stats" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/stats') !== false ? 'active' : '' ?>">
-                    📊 数据统计
+                <a href="/<?= $adminEntry ?>/stats" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/stats') !== false ? 'active' : '' ?>">
+                    <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    数据统计
                 </a>
-                <a href="/admin.php/log" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/log') !== false ? 'active' : '' ?>">
-                    📋 操作日志
+                <a href="/<?= $adminEntry ?>/log" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/log') !== false ? 'active' : '' ?>">
+                    <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                    </svg>
+                    操作日志
                 </a>
-                <a href="/admin.php/page" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/page') !== false ? 'active' : '' ?>">
-                    📄 单页管理
+                <a href="/<?= $adminEntry ?>/page" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/page') !== false ? 'active' : '' ?>">
+                    <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                    </svg>
+                    单页管理
                 </a>
-                <a href="/admin.php/config" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/config') !== false ? 'active' : '' ?>">
-                    ⚙️ 系统配置
+                <a href="/<?= $adminEntry ?>/config" class="sidebar-link block px-4 py-2 rounded hover:bg-gray-800 <?= strpos($_SERVER['REQUEST_URI'], '/config') !== false ? 'active' : '' ?>">
+                    <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    系统配置
                 </a>
             </nav>
             <div class="flex-shrink-0 p-4 border-t border-gray-800">
                 <div class="text-sm text-gray-400 mb-2">
-                    👋 <?= htmlspecialchars($admin['name'] ?? 'Admin') ?>
+                    <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                    <?= htmlspecialchars($admin['name'] ?? 'Admin') ?>
                 </div>
-                <a href="/admin.php/logout" class="block text-center px-4 py-2 bg-red-600 rounded hover:bg-red-700 text-sm">
+                <a href="/<?= $adminEntry ?>/logout" class="block text-center px-4 py-2 bg-red-600 rounded hover:bg-red-700 text-sm">
                     退出登录
                 </a>
             </div>
@@ -273,7 +354,7 @@
                             // 默认返回列表页或刷新
                             setTimeout(() => {
                                 // 尝试找返回按钮的链接
-                                const backLink = form.querySelector('a[href*="/admin.php"]');
+                                const backLink = form.querySelector('a[href*="/' + window.ADMIN_ENTRY + '"]');
                                 if (backLink) {
                                     window.location.href = backLink.href;
                                 } else {

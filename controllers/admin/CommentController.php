@@ -46,6 +46,10 @@ class AdminCommentController extends AdminBaseController
      */
     public function approve(): void
     {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+
         $id = (int)$this->post('id', 0);
         
         if ($id <= 0) {
@@ -62,6 +66,10 @@ class AdminCommentController extends AdminBaseController
      */
     public function reject(): void
     {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+
         $id = (int)$this->post('id', 0);
         
         if ($id <= 0) {
@@ -78,14 +86,28 @@ class AdminCommentController extends AdminBaseController
      */
     public function delete(): void
     {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+
         $id = (int)$this->post('id', 0);
 
         if ($id <= 0) {
             $this->error('参数错误');
         }
 
+        // 删除前先查询评论详情，用于日志记录
+        $comment = $this->commentModel->find($id);
+        if (!$comment) {
+            $this->error('评论不存在');
+        }
+
         $this->commentModel->delete($id, true);
-        $this->log('删除', '评论', "ID:{$id}");
+        
+        // 记录详细日志
+        $content = mb_substr($comment['comment_content'], 0, 50) . (mb_strlen($comment['comment_content']) > 50 ? '...' : '');
+        $user = $comment['user_name'] ?: '游客';
+        $this->log('删除', '评论', "ID:{$id} 用户:{$user} 内容:\"{$content}\"");
         $this->success('删除成功');
     }
 
@@ -94,6 +116,10 @@ class AdminCommentController extends AdminBaseController
      */
     public function batchAudit(): void
     {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+
         $ids = $this->post('ids', '');
         $action = $this->post('action', '');
 
@@ -107,10 +133,26 @@ class AdminCommentController extends AdminBaseController
         }
 
         if ($action === 'delete') {
+            // 批量删除前先查询评论详情，用于日志记录
+            $comments = [];
             foreach ($idArr as $id) {
-                $this->commentModel->delete($id, true);
+                $comment = $this->commentModel->find($id);
+                if ($comment) {
+                    $comments[] = $comment;
+                    $this->commentModel->delete($id, true);
+                }
             }
-            $this->log('批量删除', '评论', "IDs:" . implode(',', $idArr));
+            
+            // 记录详细日志
+            $logDetails = [];
+            foreach ($comments as $comment) {
+                $content = mb_substr($comment['comment_content'], 0, 30) . '...';
+                $user = $comment['user_name'] ?: '游客';
+                $logDetails[] = "ID:{$comment['comment_id']}({$user})";
+            }
+            $logContent = implode(', ', $logDetails);
+            
+            $this->log('批量删除', '评论', "删除了 " . count($comments) . " 条评论: {$logContent}");
             $this->success('删除成功');
         } else {
             $status = $action === 'approve' ? XpkComment::STATUS_APPROVED : XpkComment::STATUS_REJECTED;
@@ -156,6 +198,6 @@ class AdminCommentController extends AdminBaseController
         
         $this->log('修改', '评论设置', '');
         $this->flash('success', '设置已保存');
-        $this->redirect('/admin.php/comment/setting');
+        $this->redirect('/' . $this->adminEntry . '/comment/setting');
     }
 }

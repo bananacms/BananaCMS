@@ -1,14 +1,19 @@
 <div class="flex justify-between items-center mb-6">
-    <h1 class="text-2xl font-bold">🎬 转码广告管理</h1>
+    <h1 class="text-2xl font-bold flex items-center">
+        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+        </svg>
+        转码广告管理
+    </h1>
     <div class="flex gap-2">
-        <a href="/admin.php/transcode" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">← 返回转码</a>
-        <a href="/admin.php/transcode/ad/add" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">+ 添加广告</a>
+        <a href="/<?= $adminEntry ?>/transcode" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">← 返回转码</a>
+        <a href="/<?= $adminEntry ?>/transcode/ad/add" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">+ 添加广告</a>
     </div>
 </div>
 
 <?php if (!empty($flash)): ?>
 <div class="mb-4 p-4 rounded <?= $flash['type'] === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700' ?>">
-    <?= htmlspecialchars($flash['message']) ?>
+    <?= htmlspecialchars($flash['msg']) ?>
 </div>
 <?php endif; ?>
 
@@ -99,7 +104,7 @@
                     <?php if (!empty($ad['ad_file'])): ?>
                     <button onclick="previewAd('<?= htmlspecialchars($ad['ad_file']) ?>')" class="text-green-500 hover:underline">预览</button>
                     <?php endif; ?>
-                    <a href="/admin.php/transcode/ad/edit/<?= $ad['ad_id'] ?>" class="text-blue-500 hover:underline">编辑</a>
+                    <a href="/<?= $adminEntry ?>/transcode/ad/edit/<?= $ad['ad_id'] ?>" class="text-blue-500 hover:underline">编辑</a>
                     <button onclick="deleteAd(<?= $ad['ad_id'] ?>)" class="text-red-500 hover:underline">删除</button>
                 </td>
             </tr>
@@ -123,7 +128,7 @@ document.getElementById('configForm').addEventListener('submit', function(e) {
     const formData = new FormData(this);
     formData.append('_token', '<?= $csrfToken ?>');
     
-    fetch('/admin.php/transcode/ad/saveConfig', {
+    fetch(adminUrl('/transcode/ad/saveConfig'), {
         method: 'POST',
         body: formData
     })
@@ -144,7 +149,7 @@ function toggleStatus(id) {
     formData.append('id', id);
     formData.append('_token', '<?= $csrfToken ?>');
     
-    fetch('/admin.php/transcode/ad/toggle', {
+    fetch(adminUrl('/transcode/ad/toggle'), {
         method: 'POST',
         body: formData
     })
@@ -166,7 +171,7 @@ function deleteAd(id) {
         formData.append('id', id);
         formData.append('_token', '<?= $csrfToken ?>');
         
-        fetch('/admin.php/transcode/ad/delete', {
+        fetch(adminUrl('/transcode/ad/delete'), {
             method: 'POST',
             body: formData
         })

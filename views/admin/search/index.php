@@ -2,7 +2,7 @@
 
 <?php if (!empty($flash)): ?>
     <div class="mb-4 p-4 rounded <?= $flash['type'] === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' ?>">
-        <?= htmlspecialchars($flash['message']) ?>
+        <?= htmlspecialchars($flash['msg']) ?>
     </div>
 <?php endif; ?>
 
@@ -101,7 +101,7 @@
 
 <!-- 操作按钮 -->
 <div class="mt-8 flex space-x-4">
-    <a href="/admin.php/search/log" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded">
+    <a href="/<?= $adminEntry ?>/search/log" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded">
         查看搜索日志
     </a>
     <button onclick="cleanLog()" class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded">
@@ -113,7 +113,7 @@
 function cleanLog() {
     if (!xpkConfirm('确定要清理90天前的搜索日志吗？')) return;
     
-    fetch('/admin.php/search/cleanLog', {
+    fetch(adminUrl('/search/cleanLog'), {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: '_token=<?= $csrfToken ?? '' ?>&keep_days=90'

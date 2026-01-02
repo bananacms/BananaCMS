@@ -7,13 +7,19 @@
 <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold">视频管理</h1>
     <div class="flex gap-2">
-        <a href="/admin.php/vod/replace" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded">
-            🔄 地址替换
+        <a href="/<?= $adminEntry ?>/vod/replace" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded flex items-center">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            地址替换
         </a>
-        <a href="/admin.php/vod/sources" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded">
-            📺 播放源
+        <a href="/<?= $adminEntry ?>/vod/sources" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded flex items-center">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+            </svg>
+            播放源
         </a>
-        <a href="/admin.php/vod/add" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+        <a href="/<?= $adminEntry ?>/vod/add" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
             + 添加视频
         </a>
     </div>
@@ -59,7 +65,7 @@
                 class="border rounded px-3 py-2" placeholder="名称/演员">
         </div>
         <button type="submit" class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700">搜索</button>
-        <a href="/admin.php/vod" class="text-gray-500 hover:text-gray-700 py-2">重置</a>
+        <a href="/<?= $adminEntry ?>/vod" class="text-gray-500 hover:text-gray-700 py-2">重置</a>
     </form>
 </div>
 
@@ -110,7 +116,11 @@
                                     <?= htmlspecialchars($vod['vod_name']) ?>
                                 </a>
                                 <?php if (!empty($vod['vod_lock'])): ?>
-                                <span class="text-yellow-500" title="已锁定，采集时跳过">🔒</span>
+                                <span class="text-yellow-500 flex items-center" title="已锁定，采集时跳过">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                    </svg>
+                                </span>
                                 <?php endif; ?>
                             </div>
                             <?php if ($vod['vod_remarks']): ?>
@@ -129,7 +139,7 @@
                 </td>
                 <td class="px-4 py-3 text-sm text-gray-500"><?= date('Y-m-d H:i', $vod['vod_time']) ?></td>
                 <td class="px-4 py-3 text-sm space-x-2">
-                    <a href="/admin.php/vod/edit/<?= $vod['vod_id'] ?>" class="text-blue-500 hover:underline">编辑</a>
+                    <a href="/<?= $adminEntry ?>/vod/edit/<?= $vod['vod_id'] ?>" class="text-blue-500 hover:underline">编辑</a>
                     <button onclick="toggleLock(<?= $vod['vod_id'] ?>)" class="<?= !empty($vod['vod_lock']) ? 'text-yellow-500' : 'text-gray-400' ?> hover:underline"><?= !empty($vod['vod_lock']) ? '解锁' : '锁定' ?></button>
                     <button onclick="deleteSingleVod(<?= $vod['vod_id'] ?>)" class="text-red-500 hover:underline">删除</button>
                 </td>
@@ -142,7 +152,7 @@
 
 <!-- 分页 -->
 <?php 
-$baseUrl = "/admin.php/vod?type={$typeId}&status={$status}&collect_id={$collectId}&keyword=" . urlencode($keyword);
+$baseUrl = "/<?= $adminEntry ?>/vod?type={$typeId}&status={$status}&collect_id={$collectId}&keyword=" . urlencode($keyword);
 include __DIR__ . '/../components/pagination.php'; 
 ?>
 
@@ -170,10 +180,10 @@ function getSelectedIds() {
 }
 
 function toggleStatus(id, status) {
-    fetch('/admin.php/vod/status', {
+    fetch(adminUrl('/vod/status'), {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: 'id=' + id + '&status=' + status
+        body: 'id=' + id + '&status=' + status + '&_token=<?= $csrfToken ?>'
     })
     .then(r => r.json())
     .then(data => {
@@ -186,10 +196,10 @@ function toggleStatus(id, status) {
 }
 
 function toggleLock(id) {
-    fetch('/admin.php/vod/lock', {
+    fetch(adminUrl('/vod/lock'), {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: 'id=' + id
+        body: 'id=' + id + '&_token=<?= $csrfToken ?>'
     })
     .then(r => r.json())
     .then(data => {
@@ -206,10 +216,10 @@ function batchLock(lock) {
     const ids = getSelectedIds();
     if (ids.length === 0) return;
     
-    fetch('/admin.php/vod/batchLock', {
+    fetch(adminUrl('/vod/batchLock'), {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: 'ids[]=' + ids.join('&ids[]=') + '&lock=' + lock
+        body: 'ids[]=' + ids.join('&ids[]=') + '&lock=' + lock + '&_token=<?= $csrfToken ?>'
     })
     .then(r => r.json())
     .then(data => {
@@ -231,7 +241,8 @@ function batchDelete() {
     xpkConfirm('确定要删除选中的 ' + ids.length + ' 个视频吗？', function() {
         const formData = new FormData();
         ids.forEach(id => formData.append('ids[]', id));
-        fetch('/admin.php/vod/delete', {
+        formData.append('_token', '<?= $csrfToken ?>');
+        fetch(adminUrl('/vod/delete'), {
             method: 'POST',
             body: formData
         })
@@ -249,10 +260,10 @@ function batchDelete() {
 
 function deleteSingleVod(id) {
     xpkConfirm('确定要删除吗？', function() {
-        fetch('/admin.php/vod/delete', {
+        fetch(adminUrl('/vod/delete'), {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: 'id=' + id
+            body: 'id=' + id + '&_token=<?= $csrfToken ?>'
         })
         .then(r => r.json())
         .then(data => {

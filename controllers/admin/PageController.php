@@ -89,7 +89,7 @@ class AdminPageController extends AdminBaseController
         $page = $this->pageModel->find($id);
         if (!$page) {
             $this->flash('error', '页面不存在');
-            $this->redirect('/admin.php/page');
+            $this->redirect('/' . $this->adminEntry . '/page');
             return;
         }
 

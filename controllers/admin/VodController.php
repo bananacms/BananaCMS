@@ -127,7 +127,7 @@ class AdminVodController extends AdminBaseController
         if ($id) {
             $this->log('添加', '视频', "ID:{$id} {$data['vod_name']}");
             $this->flash('success', '添加成功');
-            $this->redirect('/admin.php/vod');
+            $this->redirect('/' . $this->adminEntry . '/vod');
         } else {
             $this->error('添加失败');
         }
@@ -141,7 +141,7 @@ class AdminVodController extends AdminBaseController
         $vod = $this->vodModel->find($id);
         if (!$vod) {
             $this->flash('error', '视频不存在');
-            $this->redirect('/admin.php/vod');
+            $this->redirect('/' . $this->adminEntry . '/vod');
         }
 
         $types = $this->typeModel->getAll();
@@ -179,7 +179,7 @@ class AdminVodController extends AdminBaseController
         $this->log('编辑', '视频', "ID:{$id} {$data['vod_name']}");
 
         $this->flash('success', '保存成功');
-        $this->redirect('/admin.php/vod');
+        $this->redirect('/' . $this->adminEntry . '/vod');
     }
 
     /**
@@ -187,6 +187,10 @@ class AdminVodController extends AdminBaseController
      */
     public function delete(): void
     {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+
         // 兼容单个删除(id)和批量删除(ids[])
         $ids = $_POST['ids'] ?? [];
         if (empty($ids) && isset($_POST['id'])) {
@@ -202,14 +206,33 @@ class AdminVodController extends AdminBaseController
         }
 
         $db = XpkDatabase::getInstance();
+        
+        // 删除前先查询记录详细信息，用于日志记录
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
-        $db->execute(
+        $vodList = $db->query(
+            "SELECT vod_id, vod_name, vod_type_id FROM " . DB_PREFIX . "vod WHERE vod_id IN ({$placeholders})",
+            $ids
+        );
+        
+        if (empty($vodList)) {
+            $this->error('要删除的视频不存在');
+        }
+        
+        // 执行删除
+        $affected = $db->execute(
             "DELETE FROM " . DB_PREFIX . "vod WHERE vod_id IN ({$placeholders})",
             $ids
         );
 
-        $this->log('删除', '视频', "IDs:" . implode(',', $ids));
-        $this->success('删除成功');
+        // 记录详细日志
+        $logDetails = [];
+        foreach ($vodList as $vod) {
+            $logDetails[] = "ID:{$vod['vod_id']} 《{$vod['vod_name']}》";
+        }
+        $logContent = implode(', ', $logDetails);
+        
+        $this->log('删除', '视频', "删除了 {$affected} 个视频: {$logContent}");
+        $this->success("删除成功，共删除 {$affected} 个视频");
     }
 
     /**
@@ -217,6 +240,10 @@ class AdminVodController extends AdminBaseController
      */
     public function status(): void
     {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+
         $id = (int)$this->post('id', 0);
         $status = (int)$this->post('status', 0);
 
@@ -233,6 +260,10 @@ class AdminVodController extends AdminBaseController
      */
     public function lock(): void
     {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+
         $id = (int)$this->post('id', 0);
         
         if ($id <= 0) {
@@ -256,6 +287,10 @@ class AdminVodController extends AdminBaseController
      */
     public function batchLock(): void
     {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+
         $ids = $_POST['ids'] ?? [];
         $lock = (int)$this->post('lock', 1);
         

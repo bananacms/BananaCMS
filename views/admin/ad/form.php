@@ -1,11 +1,11 @@
 <div class="mb-6">
     <div class="flex items-center gap-4 mb-4">
-        <a href="/admin.php/ad" class="text-gray-500 hover:text-gray-700">← 返回列表</a>
+        <a href="/<?= $adminEntry ?>/ad" class="text-gray-500 hover:text-gray-700">← 返回列表</a>
         <h2 class="text-2xl font-bold"><?= isset($ad) ? '编辑广告' : '添加广告' ?></h2>
     </div>
 </div>
 
-<form method="post" action="/admin.php/ad/<?= isset($ad) ? 'doEdit/' . $ad['ad_id'] : 'doAdd' ?>" class="bg-white rounded shadow p-6 max-w-4xl">
+<form method="post" action="/<?= $adminEntry ?>/ad/<?= isset($ad) ? 'doEdit/' . $ad['ad_id'] : 'doAdd' ?>" class="bg-white rounded shadow p-6 max-w-4xl">
     <input type="hidden" name="_token" value="<?= $csrfToken ?>">
 
     <div class="grid grid-cols-2 gap-6">
@@ -120,7 +120,7 @@
         <button type="submit" class="bg-primary text-white px-6 py-2 rounded hover:bg-red-600">
             保存
         </button>
-        <a href="/admin.php/ad" class="bg-gray-200 text-gray-700 px-6 py-2 rounded hover:bg-gray-300">
+        <a href="/<?= $adminEntry ?>/ad" class="bg-gray-200 text-gray-700 px-6 py-2 rounded hover:bg-gray-300">
             取消
         </a>
     </div>

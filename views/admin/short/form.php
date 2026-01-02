@@ -1,6 +1,6 @@
 <div class="mb-6">
     <div class="flex items-center gap-4 mb-4">
-        <a href="/admin.php/short" class="text-gray-500 hover:text-gray-700">← 返回列表</a>
+        <a href="/<?= $adminEntry ?>/short" class="text-gray-500 hover:text-gray-700">← 返回列表</a>
         <h2 class="text-2xl font-bold"><?= isset($short) ? '编辑' : ($type === 'drama' ? '添加短剧' : '添加短视频') ?></h2>
     </div>
 </div>
@@ -8,7 +8,7 @@
 <!-- Quill 编辑器样式 -->
 <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
 
-<form method="post" action="/admin.php/short/<?= isset($short) ? 'doEdit/' . $short['short_id'] : 'doAdd' ?>" class="bg-white rounded shadow p-6 max-w-3xl">
+<form method="post" action="/<?= $adminEntry ?>/short/<?= isset($short) ? 'doEdit/' . $short['short_id'] : 'doAdd' ?>" class="bg-white rounded shadow p-6 max-w-3xl">
     <input type="hidden" name="_token" value="<?= $csrfToken ?>">
     <input type="hidden" name="short_type" value="<?= $type ?>">
 
@@ -42,7 +42,12 @@
         </div>
         <?php else: ?>
         <div class="bg-purple-50 p-4 rounded">
-            <p class="text-purple-700 text-sm">💡 短剧需要在保存后添加剧集</p>
+            <p class="text-purple-700 text-sm flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                短剧需要在保存后添加剧集
+            </p>
         </div>
         <?php endif; ?>
 
@@ -71,7 +76,7 @@
         <button type="submit" class="bg-primary text-white px-6 py-2 rounded hover:bg-red-600">
             保存
         </button>
-        <a href="/admin.php/short" class="bg-gray-200 text-gray-700 px-6 py-2 rounded hover:bg-gray-300">
+        <a href="/<?= $adminEntry ?>/short" class="bg-gray-200 text-gray-700 px-6 py-2 rounded hover:bg-gray-300">
             取消
         </a>
     </div>
@@ -116,7 +121,7 @@ document.querySelector('form').addEventListener('submit', function(e) {
         if (data.code === 0) {
             xpkToast(data.msg, 'success');
             setTimeout(() => {
-                location.href = '/admin.php/short';
+                location.href = adminUrl('/short');
             }, 1000);
         } else {
             xpkToast(data.msg, 'error');

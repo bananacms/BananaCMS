@@ -101,7 +101,12 @@
             <div>
                 <label class="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" name="vod_lock" value="1" <?= !empty($vod['vod_lock']) ? 'checked' : '' ?> class="w-4 h-4 rounded">
-                    <span class="text-sm font-medium text-gray-700">🔒 锁定视频</span>
+                    <span class="text-sm font-medium text-gray-700 flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                        锁定视频
+                    </span>
                 </label>
                 <p class="text-xs text-gray-400 mt-1">锁定后采集时将跳过此视频，防止手动编辑的内容被覆盖</p>
             </div>
@@ -212,7 +217,7 @@
         <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded">
             保存
         </button>
-        <a href="/admin.php/vod" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded">
+        <a href="/<?= $adminEntry ?>/vod" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded">
             返回
         </a>
     </div>
@@ -257,7 +262,7 @@ document.querySelector('form').addEventListener('submit', function(e) {
         if (data.code === 0) {
             xpkToast(data.msg, 'success');
             setTimeout(() => {
-                location.href = '/admin.php/vod';
+                location.href = adminUrl('/vod');
             }, 1000);
         } else {
             xpkToast(data.msg, 'error');

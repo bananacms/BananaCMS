@@ -89,7 +89,7 @@ class AdminTranscodeAdController extends AdminBaseController
         
         if ($id) {
             $this->log('添加', '转码广告', "ID:{$id} {$data['ad_name']}");
-            $this->success('添加成功', ['url' => '/admin.php/transcode/ad']);
+            $this->success('添加成功', ['url' => '/' . $this->adminEntry . '/transcode/ad']);
         } else {
             $this->error('添加失败');
         }
@@ -103,7 +103,7 @@ class AdminTranscodeAdController extends AdminBaseController
         $ad = $this->adModel->find($id);
         if (!$ad) {
             $this->flash('error', '广告不存在');
-            $this->redirect('/admin.php/transcode/ad');
+            $this->redirect('/' . $this->adminEntry . '/transcode/ad');
             return;
         }
         
@@ -155,7 +155,7 @@ class AdminTranscodeAdController extends AdminBaseController
         
         if ($this->adModel->edit($id, $data)) {
             $this->log('编辑', '转码广告', "ID:{$id} {$data['ad_name']}");
-            $this->success('保存成功', ['url' => '/admin.php/transcode/ad']);
+            $this->success('保存成功', ['url' => '/' . $this->adminEntry . '/transcode/ad']);
         } else {
             $this->error('保存失败');
         }

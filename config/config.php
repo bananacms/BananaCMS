@@ -10,6 +10,9 @@ define('APP_DEBUG', true);
 // 安全密钥
 define('APP_SECRET', 'xpk_banana_' . md5(__FILE__));
 
+// 管理员IP混淆盐值（用于生成伪造IP，请修改为随机字符串）
+define('ADMIN_IP_SALT', 'BananaCMS_Admin_Security_' . md5('banana_ip_salt_' . __FILE__));
+
 // 站点信息
 define('SITE_NAME', '香蕉影视');
 define('SITE_URL', 'http://localhost');

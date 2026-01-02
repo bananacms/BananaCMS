@@ -6,14 +6,17 @@
 
 <h1 class="text-2xl font-bold mb-6">系统配置</h1>
 
-<form method="POST" action="/admin.php/config/save" class="bg-white rounded-lg shadow p-6">
+<form method="POST" action="/<?= $adminEntry ?>/config/save" class="bg-white rounded-lg shadow p-6">
     <input type="hidden" name="_token" value="<?= $csrfToken ?>">
 
     <!-- 顶部固定保存按钮 -->
     <div class="sticky top-0 bg-white py-3 mb-4 border-b -mx-6 px-6 z-10 flex justify-between items-center">
         <span class="text-gray-500 text-sm">修改配置后请点击保存</span>
-        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded shadow">
-            💾 保存配置
+        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded shadow flex items-center">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3-3m0 0l-3 3m3-3v12"/>
+            </svg>
+            保存配置
         </button>
     </div>
 
@@ -107,7 +110,12 @@
             <div class="bg-gray-50 rounded p-3 mb-4 text-sm text-gray-600">
                 <p class="font-medium mb-1">可用变量：</p>
                 <p>{name}名称 {actor}演员 {type}分类 {year}年份 {area}地区 {sitename}站点名 {description}简介</p>
-                <p class="mt-2 text-orange-600">⚠️ SEO标准：标题≤60字符，描述≤160字符</p>
+                <p class="mt-2 text-orange-600 flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                    SEO标准：标题≤60字符，描述≤160字符
+                </p>
             </div>
             <div class="space-y-4">
                 <div>
@@ -179,8 +187,11 @@
             <div class="mb-4">
                 <div class="flex items-center gap-4">
                     <input type="file" id="templateFile" accept=".zip" class="hidden" onchange="uploadTemplate(this)">
-                    <button type="button" onclick="document.getElementById('templateFile').click()" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
-                        📦 上传模板 (ZIP)
+                    <button type="button" onclick="document.getElementById('templateFile').click()" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
+                        </svg>
+                        上传模板 (ZIP)
                     </button>
                     <span class="text-sm text-gray-500">支持ZIP格式，最大50MB</span>
                 </div>
@@ -207,9 +218,19 @@
                             </td>
                             <td class="px-4 py-2">
                                 <?php if ($tpl['valid']): ?>
-                                <span class="text-green-600">✓ 有效</span>
+                                <span class="text-green-600 flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    有效
+                                </span>
                                 <?php else: ?>
-                                <span class="text-red-600">✗ 无效</span>
+                                <span class="text-red-600 flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                    无效
+                                </span>
                                 <?php endif; ?>
                             </td>
                             <td class="px-4 py-2 text-gray-500">
@@ -345,7 +366,12 @@
                     <div class="text-sm"></div>
                 </div>
                 <div class="mt-4 text-sm text-gray-600">
-                    <p class="font-medium mb-2">📋 分片说明：</p>
+                    <p class="font-medium mb-2 flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                        </svg>
+                        分片说明：
+                    </p>
                     <ul class="list-disc list-inside space-y-1 text-gray-500">
                         <li><code class="bg-gray-200 px-1 rounded">/sitemap.xml</code> - 索引文件（自动列出所有分片）</li>
                         <li><code class="bg-gray-200 px-1 rounded">/sitemap.xml?type=main</code> - 首页、分类页</li>
@@ -355,7 +381,12 @@
                     </ul>
                 </div>
                 <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm">
-                    <p class="text-yellow-800 font-medium">⚠️ 注意事项：</p>
+                    <p class="text-yellow-800 font-medium flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                        注意事项：
+                    </p>
                     <ul class="list-disc list-inside mt-1 text-yellow-700 space-y-1">
                         <li>必须配置伪静态才能访问 /sitemap.xml（见 伪静态/ 目录）</li>
                         <li>提交给搜索引擎时使用 <strong>/sitemap.xml</strong>，不要用 sitemap.php</li>
@@ -424,7 +455,12 @@
                         </div>
                     </div>
                     <?php if (!$uploadWritable): ?>
-                    <p class="mt-2 text-red-600 text-xs">⚠️ upload目录不可写，请设置权限为755或777</p>
+                    <p class="mt-2 text-red-600 text-xs flex items-center">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                        upload目录不可写，请设置权限为755或777
+                    </p>
                     <?php endif; ?>
                 </div>
                 
@@ -434,8 +470,11 @@
     </div>
 
     <div class="mt-6 flex justify-end">
-        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded shadow">
-            💾 保存配置
+        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded shadow flex items-center">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3-3m0 0l-3 3m3-3v12"/>
+            </svg>
+            保存配置
         </button>
     </div>
 </form>
@@ -458,7 +497,7 @@ function uploadLogo(input) {
     formData.append('file', file);
     formData.append('type', 'logo');
     
-    fetch('/admin.php/config/upload', {
+    fetch(adminUrl('/config/upload'), {
         method: 'POST',
         body: formData
     })
@@ -501,7 +540,7 @@ function uploadTemplate(input) {
     const formData = new FormData();
     formData.append('file', file);
     
-    fetch('/admin.php/config/uploadTemplate', {
+    fetch(adminUrl('/config/uploadTemplate'), {
         method: 'POST',
         body: formData
     })
@@ -522,7 +561,7 @@ function uploadTemplate(input) {
 
 function deleteTemplate(name) {
     xpkConfirm('确定删除模板 "' + name + '"？此操作不可恢复！', function() {
-        fetch('/admin.php/config/deleteTemplate', {
+        fetch(adminUrl('/config/deleteTemplate'), {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
             body: '_token=<?= $csrfToken ?>&name=' + encodeURIComponent(name)
@@ -569,16 +608,16 @@ function checkSitemap() {
             if (response.ok) {
                 const contentType = response.headers.get('content-type') || '';
                 if (contentType.includes('xml')) {
-                    statusContent.innerHTML = '<span class="text-green-600">✓ Sitemap 正常工作！Content-Type: ' + contentType + '</span>';
+                    statusContent.innerHTML = '<span class="text-green-600 flex items-center"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Sitemap 正常工作！Content-Type: ' + contentType + '</span>';
                 } else {
-                    statusContent.innerHTML = '<span class="text-yellow-600">⚠ 可访问但Content-Type不是XML: ' + contentType + '</span>';
+                    statusContent.innerHTML = '<span class="text-yellow-600 flex items-center"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>可访问但Content-Type不是XML: ' + contentType + '</span>';
                 }
             } else {
-                statusContent.innerHTML = '<span class="text-red-600">✗ 无法访问 (HTTP ' + response.status + ')，请检查伪静态配置</span>';
+                statusContent.innerHTML = '<span class="text-red-600 flex items-center"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>无法访问 (HTTP ' + response.status + ')，请检查伪静态配置</span>';
             }
         })
         .catch(error => {
-            statusContent.innerHTML = '<span class="text-red-600">✗ 请求失败，可能是跨域限制。请直接点击"打开"按钮测试</span>';
+            statusContent.innerHTML = '<span class="text-red-600 flex items-center"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>请求失败，可能是跨域限制。请直接点击"打开"按钮测试</span>';
         });
 }
 </script>

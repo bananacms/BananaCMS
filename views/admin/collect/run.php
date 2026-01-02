@@ -16,20 +16,47 @@ $canResume = $lastProgress && !empty($lastProgress['page']) && $lastProgress['pa
 
 <?php if ($bindCount == 0): ?>
 <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-    <p class="text-red-800 font-medium">⚠️ 尚未绑定任何分类，采集将无法进行！</p>
-    <p class="text-red-600 text-sm mt-1">请先 <a href="/admin.php/collect/bind/<?= $collect['collect_id'] ?>" class="underline">绑定分类</a> 后再执行采集</p>
+    <p class="text-red-800 font-medium flex items-center">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+        </svg>
+        尚未绑定任何分类，采集将无法进行！
+    </p>
+    <p class="text-red-600 text-sm mt-1">请先 <a href="/<?= $adminEntry ?>/collect/bind/<?= $collect['collect_id'] ?>" class="underline">绑定分类</a> 后再执行采集</p>
 </div>
 <?php else: ?>
 <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-    <p class="text-green-800">✅ 已绑定 <?= $bindCount ?> 个分类，可以开始采集</p>
+    <p class="text-green-800 flex items-center">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        已绑定 <?= $bindCount ?> 个分类，可以开始采集
+    </p>
 </div>
 <?php endif; ?>
+
+<!-- 防火墙提示 -->
+<div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+    <p class="text-blue-800 font-medium flex items-center">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        采集中断/403错误？
+    </p>
+    <p class="text-blue-700 text-sm mt-1">如果采集过程中出现403错误或频繁中断，可能是服务器防火墙（宝塔WAF/CC防护）拦截了请求。</p>
+    <p class="text-blue-600 text-sm mt-1">解决方法：在宝塔面板 → 安全 → 防火墙 中，将 <code class="bg-blue-100 px-1 rounded">/<?= $adminEntry ?>/collect/docollect</code> 加入URL白名单，或临时关闭CC防护。</p>
+</div>
 
 <?php if ($canResume): ?>
 <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
     <div class="flex items-center justify-between">
         <div>
-            <p class="text-yellow-800 font-medium">📌 检测到未完成的采集任务</p>
+            <p class="text-yellow-800 font-medium flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
+                </svg>
+                检测到未完成的采集任务
+            </p>
             <p class="text-yellow-700 text-sm mt-1">
                 上次采集到第 <?= $lastProgress['page'] ?>/<?= $lastProgress['pagecount'] ?? '?' ?> 页
                 <?php if (!empty($lastProgress['time'])): ?>
@@ -44,8 +71,11 @@ $canResume = $lastProgress && !empty($lastProgress['page']) && $lastProgress['pa
             </p>
         </div>
         <div class="flex gap-2">
-            <button onclick="resumeCollect()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded font-bold">
-                ▶️ 继续采集
+            <button onclick="resumeCollect()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded font-bold flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293H15M9 10V9a2 2 0 012-2h2a2 2 0 012 2v1M9 10v5a2 2 0 002 2h2a2 2 0 002-2v-5m-6 0h6"></path>
+                </svg>
+                继续采集
             </button>
             <button onclick="clearProgress()" class="bg-gray-400 hover:bg-gray-500 text-white px-3 py-2 rounded text-sm">
                 清除进度
@@ -105,8 +135,11 @@ $canResume = $lastProgress && !empty($lastProgress['page']) && $lastProgress['pa
                 <p class="text-xs text-gray-500 mt-1">勾选后会下载海报图片到服务器，速度较慢</p>
             </div>
 
-            <button onclick="startCollect()" id="startBtn" class="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded font-bold <?= $bindCount == 0 ? 'opacity-50 cursor-not-allowed' : '' ?>" <?= $bindCount == 0 ? 'disabled' : '' ?>>
-                🚀 从头开始采集
+            <button onclick="startCollect()" id="startBtn" class="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded font-bold flex items-center justify-center <?= $bindCount == 0 ? 'opacity-50 cursor-not-allowed' : '' ?>" <?= $bindCount == 0 ? 'disabled' : '' ?>>
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                </svg>
+                从头开始采集
             </button>
             
             <button onclick="stopCollect()" id="stopBtn" class="w-full bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded font-bold hidden">
@@ -229,10 +262,10 @@ function resumeCollect() {
 
 function clearProgress() {
     xpkConfirm('确定要清除采集进度吗？', function() {
-        fetch('/admin.php/collect/clearProgress', {
+        fetch(adminUrl('/collect/clearProgress'), {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: 'id=<?= $collect['collect_id'] ?>'
+            body: 'id=<?= $collect['collect_id'] ?>&_token=<?= $csrfToken ?>'
         })
         .then(r => r.json())
         .then(data => {
@@ -305,13 +338,34 @@ function doCollect(page) {
         log_id: currentLogId
     });
     
-    fetch('/admin.php/collect/docollect', {
+    fetch(adminUrl('/collect/docollect'), {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: data,
         signal: abortController.signal
     })
-    .then(r => r.json())
+    .then(r => {
+        // 检查HTTP状态码
+        if (r.status === 403) {
+            throw new Error('403_FORBIDDEN');
+        }
+        if (!r.ok) {
+            throw new Error('HTTP_' + r.status);
+        }
+        return r.text();
+    })
+    .then(text => {
+        // 尝试解析JSON
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            // 非JSON响应，可能是HTML错误页
+            if (text.includes('<!DOCTYPE') || text.includes('<html')) {
+                throw new Error('SERVER_HTML_RESPONSE');
+            }
+            throw new Error('INVALID_JSON');
+        }
+    })
     .then(res => {
         if (!collecting) return;
         
@@ -349,12 +403,26 @@ function doCollect(page) {
             document.getElementById('startBtn').classList.remove('hidden');
             document.getElementById('stopBtn').classList.add('hidden');
         } else {
-            setTimeout(() => doCollect(page + 1), 500);
+            // 间隔1.5秒，避免触发服务器WAF/CC防护
+            setTimeout(() => doCollect(page + 1), 1500);
         }
     })
     .catch(err => {
         if (err.name === 'AbortError') return;
-        log('请求失败: ' + err, 'error');
+        
+        // 友好的错误提示
+        let errMsg = '';
+        if (err.message === '403_FORBIDDEN' || err.message === 'SERVER_HTML_RESPONSE') {
+            errMsg = '服务器拒绝请求(403)，可能是防火墙/WAF拦截，请将采集接口加入白名单';
+        } else if (err.message.startsWith('HTTP_')) {
+            errMsg = '服务器错误(' + err.message.replace('HTTP_', '') + ')，请检查服务器日志';
+        } else if (err.message === 'INVALID_JSON') {
+            errMsg = '服务器返回了无效响应，请检查PHP错误日志';
+        } else {
+            errMsg = '网络请求失败，请检查网络连接';
+        }
+        
+        log(errMsg, 'error');
         stopCollect();
     });
 }

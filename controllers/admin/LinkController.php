@@ -126,14 +126,24 @@ class AdminLinkController extends AdminBaseController
      */
     public function delete(): void
     {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+
         $id = (int)$this->post('id', 0);
 
         if ($id <= 0) {
             $this->error('参数错误');
         }
 
+        // 删除前先查询友链详情，用于日志记录
+        $link = $this->linkModel->find($id);
+        if (!$link) {
+            $this->error('友链不存在');
+        }
+
         $this->linkModel->delete($id);
-        $this->log('删除', '友链', "ID:{$id}");
+        $this->log('删除', '友链', "ID:{$id} 《{$link['link_name']}》 {$link['link_url']}");
         $this->success('删除成功');
     }
 
@@ -142,6 +152,10 @@ class AdminLinkController extends AdminBaseController
      */
     public function audit(): void
     {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+
         $id = (int)$this->post('id', 0);
         $status = (int)$this->post('status', 0);
 
@@ -160,6 +174,10 @@ class AdminLinkController extends AdminBaseController
      */
     public function check(): void
     {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+
         $id = (int)$this->post('id', 0);
 
         if ($id > 0) {
@@ -186,6 +204,10 @@ class AdminLinkController extends AdminBaseController
      */
     public function saveSetting(): void
     {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+
         $autoApprove = $this->post('link_auto_approve', '0');
         
         $config = xpk_cache()->get('site_config') ?: [];

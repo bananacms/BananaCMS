@@ -61,7 +61,7 @@ class AdminCollectController extends AdminBaseController
         $this->collectModel->insert($data);
         $this->log('添加', '采集', $data['collect_name']);
         $this->flash('success', '添加成功');
-        $this->redirect('/admin.php/collect');
+        $this->redirect('/' . $this->adminEntry . '/collect');
     }
 
     /**
@@ -100,7 +100,7 @@ class AdminCollectController extends AdminBaseController
         $collect = $this->collectModel->find($id);
         if (!$collect) {
             $this->flash('error', '采集站不存在');
-            $this->redirect('/admin.php/collect');
+            $this->redirect('/' . $this->adminEntry . '/collect');
         }
 
         $this->assign('collect', $collect);
@@ -122,7 +122,7 @@ class AdminCollectController extends AdminBaseController
         $this->collectModel->update($id, $data);
         $this->log('编辑', '采集', "ID:{$id} {$data['collect_name']}");
         $this->flash('success', '保存成功');
-        $this->redirect('/admin.php/collect');
+        $this->redirect('/' . $this->adminEntry . '/collect');
     }
 
     /**
@@ -130,10 +130,20 @@ class AdminCollectController extends AdminBaseController
      */
     public function delete(): void
     {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+
         $id = (int)$this->post('id', 0);
         if ($id > 0) {
+            // 删除前先查询采集站详情，用于日志记录
+            $collect = $this->collectModel->find($id);
+            if (!$collect) {
+                $this->error('采集站不存在');
+            }
+            
             $this->collectModel->delete($id);
-            $this->log('删除', '采集', "ID:{$id}");
+            $this->log('删除', '采集', "ID:{$id} 《{$collect['collect_name']}》 {$collect['collect_api']}");
             $this->success('删除成功');
         } else {
             $this->error('参数错误');
@@ -145,6 +155,10 @@ class AdminCollectController extends AdminBaseController
      */
     public function deleteVods(): void
     {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+
         $collectId = (int)$this->post('collect_id', 0);
         if ($collectId <= 0) {
             $this->error('参数错误');
@@ -185,14 +199,14 @@ class AdminCollectController extends AdminBaseController
         $collect = $this->collectModel->find($id);
         if (!$collect) {
             $this->flash('error', '采集站不存在');
-            $this->redirect('/admin.php/collect');
+            $this->redirect('/' . $this->adminEntry . '/collect');
         }
 
         // 获取远程分类
         $remoteCategories = $this->collectModel->getCategories($collect);
         if ($remoteCategories === null) {
             $this->flash('error', '获取远程分类失败，请检查API地址');
-            $this->redirect('/admin.php/collect');
+            $this->redirect('/' . $this->adminEntry . '/collect');
         }
 
         // 获取本地分类
@@ -225,6 +239,10 @@ class AdminCollectController extends AdminBaseController
      */
     public function syncCategories(): void
     {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+
         $id = (int)$this->post('id', 0);
         
         $collect = $this->collectModel->find($id);
@@ -406,7 +424,7 @@ class AdminCollectController extends AdminBaseController
         }
 
         $this->flash('success', '绑定保存成功');
-        $this->redirect('/admin.php/collect');
+        $this->redirect('/' . $this->adminEntry . '/collect');
     }
 
     /**
@@ -414,6 +432,10 @@ class AdminCollectController extends AdminBaseController
      */
     public function copyBind(): void
     {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+
         $fromId = (int)$this->post('from_id', 0);
         $toId = (int)$this->post('to_id', 0);
         
@@ -436,7 +458,7 @@ class AdminCollectController extends AdminBaseController
         $collect = $this->collectModel->find($id);
         if (!$collect) {
             $this->flash('error', '采集站不存在');
-            $this->redirect('/admin.php/collect');
+            $this->redirect('/' . $this->adminEntry . '/collect');
         }
 
         // 获取远程分类
@@ -455,6 +477,12 @@ class AdminCollectController extends AdminBaseController
      */
     public function doCollect(): void
     {
+        // CSRF验证
+        if (!$this->verifyCsrf()) {
+            $this->json(['code' => 1, 'msg' => '非法请求']);
+            return;
+        }
+
         // 设置错误处理，确保所有错误都能被捕获并返回JSON
         set_error_handler(function($errno, $errstr, $errfile, $errline) {
             throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
@@ -985,6 +1013,10 @@ class AdminCollectController extends AdminBaseController
      */
     public function clearProgress(): void
     {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+
         $id = (int)$this->post('id', 0);
         
         if ($id <= 0) {

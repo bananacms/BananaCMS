@@ -1,6 +1,6 @@
 <?php if (!empty($flash)): ?>
 <div class="mb-4 px-4 py-3 rounded <?= $flash['type'] === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' ?>">
-    <?= htmlspecialchars($flash['message'] ?? $flash['msg'] ?? '') ?>
+    <?= htmlspecialchars($flash['msg']) ?>
 </div>
 <?php endif; ?>
 
@@ -8,7 +8,12 @@
 <?php if (!$ffmpegAvailable): ?>
 <div class="mb-6 bg-amber-50 border border-amber-200 rounded-lg overflow-hidden">
     <button onclick="toggleHelp()" class="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-amber-100 transition">
-        <span class="font-medium text-amber-800">📖 云转码功能配置指南（点击展开）</span>
+        <span class="font-medium text-amber-800 flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+            </svg>
+            云转码功能配置指南（点击展开）
+        </span>
         <svg id="helpArrow" class="w-5 h-5 text-amber-600 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
         </svg>
@@ -16,7 +21,12 @@
     <div id="helpContent" class="hidden px-4 pb-4">
         <div class="text-sm text-amber-900 space-y-4">
             <div class="bg-white rounded p-4 border border-amber-100">
-                <h4 class="font-bold mb-2">🎯 功能说明</h4>
+                <h4 class="font-bold mb-2 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                    </svg>
+                    功能说明
+                </h4>
                 <p>云转码可将上传的视频转换为加密 HLS 格式（m3u8），支持：</p>
                 <ul class="list-disc list-inside mt-2 space-y-1 text-gray-600">
                     <li>视频加密防盗链</li>
@@ -27,7 +37,12 @@
             </div>
             
             <div class="bg-white rounded p-4 border border-amber-100">
-                <h4 class="font-bold mb-2">📦 宝塔面板安装 FFmpeg</h4>
+                <h4 class="font-bold mb-2 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                    </svg>
+                    宝塔面板安装 FFmpeg
+                </h4>
                 <ol class="list-decimal list-inside space-y-2 text-gray-600">
                     <li>登录宝塔面板</li>
                     <li>进入 <span class="bg-gray-100 px-1 rounded">软件商店</span></li>
@@ -38,7 +53,13 @@
             </div>
             
             <div class="bg-white rounded p-4 border border-amber-100">
-                <h4 class="font-bold mb-2">⚙️ PHP 函数配置</h4>
+                <h4 class="font-bold mb-2 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    PHP 函数配置
+                </h4>
                 <p class="text-gray-600 mb-2">需要在 PHP 中启用以下函数（宝塔默认禁用）：</p>
                 <div class="bg-gray-800 text-green-400 rounded p-3 font-mono text-xs">
                     exec, shell_exec, proc_open, popen
@@ -47,7 +68,13 @@
             </div>
             
             <div class="bg-white rounded p-4 border border-amber-100">
-                <h4 class="font-bold mb-2">🔧 命令行安装（可选）</h4>
+                <h4 class="font-bold mb-2 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    命令行安装（可选）
+                </h4>
                 <p class="text-gray-600 mb-2">如果软件商店没有 FFmpeg，可通过命令行安装：</p>
                 <div class="bg-gray-800 text-green-400 rounded p-3 font-mono text-xs space-y-1">
                     <div># CentOS / RHEL</div>
@@ -59,7 +86,12 @@
             </div>
             
             <div class="bg-blue-50 rounded p-4 border border-blue-100">
-                <h4 class="font-bold mb-2 text-blue-800">💡 不需要此功能？</h4>
+                <h4 class="font-bold mb-2 text-blue-800 flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    不需要此功能？
+                </h4>
                 <p class="text-blue-700">如果您不需要云转码功能，可以忽略此页面。视频可以直接使用外部播放地址或第三方存储。</p>
             </div>
         </div>
@@ -83,10 +115,13 @@ function toggleHelp() {
         <?php else: ?>
             <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm">FFmpeg 未安装</span>
         <?php endif; ?>
-        <a href="/admin.php/transcode/ad" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded">
-            🎬 广告管理
+        <a href="/<?= $adminEntry ?>/transcode/ad" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded flex items-center">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+            </svg>
+            广告管理
         </a>
-        <a href="/admin.php/transcode/upload" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded <?= $ffmpegAvailable ? '' : 'opacity-50 pointer-events-none' ?>">
+        <a href="/<?= $adminEntry ?>/transcode/upload" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded <?= $ffmpegAvailable ? '' : 'opacity-50 pointer-events-none' ?>">
             + 上传视频
         </a>
     </div>
@@ -123,7 +158,7 @@ function toggleHelp() {
             <option value="3" <?= $status === '3' ? 'selected' : '' ?>>失败</option>
         </select>
         <button type="submit" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">筛选</button>
-        <a href="/admin.php/transcode" class="text-gray-500 hover:text-gray-700">重置</a>
+        <a href="/<?= $adminEntry ?>/transcode" class="text-gray-500 hover:text-gray-700">重置</a>
     </form>
 </div>
 
@@ -263,7 +298,7 @@ document.getElementById('checkAll').addEventListener('change', function() {
 
 // 复制 m3u8 地址
 function copyM3u8(id) {
-    fetch('/admin.php/transcode/play?id=' + id)
+    fetch(adminUrl('/transcode/play?id=' + id))
         .then(r => r.json())
         .then(data => {
             if (data.code === 0) {
@@ -279,7 +314,7 @@ function copyM3u8(id) {
 // 预览视频
 let hls = null;
 function previewVideo(id) {
-    fetch('/admin.php/transcode/play?id=' + id)
+    fetch(adminUrl('/transcode/play?id=' + id))
         .then(r => r.json())
         .then(data => {
             if (data.code === 0) {
@@ -315,7 +350,7 @@ function closePreview() {
 // 重试任务
 function retryTask(id) {
     xpkConfirm('确定重试此任务？', function() {
-        fetch('/admin.php/transcode/retry', {
+        fetch(adminUrl('/transcode/retry'), {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
             body: '_token=' + csrfToken + '&id=' + id
@@ -334,7 +369,7 @@ let pollingTimer = null;
 function processTask(id) {
     xpkConfirm('确定立即开始转码？', function() {
         xpkToast('正在启动转码...', 'info');
-        fetch('/admin.php/transcode/process', {
+        fetch(adminUrl('/transcode/process'), {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
             body: '_token=' + csrfToken + '&id=' + id
@@ -362,7 +397,7 @@ function startPolling(id) {
     if (!row) return;
     
     pollingTimer = setInterval(() => {
-        fetch('/admin.php/transcode/progress?id=' + id)
+        fetch(adminUrl('/transcode/progress?id=' + id))
             .then(r => r.json())
             .then(data => {
                 if (!data.success) return;
@@ -398,7 +433,7 @@ function startPolling(id) {
 // 删除任务
 function deleteTask(id) {
     xpkConfirm('确定删除此任务？相关文件也会被删除。', function() {
-        fetch('/admin.php/transcode/delete', {
+        fetch(adminUrl('/transcode/delete'), {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
             body: '_token=' + csrfToken + '&id=' + id + '&delete_files=1'
@@ -422,7 +457,7 @@ function batchDelete() {
     xpkConfirm(`确定删除选中的 ${ids.length} 个任务？`, function() {
         const body = '_token=' + csrfToken + '&delete_files=1&' + ids.map(id => 'ids[]=' + id).join('&');
         
-        fetch('/admin.php/transcode/batchDelete', {
+        fetch(adminUrl('/transcode/batchDelete'), {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
             body: body

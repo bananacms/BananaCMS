@@ -40,7 +40,7 @@
                 </td>
                 <td class="px-4 py-3 text-sm space-x-2">
                     <button onclick="openArtTypeModal(<?= $type['type_id'] ?>)" class="text-blue-500 hover:underline">编辑</button>
-                    <button onclick="deleteItem('/admin.php/art_type/delete', <?= $type['type_id'] ?>)" class="text-red-500 hover:underline">删除</button>
+                    <button onclick="deleteItem('/<?= $adminEntry ?>/art_type/delete', <?= $type['type_id'] ?>)" class="text-red-500 hover:underline">删除</button>
                 </td>
             </tr>
             <?php endforeach; ?>
@@ -102,7 +102,7 @@ function openArtTypeModal(id = null) {
     
     if (id) {
         title.textContent = '编辑分类';
-        fetch('/admin.php/art_type/getOne?id=' + id)
+        fetch(adminUrl('/art_type/getOne?id=' + id))
             .then(r => r.json())
             .then(data => {
                 if (data.code === 0) {
@@ -132,7 +132,7 @@ function saveArtType(e) {
     const form = document.getElementById('artTypeForm');
     const formData = new FormData(form);
     const id = formData.get('type_id');
-    const url = id ? '/admin.php/art_type/edit/' + id : '/admin.php/art_type/add';
+    const url = id ? adminUrl('/art_type/edit/' + id) : adminUrl('/art_type/add');
     
     fetch(url, {
         method: 'POST',

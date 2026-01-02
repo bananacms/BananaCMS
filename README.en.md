@@ -6,19 +6,22 @@
 
 Lightweight video content management system, built with native PHP, framework-free, ready to use.
 
-## ✨ Features
+## ✨ Core Features
 
-- 🚀 **Lightweight & Efficient** - Native PHP, no framework dependencies, excellent performance
+- 🚀 **Lightweight & Efficient** - Native PHP 8.0+, no framework dependencies, excellent performance
 - 📦 **Ready to Use** - Installation wizard, deploy online in 5 minutes
-- 🎬 **Video Collection** - Connect to resource site APIs, automatic collection and storage
-- 📱 **Short Videos/Series** - Vertical sliding playback, episode management
-- 💬 **Comment System** - Nested replies, like/dislike, sensitive word filtering
-- ⭐ **Rating System** - 1-10 point rating, statistical distribution
-- 📢 **Ad System** - 10 ad positions, 4 ad types
-- 📊 **Data Statistics** - UV/PV trends, source analysis, popular rankings
-- 🔌 **Complete API** - RESTful interface, supports APP development
-- ☁️ **Cloud Storage** - Supports Cloudflare R2 (optional)
-- ⚡ **Redis Cache** - High-speed cache and Session (optional)
+- 🎬 **Smart Collection** - Connect to resource site APIs, automatic collection, scheduled tasks
+- 📱 **Short Videos/Series** - Vertical sliding playback, episode management, random recommendations
+- 💬 **Advanced Comments** - Nested replies, like/dislike, sensitive word filtering, comment moderation
+- ⭐ **Rating System** - 1-10 point rating, statistical distribution, rating trends
+- 📢 **Ad System** - 10 ad positions, 4 ad types, click statistics
+- 📊 **Data Statistics** - UV/PV trends, source analysis, popular rankings, real-time monitoring
+- 🔌 **Complete API** - 40+ RESTful interfaces, Token authentication, APP development support
+- ☁️ **Cloud Storage** - Supports Cloudflare R2, local/cloud dual storage
+- ⚡ **Redis Cache** - High-speed cache and Session, File/Redis dual drivers
+- 🔒 **Security Protection** - SQL injection/XSS/CSRF protection, admin IP obfuscation
+- 🎨 **Template System** - Custom tags, 5 URL modes, SEO optimization
+- 🔄 **Video Transcoding** - FFmpeg transcoding, progress tracking, transcoding ads
 
 ## 📋 Requirements
 
@@ -59,44 +62,45 @@ Optional:
 ## 🎯 Feature List
 
 ### Frontend Features
-- ✅ Homepage (recommended/latest/popular)
-- ✅ Video categories, filtering
-- ✅ Video details, playback
-- ✅ Auto-play next episode
-- ✅ Actor list/details
-- ✅ Article list/details
-- ✅ Search functionality
-- ✅ User registration/login
-- ✅ Short video sliding playback
-- ✅ Short series episode playback
-- ✅ Comments/replies
-- ✅ Video rating
-- ✅ Friendly links
+- ✅ **Homepage System** - Recommended/latest/popular videos, category aggregation, carousel
+- ✅ **Video System** - Category filtering, detail playback, auto-play next, playback history
+- ✅ **Short Videos/Series** - Vertical sliding, episode management, random recommendations, category browsing
+- ✅ **Actor System** - Actor list, actor details, work showcase, actor search
+- ✅ **Article System** - Article list, article details, article categories, article search
+- ✅ **Search Function** - Site-wide search, popular searches, search suggestions, search history
+- ✅ **User System** - Registration/login, personal center, profile modification, password change
+- ✅ **Interactive Features** - Comment replies, video ratings, like/dislike, favorites/history
+- ✅ **Friendly Links** - Link display, link application, link categories
+- ✅ **Single Pages** - About us, contact, disclaimer, custom pages
 
 ### Backend Features
-- ✅ Dashboard overview
-- ✅ Video management
-- ✅ Category management
-- ✅ Actor management
-- ✅ Article management
-- ✅ User management
-- ✅ Collection management
-- ✅ Ad management
-- ✅ Comment management
-- ✅ Short video management
-- ✅ Data statistics
-- ✅ Link management
-- ✅ Operation logs
-- ✅ System configuration
+- ✅ **Dashboard** - Data overview, daily statistics, system status, quick operations
+- ✅ **Video Management** - Video CRUD, batch operations, play source management, video locking
+- ✅ **Category Management** - Tree structure, category CRUD, batch operations, category sorting
+- ✅ **Actor Management** - Actor information, work association, actor statistics, batch import
+- ✅ **Article Management** - Article publishing, editor, article categories, article statistics
+- ✅ **User Management** - User list, user editing, user disable, user statistics
+- ✅ **Collection Management** - Collection site configuration, collection tasks, collection logs, scheduled collection
+- ✅ **Ad Management** - Ad position configuration, ad placement, click statistics, ad sorting
+- ✅ **Comment Management** - Comment moderation, comment deletion, sensitive word configuration, comment statistics
+- ✅ **Short Video Management** - Short video/series management, episode management, status control
+- ✅ **Data Statistics** - UV/PV trends, source analysis, popular rankings, data export
+- ✅ **Transcoding Management** - Transcoding tasks, transcoding progress, transcoding ads, transcoding statistics
+- ✅ **Link Management** - Link moderation, link checking, link categories, link statistics
+- ✅ **Operation Logs** - Admin operations, log queries, log cleanup, security audit
+- ✅ **System Configuration** - Site information, SEO configuration, cache configuration, storage configuration
+- ✅ **Player Management** - Player configuration, player enable, player statistics
+- ✅ **Page Management** - Page creation, page editing, page deletion, page sorting
 
 ### Technical Features
-- ✅ SEO optimization (sitemap/robots/custom URLs)
-- ✅ 5 URL modes (supports slug rewrite)
-- ✅ File/Redis dual cache drivers
-- ✅ Local/Cloudflare R2 dual storage drivers
-- ✅ CSRF/XSS/SQL injection protection
-- ✅ RESTful API (40+ interfaces)
-- ✅ Token authentication (APP support)
+- ✅ **SEO Optimization** - Sitemap generation, robots configuration, custom URLs, meta tags
+- ✅ **5 URL Modes** - Supports slug rewrite, custom rules, SEO friendly
+- ✅ **Dual Cache Drivers** - File cache/Redis cache, cache preheating, cache cleanup
+- ✅ **Dual Storage Drivers** - Local storage/Cloudflare R2, file management, CDN acceleration
+- ✅ **Security Protection** - CSRF/XSS/SQL injection protection, IP obfuscation, operation audit
+- ✅ **RESTful API** - 40+ interfaces, Token authentication, APP support, API documentation
+- ✅ **Template System** - Custom tags, template compilation, variable rendering, template cache
+- ✅ **Multi-language Support** - Chinese/English interface, multi-language templates, internationalization configuration
 
 ## 📥 Collection Feature
 
@@ -136,27 +140,63 @@ define('R2_PUBLIC_URL', '');
 
 ## 🌐 URL Rewrite Configuration
 
-**Nginx:**
+### Nginx Configuration (BT Panel)
+
+Add to BT Panel Site Settings → URL Rewrite:
+
 ```nginx
-location / {
-    if (!-e $request_filename) {
-        rewrite ^(.*)$ /index.php?s=$1 last;
-    }
+# Sitemap
+location = /sitemap.xml {
+    rewrite ^ /sitemap.php last;
 }
+
+# Block sensitive directories
 location ~ ^/(config|core|models|controllers|views|runtime)/ {
     deny all;
 }
+
+# Frontend rewrite
+location / {
+    try_files $uri $uri/ /index.php?s=$uri&$args;
+}
 ```
 
-**Apache (.htaccess):**
+### Apache Configuration
+
+Create `.htaccess` file:
+
 ```apache
-RewriteEngine On
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ index.php/$1 [QSA,L]
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Sitemap
+    RewriteRule ^sitemap\.xml$ sitemap.php [QSA,L]
+
+    # Frontend routing
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ index.php?s=$1 [QSA,L]
+</IfModule>
+
+# Block sensitive directories
+<FilesMatch "^(config|core|models|controllers|views|runtime)">
+    Order deny,allow
+    Deny from all
+</FilesMatch>
 ```
 
-> Complete configuration in `伪静态/` directory
+### URL Mode Description
+
+The system supports 5 URL modes, configurable in backend:
+
+1. **Mode 1**: `/vod/detail/123` (ID mode)
+2. **Mode 2**: `/vod/123.html` (ID+HTML)
+3. **Mode 3**: `/video/123` (Custom prefix)
+4. **Mode 4**: `/video/movie-name` (Slug without suffix)
+5. **Mode 5**: `/video/movie-name.html` (Slug+HTML)
+
+> Complete configuration files in `伪静态/` directory
 
 ## 📱 API Documentation
 
@@ -273,16 +313,31 @@ X-Token: {token}
 | Cache | File / Redis |
 | Storage | Local / Cloudflare R2 |
 
+## 📊 Project Statistics
+
+| Type | Count | Description |
+|------|-------|-------------|
+| Core Libraries | 11 | Database, Router, Cache, Template, etc. |
+| Data Models | 22 | Complete models for Vod, User, Comment, Score, etc. |
+| Frontend Controllers | 12 | Homepage, video, user and other functional controllers |
+| Backend Controllers | 22 | Complete backend management functions |
+| API Interfaces | 40+ | Complete RESTful API |
+| Template Tags | 10+ | Custom template tag system |
+| Database Tables | 25+ | Complete database structure |
+| Lines of Code | 50000+ | High-quality PHP code |
+
 ## 📢 Community
 
-- Telegram Channel: [@BananaCMS](https://t.me/BananaCMS)
+- **Telegram Channel**: [@BananaCMS](https://t.me/BananaCMS)
+- **GitHub**: [BananaCMS](https://github.com/bananacms/bananacms)
+- **Official Website**: [https://bananacms.com](https://bananacms.com)
 
 ## 📄 License
 
-MIT License
+MIT License - Free to use, commercial friendly
 
 ---
 
-**BananaCMS** - Lighter than Apple 🍌
+**BananaCMS** - Lighter than Apple, Sweeter than Orange 🍌
 
 Powered by [XPornKit](https://xpornkit.com)

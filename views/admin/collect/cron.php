@@ -2,7 +2,7 @@
 
 <?php if (!empty($flash)): ?>
 <div class="mb-4 px-4 py-3 rounded <?= $flash['type'] === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' ?>">
-    <?= htmlspecialchars($flash['message']) ?>
+    <?= htmlspecialchars($flash['msg']) ?>
 </div>
 <?php endif; ?>
 
@@ -78,8 +78,11 @@
                     <p class="text-xs text-gray-500 mt-1">不选择则采集所有启用的采集站</p>
                 </div>
 
-                <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-bold">
-                    💾 保存配置
+                <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-bold flex items-center justify-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                    保存配置
                 </button>
             </div>
         </form>
@@ -96,9 +99,24 @@
             </div>
             
             <div class="mt-4 text-sm text-gray-600 space-y-2">
-                <p>📌 将上面的命令添加到服务器的 crontab 中</p>
-                <p>📌 执行 <code class="bg-gray-100 px-1 rounded">crontab -e</code> 编辑定时任务</p>
-                <p>📌 建议设置每小时执行，实际采集间隔由上方配置控制</p>
+                <p class="flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
+                    </svg>
+                    将上面的命令添加到服务器的 crontab 中
+                </p>
+                <p class="flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
+                    </svg>
+                    执行 <code class="bg-gray-100 px-1 rounded">crontab -e</code> 编辑定时任务
+                </p>
+                <p class="flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
+                    </svg>
+                    建议设置每小时执行，实际采集间隔由上方配置控制
+                </p>
             </div>
         </div>
 
@@ -117,14 +135,22 @@
             </div>
             <?php endif; ?>
 
-            <button onclick="testCron()" class="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
-                🚀 立即执行一次
+            <button onclick="testCron()" class="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded flex items-center justify-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                </svg>
+                立即执行一次
             </button>
             <p class="text-xs text-gray-500 mt-2 text-center">手动触发采集任务（后台执行）</p>
         </div>
 
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h4 class="font-medium text-blue-800 mb-2">💡 命令行用法</h4>
+            <h4 class="font-medium text-blue-800 mb-2 flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                命令行用法
+            </h4>
             <div class="text-sm text-blue-700 space-y-1">
                 <p><code>php cron.php collect</code> - 采集所有启用的采集站</p>
                 <p><code>php cron.php collect --hours=24</code> - 只采24小时内更新</p>
@@ -156,7 +182,7 @@ document.getElementById('cronForm').addEventListener('submit', function(e) {
     btn.disabled = true;
     btn.textContent = '保存中...';
     
-    fetch('/admin.php/collect/saveCron', {
+    fetch(adminUrl('/collect/saveCron'), {
         method: 'POST',
         body: new FormData(this)
     })
@@ -168,12 +194,12 @@ document.getElementById('cronForm').addEventListener('submit', function(e) {
             xpkToast(data.msg, 'error');
         }
         btn.disabled = false;
-        btn.textContent = '💾 保存配置';
+        btn.textContent = '保存配置';
     })
     .catch(() => {
         xpkToast('请求失败', 'error');
         btn.disabled = false;
-        btn.textContent = '💾 保存配置';
+        btn.textContent = '保存配置';
     });
 });
 
@@ -181,7 +207,7 @@ function testCron() {
     xpkConfirm('确定要立即执行采集任务吗？', function() {
         xpkToast('采集任务已在后台启动', 'info');
         
-        fetch('/admin.php/collect/runCron', {
+        fetch(adminUrl('/collect/runCron'), {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
             body: '_token=<?= $csrfToken ?>'

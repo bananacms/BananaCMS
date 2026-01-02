@@ -1,10 +1,13 @@
 <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold">播放源管理</h1>
     <div class="flex gap-2">
-        <a href="/admin.php/vod/replace" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
-            🔄 地址替换
+        <a href="/<?= $adminEntry ?>/vod/replace" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded flex items-center">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            地址替换
         </a>
-        <a href="/admin.php/vod" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+        <a href="/<?= $adminEntry ?>/vod" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
             ← 返回视频列表
         </a>
     </div>
@@ -55,7 +58,12 @@
     <!-- 操作说明 -->
     <div class="space-y-6">
         <div class="bg-white rounded-lg shadow p-6">
-            <h3 class="font-bold mb-4">📋 功能说明</h3>
+            <h3 class="font-bold mb-4 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                </svg>
+                功能说明
+            </h3>
             <div class="space-y-3 text-sm text-gray-600">
                 <div>
                     <p class="font-medium text-gray-700">重命名播放源</p>
@@ -69,7 +77,12 @@
         </div>
 
         <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <h4 class="font-medium text-yellow-800 mb-2">⚠️ 注意事项</h4>
+            <h4 class="font-medium text-yellow-800 mb-2 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                注意事项
+            </h4>
             <ul class="text-sm text-yellow-700 space-y-1">
                 <li>• 删除播放源会同时删除该源的所有播放地址</li>
                 <li>• 操作不可撤销，请先备份数据库</li>
@@ -78,7 +91,12 @@
         </div>
 
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h4 class="font-medium text-blue-800 mb-2">💡 提示</h4>
+            <h4 class="font-medium text-blue-800 mb-2 flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                提示
+            </h4>
             <ul class="text-sm text-blue-700 space-y-1">
                 <li>• 播放源名称来自采集的资源站</li>
                 <li>• 可在"播放器管理"中配置播放器</li>
@@ -135,7 +153,7 @@ document.getElementById('renameForm').addEventListener('submit', function(e) {
     
     const formData = new FormData(this);
     
-    fetch('/admin.php/vod/renameSource', {
+    fetch(adminUrl('/vod/renameSource'), {
         method: 'POST',
         body: formData
     })
@@ -153,7 +171,7 @@ document.getElementById('renameForm').addEventListener('submit', function(e) {
 
 function deleteSource(name) {
     xpkConfirm(`确定要删除播放源 "${name}" 吗？\n\n这将从所有视频中移除该播放源及其地址，操作不可撤销！`, () => {
-        fetch('/admin.php/vod/deleteSource', {
+        fetch(adminUrl('/vod/deleteSource'), {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
             body: '_token=<?= $csrfToken ?>&source=' + encodeURIComponent(name)

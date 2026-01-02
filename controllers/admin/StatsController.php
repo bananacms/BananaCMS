@@ -52,6 +52,9 @@ class AdminStatsController extends AdminBaseController
         // 诊断信息
         $diagInfo = $this->statsModel->getDiagnostics();
 
+        // 日志统计信息
+        $logStats = $this->statsModel->getLogStats();
+
         $this->assign('overview', $overview);
         $this->assign('trend', $trend);
         $this->assign('userTrend', $userTrend);
@@ -61,7 +64,9 @@ class AdminStatsController extends AdminBaseController
         $this->assign('contentStats', $contentStats);
         $this->assign('onlineCount', $onlineCount);
         $this->assign('diagInfo', $diagInfo);
+        $this->assign('logStats', $logStats);
         $this->assign('days', $days);
+        $this->assign('csrfToken', $this->csrfToken());
 
         $this->render('stats/index', '数据统计');
     }
@@ -100,5 +105,39 @@ class AdminStatsController extends AdminBaseController
         
         $this->log('清理', '统计日志', "保留{$keepDays}天，删除{$deleted}条");
         $this->success("已清理 {$deleted} 条过期日志");
+    }
+
+    /**
+     * 清理所有日志
+     */
+    public function cleanAll(): void
+    {
+        if (!$this->verifyCsrf()) {
+            $this->error('CSRF验证失败');
+        }
+
+        $options = [
+            'stats_days' => (int)($this->post('stats_days', 90)),
+            'admin_days' => (int)($this->post('admin_days', 30)),
+            'search_days' => (int)($this->post('search_days', 90)),
+            'collect_days' => (int)($this->post('collect_days', 30)),
+            'vote_days' => (int)($this->post('vote_days', 180)),
+            'score_days' => (int)($this->post('score_days', 365)),
+            'history_days' => (int)($this->post('history_days', 365)),
+            'chunk_days' => (int)($this->post('chunk_days', 7)),
+        ];
+
+        $results = $this->statsModel->cleanAllLogs($options);
+        
+        $total = array_sum($results);
+        $details = [];
+        foreach ($results as $table => $count) {
+            if ($count > 0) {
+                $details[] = "{$table}: {$count}条";
+            }
+        }
+        
+        $this->log('清理', '全部日志', "清理结果: " . implode(', ', $details) . "，共{$total}条");
+        $this->success("已清理 {$total} 条记录", $results);
     }
 }

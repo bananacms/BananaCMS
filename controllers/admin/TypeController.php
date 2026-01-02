@@ -142,6 +142,12 @@ class AdminTypeController extends AdminBaseController
             $this->error('参数错误');
         }
 
+        // 删除前先查询分类详情，用于日志记录
+        $type = $this->typeModel->find($id);
+        if (!$type) {
+            $this->error('分类不存在');
+        }
+
         // 检查是否有子分类
         $children = $this->typeModel->count(['type_pid' => $id]);
         if ($children > 0) {
@@ -159,7 +165,7 @@ class AdminTypeController extends AdminBaseController
         }
 
         $this->typeModel->delete($id);
-        $this->log('删除', '分类', "ID:{$id}");
+        $this->log('删除', '分类', "ID:{$id} 《{$type['type_name']}》");
         $this->success('删除成功');
     }
 
@@ -168,6 +174,10 @@ class AdminTypeController extends AdminBaseController
      */
     public function batchDelete(): void
     {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+
         $ids = $this->post('ids', []);
         
         if (empty($ids) || !is_array($ids)) {
@@ -180,15 +190,24 @@ class AdminTypeController extends AdminBaseController
         $success = 0;
         $failed = 0;
         $errors = [];
+        $deletedTypes = [];
 
         foreach ($ids as $id) {
             if ($id <= 0) continue;
+
+            // 先查询分类详情
+            $type = $this->typeModel->find($id);
+            if (!$type) {
+                $failed++;
+                $errors[] = "ID:{$id} 不存在";
+                continue;
+            }
 
             // 检查是否有子分类
             $children = $this->typeModel->count(['type_pid' => $id]);
             if ($children > 0) {
                 $failed++;
-                $errors[] = "ID:{$id} 有子分类";
+                $errors[] = "《{$type['type_name']}》有子分类";
                 continue;
             }
 
@@ -200,15 +219,21 @@ class AdminTypeController extends AdminBaseController
 
             if ($vodCount > 0) {
                 $failed++;
-                $errors[] = "ID:{$id} 有视频";
+                $errors[] = "《{$type['type_name']}》有视频";
                 continue;
             }
 
             $this->typeModel->delete($id);
+            $deletedTypes[] = "ID:{$id}《{$type['type_name']}》";
             $success++;
         }
 
-        $this->log('批量删除', '分类', "成功:{$success} 失败:{$failed}");
+        // 记录详细日志
+        $logContent = "成功删除 {$success} 个: " . implode(', ', $deletedTypes);
+        if ($failed > 0) {
+            $logContent .= " | 失败 {$failed} 个: " . implode(', ', array_slice($errors, 0, 5));
+        }
+        $this->log('批量删除', '分类', $logContent);
         
         if ($failed > 0) {
             $this->success("删除完成：成功 {$success} 个，失败 {$failed} 个（" . implode('；', array_slice($errors, 0, 3)) . "）");

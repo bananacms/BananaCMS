@@ -11,7 +11,7 @@
             搜索
         </button>
         <?php if (!empty($keyword)): ?>
-        <a href="/admin.php/search/log" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded">
+        <a href="/<?= $adminEntry ?>/search/log" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded">
             清除
         </a>
         <?php endif; ?>
@@ -119,7 +119,7 @@
 function cleanLog() {
     if (!xpkConfirm('确定要清理90天前的搜索日志吗？')) return;
     
-    fetch('/admin.php/search/cleanLog', {
+    fetch(adminUrl('/search/cleanLog'), {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: '_token=<?= $csrfToken ?>&keep_days=90'

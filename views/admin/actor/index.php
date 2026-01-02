@@ -20,7 +20,7 @@
                 class="border rounded px-3 py-2" placeholder="演员姓名">
         </div>
         <button type="submit" class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700">搜索</button>
-        <a href="/admin.php/actor" class="text-gray-500 hover:text-gray-700 py-2">重置</a>
+        <a href="/<?= $adminEntry ?>/actor" class="text-gray-500 hover:text-gray-700 py-2">重置</a>
     </form>
 </div>
 
@@ -51,7 +51,11 @@
                     <?php if ($actor['actor_pic']): ?>
                     <img src="<?= htmlspecialchars($actor['actor_pic']) ?>" class="w-10 h-10 rounded-full object-cover">
                     <?php else: ?>
-                    <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-400">👤</div>
+                    <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-400">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                    </div>
                     <?php endif; ?>
                 </td>
                 <td class="px-4 py-3 text-sm font-medium"><?= htmlspecialchars($actor['actor_name']) ?></td>
@@ -65,7 +69,7 @@
                 </td>
                 <td class="px-4 py-3 text-sm space-x-2">
                     <button onclick="openActorModal(<?= $actor['actor_id'] ?>)" class="text-blue-500 hover:underline">编辑</button>
-                    <button onclick="deleteItem('/admin.php/actor/delete', <?= $actor['actor_id'] ?>)" class="text-red-500 hover:underline">删除</button>
+                    <button onclick="deleteItem('/<?= $adminEntry ?>/actor/delete', <?= $actor['actor_id'] ?>)" class="text-red-500 hover:underline">删除</button>
                 </td>
             </tr>
             <?php endforeach; ?>
@@ -76,7 +80,7 @@
 
 <!-- 分页 -->
 <?php 
-$baseUrl = "/admin.php/actor?keyword=" . urlencode($keyword);
+$baseUrl = "/<?= $adminEntry ?>/actor?keyword=" . urlencode($keyword);
 include __DIR__ . '/../components/pagination.php'; 
 ?>
 
@@ -173,7 +177,7 @@ function openActorModal(id = null) {
     
     if (id) {
         title.textContent = '编辑演员';
-        fetch('/admin.php/actor/getOne?id=' + id)
+        fetch(adminUrl('/actor/getOne?id=' + id))
             .then(r => r.json())
             .then(data => {
                 if (data.code === 0) {
@@ -211,7 +215,7 @@ function saveActor(e) {
     const form = document.getElementById('actorForm');
     const formData = new FormData(form);
     const id = formData.get('actor_id');
-    const url = id ? '/admin.php/actor/edit/' + id : '/admin.php/actor/add';
+    const url = id ? adminUrl('/actor/edit/' + id) : adminUrl('/actor/add');
     
     fetch(url, {
         method: 'POST',

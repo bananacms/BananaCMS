@@ -27,6 +27,7 @@ class AdminSearchController extends AdminBaseController
         $this->assign('stats', $stats);
         $this->assign('hotKeywords', $hotKeywords);
         $this->assign('recentKeywords', $recentKeywords);
+        $this->assign('csrfToken', $this->csrfToken());
         $this->assign('flash', $this->getFlash());
         $this->render('search/index', '搜索统计');
     }

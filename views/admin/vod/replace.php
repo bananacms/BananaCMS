@@ -7,10 +7,13 @@
 <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold">播放地址替换</h1>
     <div class="flex gap-2">
-        <a href="/admin.php/vod/sources" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded">
-            📺 播放源管理
+        <a href="/<?= $adminEntry ?>/vod/sources" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded flex items-center">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+            </svg>
+            播放源管理
         </a>
-        <a href="/admin.php/vod" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+        <a href="/<?= $adminEntry ?>/vod" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
             ← 返回视频列表
         </a>
     </div>
@@ -19,7 +22,12 @@
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <!-- 域名替换 -->
     <div class="bg-white rounded-lg shadow p-6">
-        <h3 class="font-bold text-lg mb-4">🔄 域名/地址替换</h3>
+        <h3 class="font-bold text-lg mb-4 flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            域名/地址替换
+        </h3>
         <p class="text-sm text-gray-500 mb-4">批量替换播放地址中的域名或任意字符串</p>
         
         <form id="replaceForm" class="space-y-4">
@@ -57,7 +65,12 @@
             </div>
 
             <div class="bg-yellow-50 border border-yellow-200 rounded p-3 text-sm text-yellow-800">
-                <p class="font-medium">⚠️ 注意事项：</p>
+                <p class="font-medium flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                    注意事项：
+                </p>
                 <ul class="list-disc list-inside mt-1 space-y-1">
                     <li>此操作不可撤销，请先备份数据库</li>
                     <li>替换区分大小写</li>
@@ -65,15 +78,23 @@
                 </ul>
             </div>
 
-            <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-bold">
-                🔄 执行替换
+            <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-bold flex items-center justify-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                执行替换
             </button>
         </form>
     </div>
 
     <!-- 常用替换示例 -->
     <div class="bg-white rounded-lg shadow p-6">
-        <h3 class="font-bold text-lg mb-4">📋 常用替换示例</h3>
+        <h3 class="font-bold text-lg mb-4 flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+            </svg>
+            常用替换示例
+        </h3>
         
         <div class="space-y-4">
             <div class="border rounded p-4">
@@ -118,7 +139,12 @@
         </div>
 
         <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded">
-            <h4 class="font-medium text-blue-800 mb-2">💡 提示</h4>
+            <h4 class="font-medium text-blue-800 mb-2 flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                提示
+            </h4>
             <ul class="text-sm text-blue-700 space-y-1">
                 <li>• 如需管理播放源（重命名/删除），请点击"播放源管理"</li>
                 <li>• 替换操作会直接修改数据库，建议先备份</li>
@@ -143,7 +169,7 @@ document.getElementById('replaceForm').addEventListener('submit', function(e) {
     xpkConfirm(`确定要将 "${oldStr}" 替换为 "${newStr || '(空)'}" 吗？\n\n此操作不可撤销！`, () => {
         const formData = new FormData(this);
         
-        fetch('/admin.php/vod/replace', {
+        fetch(adminUrl('/vod/replace'), {
             method: 'POST',
             body: formData
         })

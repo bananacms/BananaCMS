@@ -34,10 +34,10 @@
     <div class="bg-white rounded-lg shadow p-4">
         <div class="flex flex-wrap items-center justify-between gap-4">
             <div class="flex gap-2">
-                <a href="/admin.php/link" class="px-3 py-1.5 rounded <?= $status === '' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' ?>">全部</a>
-                <a href="/admin.php/link?status=0" class="px-3 py-1.5 rounded <?= $status === '0' ? 'bg-yellow-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' ?>">待审核</a>
-                <a href="/admin.php/link?status=1" class="px-3 py-1.5 rounded <?= $status === '1' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' ?>">已通过</a>
-                <a href="/admin.php/link?status=2" class="px-3 py-1.5 rounded <?= $status === '2' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' ?>">已拒绝</a>
+                <a href="/<?= $adminEntry ?>/link" class="px-3 py-1.5 rounded <?= $status === '' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' ?>">全部</a>
+                <a href="/<?= $adminEntry ?>/link?status=0" class="px-3 py-1.5 rounded <?= $status === '0' ? 'bg-yellow-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' ?>">待审核</a>
+                <a href="/<?= $adminEntry ?>/link?status=1" class="px-3 py-1.5 rounded <?= $status === '1' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' ?>">已通过</a>
+                <a href="/<?= $adminEntry ?>/link?status=2" class="px-3 py-1.5 rounded <?= $status === '2' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' ?>">已拒绝</a>
             </div>
             <button onclick="openLinkModal()" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">添加友链</button>
         </div>
@@ -81,9 +81,19 @@
                         <?php if ($item['link_check_status'] == 0): ?>
                         <span class="text-gray-400 text-sm">未检测</span>
                         <?php elseif ($item['link_check_status'] == 1): ?>
-                        <span class="text-green-500 text-sm">✓ 有回链</span>
+                        <span class="text-green-500 text-sm flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            有回链
+                        </span>
                         <?php else: ?>
-                        <span class="text-red-500 text-sm">✗ 无回链</span>
+                        <span class="text-red-500 text-sm flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                            无回链
+                        </span>
                         <?php endif; ?>
                     </td>
                     <td class="px-4 py-3">
@@ -115,7 +125,7 @@
 
     <!-- 分页 -->
     <?php 
-    $baseUrl = "/admin.php/link?status={$status}";
+    $baseUrl = "/<?= $adminEntry ?>/link?status={$status}";
     include __DIR__ . '/../components/pagination.php'; 
     ?>
 </div>
@@ -186,7 +196,7 @@ function openLinkModal(id = null) {
     
     if (id) {
         title.textContent = '编辑友链';
-        fetch('/admin.php/link/getOne?id=' + id)
+        fetch(adminUrl('/link/getOne?id=' + id))
             .then(r => r.json())
             .then(data => {
                 if (data.code === 0) {
@@ -219,7 +229,7 @@ function saveLink(e) {
     const form = document.getElementById('linkForm');
     const formData = new FormData(form);
     const id = formData.get('link_id');
-    const url = id ? '/admin.php/link/edit/' + id : '/admin.php/link/add';
+    const url = id ? adminUrl('/link/edit/' + id) : adminUrl('/link/add');
     
     fetch(url, {
         method: 'POST',
@@ -244,10 +254,10 @@ document.getElementById('linkModal').addEventListener('click', function(e) {
 
 function saveSetting() {
     const autoApprove = document.getElementById('autoApprove').checked ? '1' : '0';
-    fetch('/admin.php/link/saveSetting', {
+    fetch(adminUrl('/link/saveSetting'), {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: 'link_auto_approve=' + autoApprove
+        body: 'link_auto_approve=' + autoApprove + '&_token=<?= $csrfToken ?>'
     }).then(r => r.json()).then(data => {
         xpkToast(data.msg, data.code === 0 ? 'success' : 'error');
     });
@@ -255,10 +265,10 @@ function saveSetting() {
 
 function audit(id, status) {
     xpkConfirm(status == 1 ? '确定通过该友链？' : '确定拒绝该友链？', function() {
-        fetch('/admin.php/link/audit', {
+        fetch(adminUrl('/link/audit'), {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: 'id=' + id + '&status=' + status
+            body: 'id=' + id + '&status=' + status + '&_token=<?= $csrfToken ?>'
         }).then(r => r.json()).then(data => {
             if (data.code === 0) {
                 xpkToast(data.msg, 'success');
@@ -271,10 +281,10 @@ function audit(id, status) {
 }
 
 function checkLink(id) {
-    fetch('/admin.php/link/check', {
+    fetch(adminUrl('/link/check'), {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: 'id=' + id
+        body: 'id=' + id + '&_token=<?= $csrfToken ?>'
     }).then(r => r.json()).then(data => {
         xpkToast(data.msg, data.code === 0 ? 'success' : 'warning');
         location.reload();
@@ -283,10 +293,10 @@ function checkLink(id) {
 
 function batchCheck() {
     xpkConfirm('确定批量检测所有已通过友链的回链状态？', function() {
-        fetch('/admin.php/link/check', {
+        fetch(adminUrl('/link/check'), {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: 'id=0'
+            body: 'id=0&_token=<?= $csrfToken ?>'
         }).then(r => r.json()).then(data => {
             xpkToast(data.msg, data.code === 0 ? 'success' : 'warning');
             location.reload();
@@ -296,10 +306,10 @@ function batchCheck() {
 
 function deleteLink(id) {
     xpkConfirm('确定删除该友链？', function() {
-        fetch('/admin.php/link/delete', {
+        fetch(adminUrl('/link/delete'), {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: 'id=' + id
+            body: 'id=' + id + '&_token=<?= $csrfToken ?>'
         }).then(r => r.json()).then(data => {
             if (data.code === 0) {
                 xpkToast(data.msg, 'success');

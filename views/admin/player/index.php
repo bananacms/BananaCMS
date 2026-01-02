@@ -1,12 +1,12 @@
 <?php if (!empty($flash)): ?>
 <div class="mb-4 px-4 py-3 rounded <?= $flash['type'] === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' ?>">
-    <?= htmlspecialchars($flash['message']) ?>
+    <?= htmlspecialchars($flash['msg']) ?>
 </div>
 <?php endif; ?>
 
 <div class="flex items-center justify-between mb-6">
     <h1 class="text-2xl font-bold">播放器管理</h1>
-    <a href="/admin.php/player/add" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+    <a href="/<?= $adminEntry ?>/player/add" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
         <i class="fas fa-plus mr-1"></i>添加播放器
     </a>
 </div>
@@ -52,9 +52,19 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <?php if ($player['player_parse']): ?>
-                    <span class="text-blue-600" title="<?= htmlspecialchars($player['player_parse']) ?>">🔗 解析接口</span>
+                    <span class="text-blue-600 flex items-center" title="<?= htmlspecialchars($player['player_parse']) ?>">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                        </svg>
+                        解析接口
+                    </span>
                     <?php else: ?>
-                    <span class="text-green-600">▶️ 内置DPlayer</span>
+                    <span class="text-green-600 flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293H15M9 10V9a2 2 0 012-2h2a2 2 0 012 2v1M9 10v5a2 2 0 002 2h2a2 2 0 002-2v-5m-6 0h6"></path>
+                        </svg>
+                        内置DPlayer
+                    </span>
                     <?php endif; ?>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -66,7 +76,7 @@
                     </button>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                    <a href="/admin.php/player/edit/<?= $player['player_id'] ?>" class="text-blue-600 hover:text-blue-800 mr-3">编辑</a>
+                    <a href="/<?= $adminEntry ?>/player/edit/<?= $player['player_id'] ?>" class="text-blue-600 hover:text-blue-800 mr-3">编辑</a>
                     <button onclick="deletePlayer(<?= $player['player_id'] ?>, '<?= htmlspecialchars($player['player_name'], ENT_QUOTES) ?>')" class="text-red-600 hover:text-red-800">删除</button>
                 </td>
             </tr>
@@ -77,7 +87,12 @@
 </div>
 
 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
-    <h3 class="font-medium text-blue-800 mb-2">💡 使用说明</h3>
+    <h3 class="font-medium text-blue-800 mb-2 flex items-center">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        使用说明
+    </h3>
     <ul class="text-sm text-blue-700 space-y-1">
         <li>• <strong>播放器标识</strong>：需与资源站返回的 vod_play_from 字段值一致</li>
         <li>• <strong>解析接口</strong>：填写第三方解析地址（如 https://jx.xxx.com/?url=），视频地址会追加到末尾</li>
@@ -86,18 +101,13 @@
     </ul>
 </div>
 
-<input type="hidden" id="csrfToken" value="<?= htmlspecialchars($csrfToken) ?>">
-
 <script>
 function deletePlayer(id, name) {
     xpkConfirm('确定要删除播放器"' + name + '"吗？', function() {
-        const formData = new FormData();
-        formData.append('id', id);
-        formData.append('_token', document.getElementById('csrfToken').value);
-        
-        fetch('/admin.php/player/delete', {
+        fetch(adminUrl('/player/delete'), {
             method: 'POST',
-            body: formData
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'id=' + id + '&_token=<?= $csrfToken ?>'
         })
         .then(r => r.json())
         .then(data => {
@@ -113,13 +123,10 @@ function deletePlayer(id, name) {
 }
 
 function toggleStatus(id) {
-    const formData = new FormData();
-    formData.append('id', id);
-    formData.append('_token', document.getElementById('csrfToken').value);
-    
-    fetch('/admin.php/player/toggle', {
+    fetch(adminUrl('/player/toggle'), {
         method: 'POST',
-        body: formData
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'id=' + id + '&_token=<?= $csrfToken ?>'
     })
     .then(r => r.json())
     .then(data => {

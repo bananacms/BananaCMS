@@ -7,12 +7,20 @@
 class AdminAuthController
 {
     /**
+     * 获取当前后台入口文件名
+     */
+    private function getAdminEntry(): string
+    {
+        return basename($_SERVER['SCRIPT_NAME'], '.php') . '.php';
+    }
+
+    /**
      * 登录页面
      */
     public function login(): void
     {
         if (isset($_SESSION['admin'])) {
-            header('Location: /admin.php/dashboard');
+            header('Location: /' . $this->getAdminEntry() . '/dashboard');
             exit;
         }
 
@@ -24,6 +32,7 @@ class AdminAuthController
         $error = $_SESSION['login_error'] ?? '';
         unset($_SESSION['login_error']);
         $csrfToken = $_SESSION['csrf_token'];
+        $adminEntry = $this->getAdminEntry();
 
         require VIEW_PATH . 'admin/login.php';
     }
@@ -37,7 +46,7 @@ class AdminAuthController
         $token = $_POST['_token'] ?? '';
         if (empty($token) || !hash_equals($_SESSION['csrf_token'] ?? '', $token)) {
             $_SESSION['login_error'] = '安全验证失败，请刷新页面重试';
-            header('Location: /admin.php/login');
+            header('Location: /' . $this->getAdminEntry() . '/login');
             exit;
         }
 
@@ -46,7 +55,7 @@ class AdminAuthController
 
         if (empty($username) || empty($password)) {
             $_SESSION['login_error'] = '请输入用户名和密码';
-            header('Location: /admin.php/login');
+            header('Location: /' . $this->getAdminEntry() . '/login');
             exit;
         }
 
@@ -55,19 +64,19 @@ class AdminAuthController
 
         if (!$admin) {
             $_SESSION['login_error'] = '用户名或密码错误';
-            header('Location: /admin.php/login');
+            header('Location: /' . $this->getAdminEntry() . '/login');
             exit;
         }
 
         if ($admin['admin_status'] != 1) {
             $_SESSION['login_error'] = '账号已被禁用';
-            header('Location: /admin.php/login');
+            header('Location: /' . $this->getAdminEntry() . '/login');
             exit;
         }
 
         if (!$adminModel->verifyPassword($password, $admin['admin_pwd'])) {
             $_SESSION['login_error'] = '用户名或密码错误';
-            header('Location: /admin.php/login');
+            header('Location: /' . $this->getAdminEntry() . '/login');
             exit;
         }
 
@@ -81,7 +90,7 @@ class AdminAuthController
             'login_time' => time()
         ];
 
-        header('Location: /admin.php/dashboard');
+        header('Location: /' . $this->getAdminEntry() . '/dashboard');
         exit;
     }
 
@@ -91,7 +100,7 @@ class AdminAuthController
     public function logout(): void
     {
         unset($_SESSION['admin']);
-        header('Location: /admin.php/login');
+        header('Location: /' . $this->getAdminEntry() . '/login');
         exit;
     }
 }

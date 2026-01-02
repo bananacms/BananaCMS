@@ -15,6 +15,7 @@ class AdminBaseController
         $this->admin = $_SESSION['admin'] ?? null;
         $this->data['admin'] = $this->admin;
         $this->data['siteName'] = SITE_NAME;
+        $this->data['adminEntry'] = $this->getAdminEntry();
     }
 
     /**
@@ -23,8 +24,16 @@ class AdminBaseController
     protected function checkAuth(): void
     {
         if (!isset($_SESSION['admin'])) {
-            $this->redirect('/admin.php/login');
+            $this->redirect('/' . $this->getAdminEntry() . '/login');
         }
+    }
+
+    /**
+     * 获取当前后台入口文件名
+     */
+    protected function getAdminEntry(): string
+    {
+        return basename($_SERVER['SCRIPT_NAME'], '.php') . '.php';
     }
 
     /**

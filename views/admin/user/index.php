@@ -25,7 +25,7 @@
             </select>
         </div>
         <button type="submit" class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700">搜索</button>
-        <a href="/admin.php/user" class="text-gray-500 hover:text-gray-700 py-2">重置</a>
+        <a href="/<?= $adminEntry ?>/user" class="text-gray-500 hover:text-gray-700 py-2">重置</a>
     </form>
 </div>
 
@@ -62,7 +62,7 @@
                 <td class="px-4 py-3 text-sm text-gray-500"><?= date('Y-m-d H:i', $user['user_reg_time']) ?></td>
                 <td class="px-4 py-3 text-sm space-x-2">
                     <button onclick="openEditModal(<?= htmlspecialchars(json_encode($user)) ?>)" class="text-blue-500 hover:underline">编辑</button>
-                    <button onclick="deleteItem('/admin.php/user/delete', <?= $user['user_id'] ?>)" class="text-red-500 hover:underline">删除</button>
+                    <button onclick="deleteItem(adminUrl('/user/delete'), <?= $user['user_id'] ?>)" class="text-red-500 hover:underline">删除</button>
                 </td>
             </tr>
             <?php endforeach; ?>
@@ -73,7 +73,7 @@
 
 <!-- 分页 -->
 <?php 
-$baseUrl = "/admin.php/user?keyword=" . urlencode($keyword) . "&status={$status}";
+$baseUrl = "/<?= $adminEntry ?>/user?keyword=" . urlencode($keyword) . "&status={$status}";
 include __DIR__ . '/../components/pagination.php'; 
 ?>
 
@@ -140,7 +140,7 @@ document.getElementById('editForm').addEventListener('submit', function(e) {
     var userId = document.getElementById('edit_user_id').value;
     var formData = new FormData(this);
     
-    fetch('/admin.php/user/edit/' + userId, {
+    fetch(adminUrl('/user/edit/' + userId), {
         method: 'POST',
         body: formData
     })

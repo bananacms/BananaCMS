@@ -1,6 +1,11 @@
 <div class="mb-6">
     <div class="flex justify-between items-center mb-4">
-        <h2 class="text-2xl font-bold">📢 广告管理</h2>
+        <h2 class="text-2xl font-bold flex items-center">
+            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path>
+            </svg>
+            广告管理
+        </h2>
         <button onclick="openAdModal()" class="bg-primary text-white px-4 py-2 rounded hover:bg-red-600">
             + 添加广告
         </button>
@@ -40,7 +45,7 @@
                 <?php endforeach; ?>
             </select>
             <button type="submit" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">筛选</button>
-            <a href="/admin.php/ad" class="text-gray-500 hover:text-gray-700">重置</a>
+            <a href="/<?= $adminEntry ?>/ad" class="text-gray-500 hover:text-gray-700">重置</a>
         </form>
     </div>
 </div>
@@ -128,7 +133,7 @@
 
 <!-- 分页 -->
 <?php 
-$baseUrl = "/admin.php/ad?position=" . urlencode($position);
+$baseUrl = "/<?= $adminEntry ?>/ad?position=" . urlencode($position);
 include __DIR__ . '/../components/pagination.php'; 
 ?>
 
@@ -301,7 +306,7 @@ function openAdModal(id = null) {
         // 显示加载状态
         title.textContent = '加载中...';
         
-        fetch('/admin.php/ad/getOne?id=' + id)
+        fetch(adminUrl('/ad/getOne?id=' + id))
             .then(r => {
                 if (!r.ok) throw new Error('网络请求失败');
                 return r.json();
@@ -375,7 +380,7 @@ function saveAd(e) {
     const form = document.getElementById('adForm');
     const formData = new FormData(form);
     const id = formData.get('ad_id');
-    const url = id ? '/admin.php/ad/edit/' + id : '/admin.php/ad/add';
+    const url = id ? adminUrl('/ad/edit/' + id) : adminUrl('/ad/add');
     
     fetch(url, {
         method: 'POST',
@@ -399,7 +404,7 @@ document.getElementById('adModal').addEventListener('click', function(e) {
 });
 
 function toggleAd(id) {
-    fetch('/admin.php/ad/toggle', {
+    fetch(adminUrl('/ad/toggle'), {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: 'id=' + id
@@ -417,7 +422,7 @@ function toggleAd(id) {
 
 function deleteAd(id) {
     xpkConfirm('确定删除该广告？', function() {
-        fetch('/admin.php/ad/delete', {
+        fetch(adminUrl('/ad/delete'), {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
             body: 'id=' + id

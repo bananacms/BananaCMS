@@ -1,6 +1,6 @@
 <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold">上传视频</h1>
-    <a href="/admin.php/transcode" class="text-gray-500 hover:text-gray-700">← 返回列表</a>
+    <a href="/<?= $adminEntry ?>/transcode" class="text-gray-500 hover:text-gray-700">← 返回列表</a>
 </div>
 
 <div class="grid grid-cols-3 gap-6">
@@ -41,7 +41,7 @@
                 <p class="mt-1 text-sm text-gray-500">转码任务已创建，任务ID: <span id="taskId" class="font-medium text-blue-600"></span></p>
                 <div class="mt-6 flex justify-center gap-4">
                     <button onclick="location.reload()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded">继续上传</button>
-                    <a href="/admin.php/transcode" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2 rounded">查看任务</a>
+                    <a href="/<?= $adminEntry ?>/transcode" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2 rounded">查看任务</a>
                 </div>
             </div>
 
@@ -84,7 +84,7 @@ const csrfToken = '<?= $csrfToken ?>';
 
 // 初始化 Resumable.js
 const r = new Resumable({
-    target: '/admin.php/transcode/doUpload',
+    target: adminUrl('/transcode/doUpload'),
     chunkSize: 5 * 1024 * 1024, // 5MB
     simultaneousUploads: 3,
     testChunks: true,

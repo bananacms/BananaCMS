@@ -73,7 +73,7 @@ class AdminUserController extends AdminBaseController
         $user = $this->userModel->find($id);
         if (!$user) {
             $this->flash('error', '用户不存在');
-            $this->redirect('/admin.php/user');
+            $this->redirect('/' . $this->adminEntry . '/user');
         }
 
         $this->assign('user', $user);
@@ -120,8 +120,14 @@ class AdminUserController extends AdminBaseController
             $this->error('参数错误');
         }
 
+        // 删除前先查询用户详情，用于日志记录
+        $user = $this->userModel->find($id);
+        if (!$user) {
+            $this->error('用户不存在');
+        }
+
         $this->userModel->delete($id);
-        $this->log('删除', '用户', "ID:{$id}");
+        $this->log('删除', '用户', "ID:{$id} 用户名:{$user['user_name']} 昵称:{$user['user_nick_name']}");
         $this->success('删除成功');
     }
 }

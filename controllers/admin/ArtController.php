@@ -171,8 +171,14 @@ class AdminArtController extends AdminBaseController
             $this->error('参数错误');
         }
 
+        // 删除前先查询文章详情，用于日志记录
+        $art = $this->artModel->find($id);
+        if (!$art) {
+            $this->error('文章不存在');
+        }
+
         $this->artModel->delete($id);
-        $this->log('删除', '文章', "ID:{$id}");
+        $this->log('删除', '文章', "ID:{$id} 《{$art['art_title']}》");
         $this->success('删除成功');
     }
 

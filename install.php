@@ -35,6 +35,15 @@ function getSensitiveFiles(): array {
 
 // 检查是否已安装
 if (file_exists(CONFIG_PATH . 'install.lock')) {
+    // 尝试加载配置以获取后台入口
+    $adminEntry = 'admin.php';
+    if (file_exists(CONFIG_PATH . 'config.php')) {
+        $configContent = file_get_contents(CONFIG_PATH . 'config.php');
+        if (preg_match("/define\('ADMIN_ENTRY',\s*'([^']+)'\)/", $configContent, $matches)) {
+            $adminEntry = $matches[1];
+        }
+    }
+    
     // 处理删除文件请求
     if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['file'])) {
         header('Content-Type: application/json');
@@ -67,7 +76,7 @@ if (file_exists(CONFIG_PATH . 'install.lock')) {
         exit;
     }
     
-    die('<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="font-family:sans-serif;text-align:center;padding:50px;"><h1>🍌 香蕉CMS</h1><p>系统已安装，如需重新安装请删除 config/install.lock</p><p><a href="/">首页</a> | <a href="/admin.php">后台</a></p></body></html>');
+    die('<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="font-family:sans-serif;text-align:center;padding:50px;"><h1>🍌 香蕉CMS</h1><p>系统已安装，如需重新安装请删除 config/install.lock</p><p><a href="/">首页</a> | <a href="/' . $adminEntry . '">后台</a></p></body></html>');
 }
 
 if (session_status() === PHP_SESSION_NONE) {
@@ -94,6 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $adminUser = trim($_POST['admin_user'] ?? '');
         $adminPass = $_POST['admin_pass'] ?? '';
         $adminPassConfirm = $_POST['admin_pass_confirm'] ?? '';
+        $adminEntry = trim($_POST['admin_entry'] ?? 'admin');
         $siteName = trim($_POST['site_name'] ?? '香蕉影视');
         $siteUrl = trim($_POST['site_url'] ?? '');
         
@@ -106,6 +116,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = '管理员密码至少6个字符';
         } elseif ($adminPass !== $adminPassConfirm) {
             $error = '两次输入的密码不一致';
+        } elseif (empty($adminEntry) || !preg_match('/^[a-zA-Z0-9_-]+$/', $adminEntry)) {
+            $error = '后台入口文件名只能包含字母、数字、下划线和连字符';
+        } elseif (in_array($adminEntry, ['index', 'api', 'install', 'cron', 'sitemap'])) {
+            $error = '后台入口文件名不能使用系统保留名称';
         } else {
             try {
                 $dsn = "mysql:host={$dbHost};port={$dbPort};charset=utf8mb4";
@@ -188,11 +202,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $config .= "define('PAGE_SIZE', 24);\n";
                 $config .= "define('UPLOAD_MAX_SIZE', 10485760);\n";
                 $config .= "define('UPLOAD_ALLOW_EXT', 'jpg,jpeg,png,gif,webp');\n";
+                $config .= "define('ADMIN_ENTRY', '{$adminEntry}.php');\n";
                 
                 file_put_contents(CONFIG_PATH . 'config.php', $config);
                 file_put_contents(CONFIG_PATH . 'install.lock', date('Y-m-d H:i:s'));
                 
+                // 创建自定义后台入口文件
+                $adminContent = file_get_contents(ROOT_PATH . 'admin.php');
+                file_put_contents(ROOT_PATH . $adminEntry . '.php', $adminContent);
+                
+                // 如果不是默认的admin.php，删除原admin.php文件
+                if ($adminEntry !== 'admin' && file_exists(ROOT_PATH . 'admin.php')) {
+                    @unlink(ROOT_PATH . 'admin.php');
+                }
+                
                 $_SESSION['install_admin'] = $adminUser;
+                $_SESSION['install_admin_entry'] = $adminEntry . '.php';
                 header('Location: install.php?step=4');
                 exit;
                 
@@ -307,6 +332,16 @@ $envPass = !in_array(false, array_column($envChecks, 3));
                 </div>
             </div>
             <div>
+                <h3 class="font-bold text-gray-700 border-b pb-2 mb-4">安全设置</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm mb-1">后台入口文件名 * (不含.php后缀)</label>
+                        <input type="text" name="admin_entry" value="admin" required pattern="[a-zA-Z0-9_-]+" class="w-full border rounded px-3 py-2" placeholder="例如: admin, manage, backend">
+                        <p class="text-xs text-gray-500 mt-1">自定义后台访问路径，避免使用默认的admin.php被扫描攻击。只能包含字母、数字、下划线和连字符。</p>
+                    </div>
+                </div>
+            </div>
+            <div>
                 <h3 class="font-bold text-gray-700 border-b pb-2 mb-4">站点信息</h3>
                 <div class="grid grid-cols-2 gap-4">
                     <div><label class="block text-sm mb-1">站点名称</label><input type="text" name="site_name" value="香蕉影视" class="w-full border rounded px-3 py-2"></div>
@@ -325,7 +360,8 @@ $envPass = !in_array(false, array_column($envChecks, 3));
             <h2 class="text-2xl font-bold mb-4 text-green-600">安装成功！</h2>
             <div class="bg-gray-50 rounded p-6 mb-6">
                 <p class="mb-2"><strong>管理员：</strong><?= htmlspecialchars($_SESSION['install_admin'] ?? '') ?></p>
-                <p class="text-sm text-gray-500 mb-4">请牢记您设置的密码</p>
+                <p class="mb-2"><strong>后台地址：</strong><a href="/<?= htmlspecialchars($_SESSION['install_admin_entry'] ?? 'admin.php') ?>" class="text-blue-600 hover:underline"><?= htmlspecialchars($_SESSION['install_admin_entry'] ?? 'admin.php') ?></a></p>
+                <p class="text-sm text-gray-500 mb-4">请牢记您设置的密码和后台访问地址</p>
             </div>
             
             <!-- 安全提示 -->
@@ -371,7 +407,7 @@ $envPass = !in_array(false, array_column($envChecks, 3));
             
             <div class="flex justify-center space-x-4">
                 <a href="/" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded font-bold">访问首页</a>
-                <a href="/admin.php" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded font-bold">进入后台</a>
+                <a href="/<?= htmlspecialchars($_SESSION['install_admin_entry'] ?? 'admin.php') ?>" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded font-bold">进入后台</a>
             </div>
         </div>
         
@@ -443,7 +479,7 @@ $envPass = !in_array(false, array_column($envChecks, 3));
                                 showToast('部分文件删除失败，请检查权限', 'error');
                             } else {
                                 showToast('所有敏感文件已删除', 'success');
-                                setTimeout(() => location.href = '/admin.php', 1500);
+                                setTimeout(() => location.href = '/' + '<?= htmlspecialchars($_SESSION['install_admin_entry'] ?? 'admin.php') ?>', 1500);
                             }
                         }
                     })

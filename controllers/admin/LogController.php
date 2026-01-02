@@ -33,6 +33,7 @@ class AdminLogController extends AdminBaseController
         $this->assign('total', $result['total']);
         $this->assign('filters', $filters);
         $this->assign('csrfToken', $this->csrfToken());
+        $this->assign('ipMaskingInfo', XpkAdminLog::getIPMaskingInfo());
         
         $this->render('log/index', '操作日志');
     }

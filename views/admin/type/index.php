@@ -56,7 +56,7 @@
                 </td>
                 <td class="px-4 py-3 text-sm space-x-2">
                     <button onclick="openTypeModal(<?= $type['type_id'] ?>)" class="text-blue-500 hover:underline">编辑</button>
-                    <button onclick="deleteItem('/admin.php/type/delete', <?= $type['type_id'] ?>)" class="text-red-500 hover:underline">删除</button>
+                    <button onclick="deleteItem(adminUrl('/type/delete'), <?= $type['type_id'] ?>)" class="text-red-500 hover:underline">删除</button>
                 </td>
             </tr>
             <?php endforeach; ?>
@@ -146,7 +146,7 @@ function openTypeModal(id = null) {
     if (id) {
         title.textContent = '编辑分类';
         // 加载数据
-        fetch('/admin.php/type/getOne?id=' + id)
+        fetch(adminUrl('/type/getOne?id=' + id))
             .then(r => r.json())
             .then(data => {
                 if (data.code === 0) {
@@ -180,7 +180,7 @@ function saveType(e) {
     const form = document.getElementById('typeForm');
     const formData = new FormData(form);
     const id = formData.get('type_id');
-    const url = id ? '/admin.php/type/edit/' + id : '/admin.php/type/add';
+    const url = id ? adminUrl('/type/edit/' + id) : adminUrl('/type/add');
     
     fetch(url, {
         method: 'POST',
@@ -237,7 +237,8 @@ function batchDelete() {
     xpkConfirm('确定删除选中的 ' + ids.length + ' 个分类？\n注意：有子分类或视频的分类无法删除', function() {
         const formData = new FormData();
         ids.forEach(id => formData.append('ids[]', id));
-        fetch('/admin.php/type/batchDelete', {
+        formData.append('_token', '<?= $csrfToken ?>');
+        fetch(adminUrl('/type/batchDelete'), {
             method: 'POST',
             body: formData
         })

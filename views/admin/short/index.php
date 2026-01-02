@@ -1,11 +1,16 @@
 <div class="mb-6">
     <div class="flex justify-between items-center mb-4">
-        <h2 class="text-2xl font-bold">📱 短视频管理</h2>
+        <h2 class="text-2xl font-bold flex items-center">
+            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+            </svg>
+            短视频管理
+        </h2>
         <div class="flex gap-2">
-            <a href="/admin.php/short/add?type=video" class="bg-primary text-white px-4 py-2 rounded hover:bg-red-600">
+            <a href="/<?= $adminEntry ?>/short/add?type=video" class="bg-primary text-white px-4 py-2 rounded hover:bg-red-600">
                 + 添加短视频
             </a>
-            <a href="/admin.php/short/add?type=drama" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
+            <a href="/<?= $adminEntry ?>/short/add?type=drama" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
                 + 添加短剧
             </a>
         </div>
@@ -45,13 +50,13 @@
                 <option value="0" <?= $status === '0' ? 'selected' : '' ?>>已下架</option>
             </select>
             <button type="submit" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">筛选</button>
-            <a href="/admin.php/short" class="text-gray-500 hover:text-gray-700">重置</a>
+            <a href="/<?= $adminEntry ?>/short" class="text-gray-500 hover:text-gray-700">重置</a>
         </form>
     </div>
 
     <?php if (!empty($flash)): ?>
     <div class="mb-4 p-4 rounded <?= $flash['type'] === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' ?>">
-        <?= htmlspecialchars($flash['message']) ?>
+        <?= htmlspecialchars($flash['msg']) ?>
     </div>
     <?php endif; ?>
 </div>
@@ -103,7 +108,7 @@
                 </td>
                 <td class="px-4 py-3 text-sm">
                     <?php if ($item['short_type'] === 'drama'): ?>
-                    <a href="/admin.php/short/episodes/<?= $item['short_id'] ?>" class="text-blue-600 hover:underline">
+                    <a href="/<?= $adminEntry ?>/short/episodes/<?= $item['short_id'] ?>" class="text-blue-600 hover:underline">
                         <?= $item['episode_count'] ?? 0 ?> 集
                     </a>
                     <?php else: ?>
@@ -111,8 +116,18 @@
                     <?php endif; ?>
                 </td>
                 <td class="px-4 py-3 text-sm">
-                    <span class="text-gray-600">▶ <?= number_format($item['short_hits']) ?></span>
-                    <span class="text-red-500 ml-2">❤ <?= number_format($item['short_likes']) ?></span>
+                    <span class="text-gray-600 flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293H15M9 10V9a2 2 0 012-2h2a2 2 0 012 2v1M9 10v5a2 2 0 002 2h2a2 2 0 002-2v-5m-6 0h6"></path>
+                        </svg>
+                        <?= number_format($item['short_hits']) ?>
+                    </span>
+                    <span class="text-red-500 ml-2 flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path>
+                        </svg>
+                        <?= number_format($item['short_likes']) ?>
+                    </span>
                 </td>
                 <td class="px-4 py-3">
                     <?php if ($item['short_status']): ?>
@@ -125,14 +140,14 @@
                     <?= date('m-d H:i', $item['short_time']) ?>
                 </td>
                 <td class="px-4 py-3 text-sm space-x-2">
-                    <a href="/admin.php/short/edit/<?= $item['short_id'] ?>" class="text-blue-600 hover:underline">编辑</a>
+                    <a href="/<?= $adminEntry ?>/short/edit/<?= $item['short_id'] ?>" class="text-blue-600 hover:underline">编辑</a>
                     <?php if ($item['short_type'] === 'drama'): ?>
-                    <a href="/admin.php/short/episodes/<?= $item['short_id'] ?>" class="text-purple-600 hover:underline">剧集</a>
+                    <a href="/<?= $adminEntry ?>/short/episodes/<?= $item['short_id'] ?>" class="text-purple-600 hover:underline">剧集</a>
                     <?php endif; ?>
                     <button onclick="toggleStatus(<?= $item['short_id'] ?>)" class="text-yellow-600 hover:underline">
                         <?= $item['short_status'] ? '下架' : '上架' ?>
                     </button>
-                    <button onclick="deleteItem('/admin.php/short/delete', <?= $item['short_id'] ?>)" class="text-red-600 hover:underline">删除</button>
+                    <button onclick="deleteItem(adminUrl('/short/delete'), <?= $item['short_id'] ?>)" class="text-red-600 hover:underline">删除</button>
                 </td>
             </tr>
             <?php endforeach; ?>
@@ -143,13 +158,13 @@
 
 <!-- 分页 -->
 <?php 
-$baseUrl = "/admin.php/short?type=" . urlencode($type) . "&status=" . urlencode($status);
+$baseUrl = "/<?= $adminEntry ?>/short?type=" . urlencode($type) . "&status=" . urlencode($status);
 include __DIR__ . '/../components/pagination.php'; 
 ?>
 
 <script>
 function toggleStatus(id) {
-    fetch('/admin.php/short/toggle', {
+    fetch(adminUrl('/short/toggle'), {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: 'id=' + id

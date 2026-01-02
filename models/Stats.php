@@ -342,6 +342,99 @@ class XpkStats
     }
 
     /**
+     * 清理所有日志表
+     */
+    public function cleanAllLogs(array $options = []): array
+    {
+        $results = [];
+        $defaultDays = 90;
+
+        // 1. 清理统计日志
+        $statsDays = $options['stats_days'] ?? $defaultDays;
+        $cutoffDate = date('Y-m-d', strtotime("-{$statsDays} days"));
+        $this->db->execute("DELETE FROM {$this->logTable} WHERE log_date < ?", [$cutoffDate]);
+        $results['stats_log'] = $this->db->rowCount();
+
+        // 2. 清理操作日志
+        $adminDays = $options['admin_days'] ?? 30;
+        $cutoffTime = time() - ($adminDays * 86400);
+        $this->db->execute("DELETE FROM " . DB_PREFIX . "admin_log WHERE log_time < ?", [$cutoffTime]);
+        $results['admin_log'] = $this->db->rowCount();
+
+        // 3. 清理搜索日志
+        $searchDays = $options['search_days'] ?? $defaultDays;
+        $cutoffTime = time() - ($searchDays * 86400);
+        $this->db->execute("DELETE FROM " . DB_PREFIX . "search_log WHERE search_time < ?", [$cutoffTime]);
+        $results['search_log'] = $this->db->rowCount();
+
+        // 4. 清理采集日志
+        $collectDays = $options['collect_days'] ?? 30;
+        $cutoffTime = time() - ($collectDays * 86400);
+        $this->db->execute("DELETE FROM " . DB_PREFIX . "collect_log WHERE log_time < ?", [$cutoffTime]);
+        $results['collect_log'] = $this->db->rowCount();
+
+        // 5. 清理评论投票记录
+        $voteDays = $options['vote_days'] ?? 180;
+        $cutoffTime = time() - ($voteDays * 86400);
+        $this->db->execute("DELETE FROM " . DB_PREFIX . "comment_vote WHERE vote_time < ?", [$cutoffTime]);
+        $results['comment_vote'] = $this->db->rowCount();
+
+        // 6. 清理评分记录
+        $scoreDays = $options['score_days'] ?? 365;
+        $cutoffTime = time() - ($scoreDays * 86400);
+        $this->db->execute("DELETE FROM " . DB_PREFIX . "score WHERE score_time < ?", [$cutoffTime]);
+        $results['score'] = $this->db->rowCount();
+
+        // 7. 清理用户观看历史
+        $historyDays = $options['history_days'] ?? 365;
+        $cutoffTime = time() - ($historyDays * 86400);
+        $this->db->execute("DELETE FROM " . DB_PREFIX . "user_history WHERE watch_time < ?", [$cutoffTime]);
+        $results['user_history'] = $this->db->rowCount();
+
+        // 8. 清理上传分片临时文件
+        $chunkDays = $options['chunk_days'] ?? 7;
+        $cutoffTime = time() - ($chunkDays * 86400);
+        $this->db->execute("DELETE FROM " . DB_PREFIX . "upload_chunk WHERE created_at < ?", [$cutoffTime]);
+        $results['upload_chunk'] = $this->db->rowCount();
+
+        return $results;
+    }
+
+    /**
+     * 获取各表的记录统计
+     */
+    public function getLogStats(): array
+    {
+        $stats = [];
+
+        // 统计日志
+        $stats['stats_log'] = $this->db->queryOne("SELECT COUNT(*) as count FROM {$this->logTable}")['count'] ?? 0;
+        
+        // 操作日志
+        $stats['admin_log'] = $this->db->queryOne("SELECT COUNT(*) as count FROM " . DB_PREFIX . "admin_log")['count'] ?? 0;
+        
+        // 搜索日志
+        $stats['search_log'] = $this->db->queryOne("SELECT COUNT(*) as count FROM " . DB_PREFIX . "search_log")['count'] ?? 0;
+        
+        // 采集日志
+        $stats['collect_log'] = $this->db->queryOne("SELECT COUNT(*) as count FROM " . DB_PREFIX . "collect_log")['count'] ?? 0;
+        
+        // 评论投票
+        $stats['comment_vote'] = $this->db->queryOne("SELECT COUNT(*) as count FROM " . DB_PREFIX . "comment_vote")['count'] ?? 0;
+        
+        // 评分记录
+        $stats['score'] = $this->db->queryOne("SELECT COUNT(*) as count FROM " . DB_PREFIX . "score")['count'] ?? 0;
+        
+        // 观看历史
+        $stats['user_history'] = $this->db->queryOne("SELECT COUNT(*) as count FROM " . DB_PREFIX . "user_history")['count'] ?? 0;
+        
+        // 上传分片
+        $stats['upload_chunk'] = $this->db->queryOne("SELECT COUNT(*) as count FROM " . DB_PREFIX . "upload_chunk")['count'] ?? 0;
+
+        return $stats;
+    }
+
+    /**
      * 获取诊断信息
      */
     public function getDiagnostics(): array

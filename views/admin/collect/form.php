@@ -136,7 +136,7 @@
 
     <div class="mt-6 flex space-x-4 border-t pt-6">
         <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded">保存</button>
-        <a href="/admin.php/collect" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded">返回</a>
+        <a href="/<?= $adminEntry ?>/collect" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded">返回</a>
     </div>
 </form>
 
@@ -154,7 +154,7 @@ function testApi() {
     result.className = 'bg-blue-100 text-blue-700 px-4 py-3 rounded';
     result.textContent = '测试中...';
     
-    fetch('/admin.php/collect/test', {
+    fetch(adminUrl('/collect/test'), {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: 'api=' + encodeURIComponent(api)
@@ -164,16 +164,17 @@ function testApi() {
         if (data.code === 0) {
             const cats = data.data.categories;
             result.className = 'bg-green-100 text-green-700 px-4 py-3 rounded';
-            result.innerHTML = '✓ 连接成功，获取到 ' + cats.length + ' 个分类：<br><span class="text-sm">' + 
+            result.innerHTML = '<span class="text-green-600 flex items-center"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>连接成功，获取到 ' + cats.length + ' 个分类：</span><br><span class="text-sm">' + 
                 cats.map(c => c.name).join('、') + '</span>';
         } else {
             result.className = 'bg-red-100 text-red-700 px-4 py-3 rounded';
-            result.textContent = '✗ ' + data.msg;
+            result.textContent = data.msg;
+            result.innerHTML = '<span class="text-red-600 flex items-center"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>' + data.msg + '</span>';
         }
     })
     .catch(() => {
         result.className = 'bg-red-100 text-red-700 px-4 py-3 rounded';
-        result.textContent = '✗ 请求失败';
+        result.innerHTML = '<span class="text-red-600 flex items-center"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>请求失败</span>';
     });
 }
 </script>

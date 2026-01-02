@@ -157,8 +157,14 @@ class AdminActorController extends AdminBaseController
             $this->error('参数错误');
         }
 
+        // 删除前先查询演员详情，用于日志记录
+        $actor = $this->actorModel->find($id);
+        if (!$actor) {
+            $this->error('演员不存在');
+        }
+
         $this->actorModel->delete($id);
-        $this->log('删除', '演员', "ID:{$id}");
+        $this->log('删除', '演员', "ID:{$id} 《{$actor['actor_name']}》");
         $this->success('删除成功');
     }
 

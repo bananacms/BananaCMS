@@ -1,6 +1,6 @@
 <div class="max-w-2xl">
     <div class="bg-white rounded-lg shadow p-6">
-        <form action="/admin.php/link/<?= isset($link) ? 'doEdit/' . $link['link_id'] : 'doAdd' ?>" method="post" class="space-y-4">
+        <form action="/<?= $adminEntry ?>/link/<?= isset($link) ? 'doEdit/' . $link['link_id'] : 'doAdd' ?>" method="post" class="space-y-4">
             <input type="hidden" name="_token" value="<?= $csrfToken ?>">
             
             <div>
@@ -49,7 +49,7 @@
 
             <div class="flex gap-4 pt-4">
                 <button type="submit" class="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">保存</button>
-                <a href="/admin.php/link" class="px-6 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200">返回</a>
+                <a href="/<?= $adminEntry ?>/link" class="px-6 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200">返回</a>
             </div>
         </form>
     </div>
