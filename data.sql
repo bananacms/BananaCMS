@@ -615,3 +615,25 @@ CREATE TABLE `xpk_transcode_ad` (
   PRIMARY KEY (`ad_id`),
   KEY `idx_position` (`ad_position`, `ad_status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='转码广告表';
+
+-- 用户操作日志表
+DROP TABLE IF EXISTS `xpk_user_logs`;
+CREATE TABLE `xpk_user_logs` (
+  `log_id` int(11) NOT NULL AUTO_INCREMENT COMMENT '日志ID',
+  `log_time` datetime NOT NULL COMMENT '操作时间',
+  `log_level` varchar(20) NOT NULL DEFAULT 'info' COMMENT '日志级别',
+  `user_id` int(11) NOT NULL DEFAULT '0' COMMENT '用户ID，0表示游客',
+  `user_ip` varchar(45) NOT NULL DEFAULT '' COMMENT '用户IP地址',
+  `log_action` varchar(100) NOT NULL DEFAULT '' COMMENT '操作类型',
+  `log_uri` varchar(500) NOT NULL DEFAULT '' COMMENT '请求URI',
+  `log_data` text COMMENT '操作数据JSON',
+  `user_agent` varchar(500) NOT NULL DEFAULT '' COMMENT '用户代理',
+  PRIMARY KEY (`log_id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_log_time` (`log_time`),
+  KEY `idx_log_action` (`log_action`),
+  KEY `idx_user_ip` (`user_ip`),
+  KEY `idx_log_level` (`log_level`),
+  KEY `idx_user_time` (`user_id`, `log_time`),
+  KEY `idx_action_time` (`log_action`, `log_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户操作日志表';
