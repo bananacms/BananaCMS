@@ -89,21 +89,28 @@ class XpkTranscodeAd extends XpkModel
     {
         $db = XpkDatabase::getInstance();
         $exists = $db->queryOne(
-            "SELECT 1 FROM " . DB_PREFIX . "config WHERE config_key = 'transcode_ad_config'"
+            "SELECT 1 FROM " . DB_PREFIX . "config WHERE config_name = 'transcode_ad_config'"
         );
         
         $json = json_encode($config, JSON_UNESCAPED_UNICODE);
         
         if ($exists) {
-            return $db->execute(
-                "UPDATE " . DB_PREFIX . "config SET config_value = ? WHERE config_key = 'transcode_ad_config'",
+            $result = $db->execute(
+                "UPDATE " . DB_PREFIX . "config SET config_value = ? WHERE config_name = 'transcode_ad_config'",
                 [$json]
             ) !== false;
         } else {
-            return $db->execute(
-                "INSERT INTO " . DB_PREFIX . "config (config_key, config_value) VALUES ('transcode_ad_config', ?)",
+            $result = $db->execute(
+                "INSERT INTO " . DB_PREFIX . "config (config_name, config_value) VALUES ('transcode_ad_config', ?)",
                 [$json]
             ) !== false;
         }
+        
+        // 清除配置缓存
+        if ($result) {
+            xpk_cache()->delete('site_config');
+        }
+        
+        return $result;
     }
 }

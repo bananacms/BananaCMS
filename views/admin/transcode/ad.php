@@ -121,6 +121,7 @@
 document.getElementById('configForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const formData = new FormData(this);
+    formData.append('_token', '<?= $csrfToken ?>');
     
     fetch('/admin.php/transcode/ad/saveConfig', {
         method: 'POST',
@@ -128,8 +129,12 @@ document.getElementById('configForm').addEventListener('submit', function(e) {
     })
     .then(r => r.json())
     .then(data => {
-        alert(data.msg || (data.code === 0 ? '保存成功' : '保存失败'));
-        if (data.code === 0) location.reload();
+        xpkToast(data.msg || (data.code === 0 ? '保存成功' : '保存失败'), data.code === 0 ? 'success' : 'error');
+        if (data.code === 0) setTimeout(() => location.reload(), 500);
+    })
+    .catch(err => {
+        console.error(err);
+        xpkToast('请求失败', 'error');
     });
 });
 
@@ -137,6 +142,7 @@ document.getElementById('configForm').addEventListener('submit', function(e) {
 function toggleStatus(id) {
     const formData = new FormData();
     formData.append('id', id);
+    formData.append('_token', '<?= $csrfToken ?>');
     
     fetch('/admin.php/transcode/ad/toggle', {
         method: 'POST',
@@ -145,31 +151,34 @@ function toggleStatus(id) {
     .then(r => r.json())
     .then(data => {
         if (data.code === 0) {
-            location.reload();
+            xpkToast(data.msg, 'success');
+            setTimeout(() => location.reload(), 500);
         } else {
-            alert(data.msg || '操作失败');
+            xpkToast(data.msg || '操作失败', 'error');
         }
     });
 }
 
 // 删除广告
 function deleteAd(id) {
-    if (!confirm('确定删除此广告？')) return;
-    
-    const formData = new FormData();
-    formData.append('id', id);
-    
-    fetch('/admin.php/transcode/ad/delete', {
-        method: 'POST',
-        body: formData
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.code === 0) {
-            location.reload();
-        } else {
-            alert(data.msg || '删除失败');
-        }
+    xpkConfirm('确定删除此广告？', function() {
+        const formData = new FormData();
+        formData.append('id', id);
+        formData.append('_token', '<?= $csrfToken ?>');
+        
+        fetch('/admin.php/transcode/ad/delete', {
+            method: 'POST',
+            body: formData
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.code === 0) {
+                xpkToast(data.msg, 'success');
+                setTimeout(() => location.reload(), 500);
+            } else {
+                xpkToast(data.msg || '删除失败', 'error');
+            }
+        });
     });
 }
 
