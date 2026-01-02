@@ -213,6 +213,93 @@
         const separator = baseUrl.includes('?') ? '&' : '?';
         window.location.href = baseUrl + separator + 'page=' + page;
     }
+
+    // 全局表单AJAX拦截器
+    // 自动将POST表单转为AJAX提交，处理JSON响应
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('form[method="POST"], form[method="post"]').forEach(function(form) {
+            // 跳过已有onsubmit处理的表单
+            if (form.hasAttribute('onsubmit') || form.dataset.noAjax) return;
+            // 跳过文件上传表单（有file input的）
+            if (form.querySelector('input[type="file"]:not(.hidden)')) return;
+            
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
+                const originalText = submitBtn ? submitBtn.textContent : '';
+                
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = '处理中...';
+                }
+                
+                const formData = new FormData(form);
+                
+                fetch(form.action || window.location.href, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(r => {
+                    const contentType = r.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        return r.json();
+                    }
+                    // 非JSON响应，可能是重定向或HTML
+                    return r.text().then(text => {
+                        // 如果是HTML，直接刷新页面
+                        if (text.includes('<!DOCTYPE') || text.includes('<html')) {
+                            window.location.reload();
+                            return null;
+                        }
+                        // 尝试解析为JSON
+                        try {
+                            return JSON.parse(text);
+                        } catch (e) {
+                            window.location.reload();
+                            return null;
+                        }
+                    });
+                })
+                .then(data => {
+                    if (!data) return;
+                    
+                    if (data.code === 0) {
+                        xpkToast(data.msg || '操作成功', 'success');
+                        // 如果返回了跳转URL
+                        if (data.data && data.data.url) {
+                            setTimeout(() => window.location.href = data.data.url, 500);
+                        } else {
+                            // 默认返回列表页或刷新
+                            setTimeout(() => {
+                                // 尝试找返回按钮的链接
+                                const backLink = form.querySelector('a[href*="/admin.php"]');
+                                if (backLink) {
+                                    window.location.href = backLink.href;
+                                } else {
+                                    window.location.reload();
+                                }
+                            }, 500);
+                        }
+                    } else {
+                        xpkToast(data.msg || '操作失败', 'error');
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = originalText;
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error('Form submit error:', err);
+                    xpkToast('请求失败，请重试', 'error');
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalText;
+                    }
+                });
+            });
+        });
+    });
     </script>
 </body>
 </html>
