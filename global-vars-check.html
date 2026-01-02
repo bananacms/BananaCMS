@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全局变量污染检测工具</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        
+        .var-item {
+            padding: 8px;
+            margin: 4px 0;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        .system-var { background: #e8f5e8; }
+        .custom-var { background: #fff3cd; }
+        .potential-pollution { background: #f8d7da; }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #0056b3;
+        }
+        
+        .filter-buttons {
+            margin: 10px 0;
+        }
+        
+        .hidden { display: none; }
+        
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <h1>全局变量污染检测工具</h1>
+    <p>此工具用于检测页面中的全局变量，识别潜在的命名空间污染问题。</p>
+    
+    <div class="section">
+        <h2>检测统计</h2>
+        <div class="stats" id="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalVars">0</div>
+                <div>总变量数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="systemVars">0</div>
+                <div>系统变量</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="customVars">0</div>
+                <div>自定义变量</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="pollutionVars">0</div>
+                <div>潜在污染</div>
+            </div>
+        </div>
+        
+        <button onclick="scanGlobalVars()">扫描全局变量</button>
+        <button onclick="exportReport()">导出报告</button>
+    </div>
+    
+    <div class="section">
+        <h2>变量列表</h2>
+        <div class="filter-buttons">
+            <button onclick="filterVars('all')" class="active">全部</button>
+            <button onclick="filterVars('system')">系统变量</button>
+            <button onclick="filterVars('custom')">自定义变量</button>
+            <button onclick="filterVars('pollution')">潜在污染</button>
+        </div>
+        <div id="varsList"></div>
+    </div>
+    
+    <div class="section">
+        <h2>命名空间使用情况</h2>
+        <div id="namespaceInfo"></div>
+    </div>
+    
+    <div class="section">
+        <h2>建议</h2>
+        <div id="suggestions"></div>
+    </div>
+
+    <script>
+        let globalVars = {};
+        let systemVars = new Set();
+        let currentFilter = 'all';
+        
+        // 记录页面加载时的系统变量
+        function recordSystemVars() {
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+            
+            const cleanWindow = iframe.contentWindow;
+            for (let prop in cleanWindow) {
+                systemVars.add(prop);
+            }
+            
+            document.body.removeChild(iframe);
+        }
+        
+        function scanGlobalVars() {
+            globalVars = {};
+            
+            // 扫描window对象的所有属性
+            for (let prop in window) {
+                try {
+                    const value = window[prop];
+                    const type = typeof value;
+                    
+                    globalVars[prop] = {
+                        type: type,
+                        value: value,
+                        isSystem: systemVars.has(prop),
+                        isFunction: type === 'function',
+                        isObject: type === 'object' && value !== null,
+                        constructor: value?.constructor?.name || 'Unknown'
+                    };
+                } catch (e) {
+                    globalVars[prop] = {
+                        type: 'error',
+                        value: '[Access Denied]',
+                        isSystem: systemVars.has(prop),
+                        error: e.message
+                    };
+                }
+            }
+            
+            updateStats();
+            displayVars();
+            checkNamespace();
+            generateSuggestions();
+        }
+        
+        function updateStats() {
+            const total = Object.keys(globalVars).length;
+            const system = Object.values(globalVars).filter(v => v.isSystem).length;
+            const custom = total - system;
+            const pollution = identifyPollution().length;
+            
+            document.getElementById('totalVars').textContent = total;
+            document.getElementById('systemVars').textContent = system;
+            document.getElementById('customVars').textContent = custom;
+            document.getElementById('pollutionVars').textContent = pollution;
+        }
+        
+        function identifyPollution() {
+            const pollutionPatterns = [
+                /^[a-z]$/, // 单字母变量
+                /^temp/, // 临时变量
+                /^test/, // 测试变量
+                /^debug/, // 调试变量
+                /^_$/, // 单下划线
+                /^[A-Z]{2,}$/, // 全大写短变量
+            ];
+            
+            const commonPollutants = [
+                'i', 'j', 'k', 'x', 'y', 'z', 'a', 'b', 'c',
+                'temp', 'tmp', 'test', 'debug', 'foo', 'bar', 'baz'
+            ];
+            
+            return Object.keys(globalVars).filter(name => {
+                if (globalVars[name].isSystem) return false;
+                
+                return pollutionPatterns.some(pattern => pattern.test(name)) ||
+                       commonPollutants.includes(name.toLowerCase());
+            });
+        }
+        
+        function displayVars() {
+            const container = document.getElementById('varsList');
+            const vars = Object.keys(globalVars).sort();
+            const pollution = identifyPollution();
+            
+            container.innerHTML = vars.map(name => {
+                const info = globalVars[name];
+                let className = 'var-item ';
+                
+                if (info.isSystem) {
+                    className += 'system-var';
+                } else if (pollution.includes(name)) {
+                    className += 'potential-pollution';
+                } else {
+                    className += 'custom-var';
+                }
+                
+                const valuePreview = getValuePreview(info.value);
+                
+                return `
+                    <div class="${className}" data-category="${getCategory(name, info)}">
+                        <strong>${name}</strong> 
+                        <span style="color: #666;">(${info.type})</span>
+                        ${info.constructor !== 'Unknown' ? `<span style="color: #888;">[${info.constructor}]</span>` : ''}
+                        <br>
+                        <small style="color: #555;">${valuePreview}</small>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function getCategory(name, info) {
+            if (info.isSystem) return 'system';
+            if (identifyPollution().includes(name)) return 'pollution';
+            return 'custom';
+        }
+        
+        function getValuePreview(value) {
+            if (value === null) return 'null';
+            if (value === undefined) return 'undefined';
+            if (typeof value === 'string') {
+                return `"${value.length > 50 ? value.substring(0, 50) + '...' : value}"`;
+            }
+            if (typeof value === 'function') {
+                const funcStr = value.toString();
+                const firstLine = funcStr.split('\n')[0];
+                return firstLine.length > 60 ? firstLine.substring(0, 60) + '...' : firstLine;
+            }
+            if (typeof value === 'object') {
+                try {
+                    const keys = Object.keys(value);
+                    return `{${keys.slice(0, 3).join(', ')}${keys.length > 3 ? '...' : ''}}`;
+                } catch (e) {
+                    return '[Object]';
+                }
+            }
+            return String(value);
+        }
+        
+        function filterVars(category) {
+            currentFilter = category;
+            const items = document.querySelectorAll('.var-item');
+            
+            // 更新按钮状态
+            document.querySelectorAll('.filter-buttons button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            items.forEach(item => {
+                if (category === 'all' || item.dataset.category === category) {
+                    item.classList.remove('hidden');
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+        }
+        
+        function checkNamespace() {
+            const container = document.getElementById('namespaceInfo');
+            const hasXPK = typeof window.XPK !== 'undefined';
+            const xpkComponents = hasXPK ? Object.keys(window.XPK.components || {}) : [];
+            const xpkUtils = hasXPK ? Object.keys(window.XPK.utils || {}) : [];
+            
+            container.innerHTML = `
+                <h3>XPK命名空间</h3>
+                <p><strong>状态:</strong> ${hasXPK ? '✅ 已启用' : '❌ 未启用'}</p>
+                ${hasXPK ? `
+                    <p><strong>注册组件:</strong> ${xpkComponents.length > 0 ? xpkComponents.join(', ') : '无'}</p>
+                    <p><strong>工具函数:</strong> ${xpkUtils.length > 0 ? xpkUtils.join(', ') : '无'}</p>
+                ` : ''}
+                
+                <h3>其他命名空间</h3>
+                <ul>
+                    ${['jQuery', '$', 'React', 'Vue', 'Angular'].map(ns => 
+                        `<li>${ns}: ${typeof window[ns] !== 'undefined' ? '✅ 存在' : '❌ 不存在'}</li>`
+                    ).join('')}
+                </ul>
+            `;
+        }
+        
+        function generateSuggestions() {
+            const container = document.getElementById('suggestions');
+            const pollution = identifyPollution();
+            const customVars = Object.keys(globalVars).filter(name => !globalVars[name].isSystem);
+            const hasXPK = typeof window.XPK !== 'undefined';
+            
+            let suggestions = [];
+            
+            if (pollution.length > 0) {
+                suggestions.push(`🚨 发现 ${pollution.length} 个潜在的全局变量污染: ${pollution.join(', ')}`);
+                suggestions.push('建议将这些变量移到适当的命名空间中或使用IIFE包装。');
+            }
+            
+            if (customVars.length > 10) {
+                suggestions.push(`⚠️ 自定义全局变量过多 (${customVars.length} 个)，建议使用命名空间管理。`);
+            }
+            
+            if (!hasXPK) {
+                suggestions.push('💡 建议启用XPK命名空间系统来管理全局变量。');
+            }
+            
+            if (customVars.some(name => name.startsWith('xpk') || name.startsWith('Xpk'))) {
+                suggestions.push('✅ 检测到使用了xpk前缀的变量，这是良好的命名实践。');
+            }
+            
+            if (suggestions.length === 0) {
+                suggestions.push('✅ 全局变量使用情况良好，未发现明显问题。');
+            }
+            
+            container.innerHTML = suggestions.map(s => `<p>${s}</p>`).join('');
+        }
+        
+        function exportReport() {
+            const report = {
+                timestamp: new Date().toISOString(),
+                url: window.location.href,
+                stats: {
+                    total: Object.keys(globalVars).length,
+                    system: Object.values(globalVars).filter(v => v.isSystem).length,
+                    custom: Object.values(globalVars).filter(v => !v.isSystem).length,
+                    pollution: identifyPollution().length
+                },
+                pollution: identifyPollution(),
+                customVars: Object.keys(globalVars).filter(name => !globalVars[name].isSystem),
+                namespaceStatus: {
+                    hasXPK: typeof window.XPK !== 'undefined',
+                    xpkComponents: typeof window.XPK !== 'undefined' ? Object.keys(window.XPK.components || {}) : [],
+                    xpkUtils: typeof window.XPK !== 'undefined' ? Object.keys(window.XPK.utils || {}) : []
+                }
+            };
+            
+            const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `global-vars-report-${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            recordSystemVars();
+            scanGlobalVars();
+        });
+        
+        // 添加CSS for active button
+        const style = document.createElement('style');
+        style.textContent = `
+            .filter-buttons button.active {
+                background: #28a745;
+            }
+            .filter-buttons button.active:hover {
+                background: #218838;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

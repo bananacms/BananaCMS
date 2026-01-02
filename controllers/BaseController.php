@@ -23,11 +23,11 @@ class BaseController
     protected function checkSiteStatus(): void
     {
         $config = $this->data['siteConfig'] ?? [];
-        $siteStatus = $config['site_status'] ?? '1';
+        $siteStatus = $config[XpkConfigKeys::SITE_STATUS] ?? '1';
         
         // 站点关闭时显示关闭提示
         if ($siteStatus == '0' || $siteStatus === 0) {
-            $closeTip = $config['site_close_tip'] ?? '网站维护中，请稍后访问';
+            $closeTip = $config[XpkConfigKeys::SITE_CLOSE_TIP] ?? '网站维护中，请稍后访问';
             http_response_code(503);
             header('Content-Type: text/html; charset=utf-8');
             echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>网站维护中</title>';
@@ -48,7 +48,7 @@ class BaseController
         $uri = $_SERVER['REQUEST_URI'] ?? '';
         $adminEntry = defined('ADMIN_ENTRY') ? ADMIN_ENTRY : 'admin.php';
         $adminPath = '/' . str_replace('.php', '', $adminEntry);
-        if (strpos($uri, $adminPath) !== false || strpos($uri, '/api') !== false) {
+        if (strpos($uri, $adminPath) !== false || strpos($uri, XPK_API_PATH) !== false) {
             return;
         }
         
@@ -71,7 +71,7 @@ class BaseController
         
         // 导航分类（从配置读取显示数量，0表示不限制）
         $typeModel = new XpkType();
-        $navLimit = (int)($this->data['siteConfig']['nav_type_limit'] ?? 10);
+        $navLimit = (int)($this->data['siteConfig'][XpkConfigKeys::NAV_TYPE_LIMIT] ?? XPK_PAGE_SIZE_SMALL);
         $this->data['navTypes'] = $typeModel->getNav($navLimit);
         
         // 当前用户
@@ -84,7 +84,7 @@ class BaseController
     protected function loadSiteConfig(): void
     {
         $cache = xpk_cache();
-        $config = $cache->remember('site_config', 600, function() {
+        $config = $cache->remember(XPK_CACHE_CONFIG, XPK_DEFAULT_CACHE_TIME, function() {
             $db = XpkDatabase::getInstance();
             $rows = $db->query("SELECT config_name, config_value FROM " . DB_PREFIX . "config");
             $map = [];
@@ -95,11 +95,11 @@ class BaseController
         });
         
         $this->data['siteConfig'] = $config;
-        $this->data['siteName'] = $config['site_name'] ?? SITE_NAME;
-        $this->data['siteUrl'] = $config['site_url'] ?? SITE_URL;
-        $this->data['siteKeywords'] = $config['site_keywords'] ?? SITE_KEYWORDS;
-        $this->data['siteDescription'] = $config['site_description'] ?? SITE_DESCRIPTION;
-        $this->data['urlMode'] = $config['url_mode'] ?? '4';
+        $this->data['siteName'] = $config[XpkConfigKeys::SITE_NAME] ?? SITE_NAME;
+        $this->data['siteUrl'] = $config[XpkConfigKeys::SITE_URL] ?? SITE_URL;
+        $this->data['siteKeywords'] = $config[XpkConfigKeys::SITE_KEYWORDS] ?? SITE_KEYWORDS;
+        $this->data['siteDescription'] = $config[XpkConfigKeys::SITE_DESCRIPTION] ?? SITE_DESCRIPTION;
+        $this->data['urlMode'] = $config[XpkConfigKeys::URL_MODE] ?? '4';
     }
 
     /**
@@ -113,7 +113,18 @@ class BaseController
         } else {
             $result = $this->parseSeoTpl($tpl, $vars);
         }
-        return mb_substr($result, 0, 60);
+        
+        // 清理和验证标题
+        $result = trim($result);
+        if (empty($result)) {
+            $result = $this->data['siteName'];
+        }
+        
+        // 移除HTML标签和特殊字符
+        $result = strip_tags($result);
+        $result = preg_replace('/\s+/', ' ', $result);
+        
+        return mb_substr($result, 0, XPK_MAX_TITLE_LENGTH);
     }
 
     /**
@@ -123,9 +134,23 @@ class BaseController
     {
         $tpl = $this->data['siteConfig']['seo_keywords_' . $page] ?? '';
         if (empty($tpl)) {
-            return $vars['name'] ?? $this->data['siteKeywords'];
+            $result = $vars['name'] ?? $this->data['siteKeywords'];
+        } else {
+            $result = $this->parseSeoTpl($tpl, $vars);
         }
-        return $this->parseSeoTpl($tpl, $vars);
+        
+        // 清理关键词
+        $result = trim($result);
+        if (empty($result)) {
+            $result = $this->data['siteKeywords'];
+        }
+        
+        // 移除HTML标签，保留逗号分隔
+        $result = strip_tags($result);
+        $result = preg_replace('/\s+/', ' ', $result);
+        
+        // 限制关键词长度（建议不超过200字符）
+        return mb_substr($result, 0, 200);
     }
 
     /**
@@ -139,9 +164,18 @@ class BaseController
         } else {
             $result = $this->parseSeoTpl($tpl, $vars);
         }
-        // 清理换行和多余空格
-        $result = preg_replace('/\s+/', ' ', trim($result));
-        return mb_substr($result, 0, 160);
+        
+        // 清理和验证描述
+        $result = trim($result);
+        if (empty($result)) {
+            $result = $this->data['siteDescription'];
+        }
+        
+        // 移除HTML标签和清理换行、多余空格
+        $result = strip_tags($result);
+        $result = preg_replace('/\s+/', ' ', $result);
+        
+        return mb_substr($result, 0, XPK_MAX_DESCRIPTION_LENGTH);
     }
 
     /**
@@ -149,12 +183,35 @@ class BaseController
      */
     protected function parseSeoTpl(string $tpl, array $vars): string
     {
+        // 添加默认变量
         $vars['sitename'] = $this->data['siteName'];
         $vars['year'] = date('Y');
+        $vars['month'] = date('m');
+        $vars['day'] = date('d');
+        
+        // 清理变量值
+        foreach ($vars as $key => $value) {
+            if (is_string($value)) {
+                // 移除HTML标签和多余空格
+                $value = strip_tags($value);
+                $value = preg_replace('/\s+/', ' ', trim($value));
+                $vars[$key] = $value;
+            }
+        }
+        
+        // 替换模板变量
         foreach ($vars as $key => $value) {
             $tpl = str_replace('{' . $key . '}', $value, $tpl);
         }
-        return $tpl;
+        
+        // 清理未替换的变量标签
+        $tpl = preg_replace('/\{[^}]+\}/', '', $tpl);
+        
+        // 清理多余空格和标点
+        $tpl = preg_replace('/\s+/', ' ', $tpl);
+        $tpl = preg_replace('/\s*[-,，]\s*$/', '', $tpl); // 移除末尾的分隔符
+        
+        return trim($tpl);
     }
 
     /**
@@ -242,16 +299,22 @@ class BaseController
     /**
      * 成功响应
      */
-    protected function success(string $msg = 'success', array $data = []): void
+    protected function success(string $msg = '', array $data = []): void
     {
-        $this->json(['code' => 0, 'msg' => $msg, 'data' => $data]);
+        if (empty($msg)) {
+            $msg = XpkSuccessMessages::SAVE_SUCCESS;
+        }
+        $this->json(['code' => XPK_API_SUCCESS, 'msg' => $msg, 'data' => $data]);
     }
 
     /**
      * 错误响应
      */
-    protected function error(string $msg = 'error', int $code = 1): void
+    protected function error(string $msg = '', int $code = XPK_API_ERROR): void
     {
+        if (empty($msg)) {
+            $msg = XpkErrorMessages::SERVER_ERROR;
+        }
         $this->json(['code' => $code, 'msg' => $msg]);
     }
 
@@ -302,7 +365,7 @@ class BaseController
     protected function requireLogin(): void
     {
         if (!$this->checkLogin()) {
-            $this->redirect(xpk_url('user/login'));
+            $this->redirect(xpk_url(XPK_USER_LOGIN_PATH));
         }
     }
 
@@ -332,7 +395,7 @@ class BaseController
     protected function requireCsrf(): void
     {
         if (!$this->verifyCsrfToken()) {
-            $this->error('安全验证失败，请刷新页面重试');
+            $this->error(XpkErrorMessages::INVALID_REQUEST);
         }
     }
 
@@ -357,10 +420,167 @@ class BaseController
     /**
      * 404错误页面
      */
-    protected function error404(string $msg = '页面不存在'): void
+    protected function error404(string $msg = ''): void
     {
+        if (empty($msg)) {
+            $msg = XpkErrorMessages::NOT_FOUND;
+        }
         http_response_code(404);
         $this->assign('errorMsg', $msg);
         $this->render('error/404');
+    }
+
+    /**
+     * 速率限制检查
+     * @param string $key 限制键名（如用户ID、IP等）
+     * @param int $limit 限制次数
+     * @param int $window 时间窗口（秒）
+     * @return bool 是否允许继续
+     */
+    protected function rateLimit(string $key, int $limit = 10, int $window = 60): bool
+    {
+        $cache = xpk_cache();
+        $cacheKey = 'rate_limit_' . $key;
+        
+        // 获取当前计数
+        $count = $cache->get($cacheKey) ?? 0;
+        
+        if ($count >= $limit) {
+            return false;
+        }
+        
+        // 增加计数
+        $cache->set($cacheKey, $count + 1, $window);
+        return true;
+    }
+
+    /**
+     * 用户速率限制（基于用户ID或IP）
+     * @param string $action 操作类型
+     * @param int $limit 限制次数
+     * @param int $window 时间窗口（秒）
+     * @return bool 是否允许继续
+     */
+    protected function userRateLimit(string $action, int $limit = 10, int $window = 60): bool
+    {
+        $userId = $_SESSION['user']['user_id'] ?? 0;
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+        
+        // 优先使用用户ID，未登录用户使用IP
+        $key = $userId > 0 ? "user_{$userId}_{$action}" : "ip_{$ip}_{$action}";
+        
+        return $this->rateLimit($key, $limit, $window);
+    }
+
+    /**
+     * 要求速率限制检查
+     * @param string $action 操作类型
+     * @param int $limit 限制次数
+     * @param int $window 时间窗口（秒）
+     */
+    protected function requireRateLimit(string $action, int $limit = 10, int $window = 60): void
+    {
+        if (!$this->userRateLimit($action, $limit, $window)) {
+            $this->error('操作过于频繁，请稍后再试', XPK_API_ERROR);
+        }
+    }
+
+    /**
+     * 记录用户操作日志
+     * @param string $action 操作类型
+     * @param array $data 操作数据
+     * @param string $level 日志级别
+     */
+    protected function logUserAction(string $action, array $data = [], string $level = XpkLogLevel::INFO): void
+    {
+        $userId = $_SESSION['user']['user_id'] ?? 0;
+        $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '';
+        $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+        $uri = $_SERVER['REQUEST_URI'] ?? '';
+        
+        $logData = [
+            'timestamp' => date(XPK_DATETIME_FORMAT),
+            'level' => $level,
+            'user_id' => $userId,
+            'ip' => $ip,
+            'action' => $action,
+            'uri' => $uri,
+            'user_agent' => mb_substr($userAgent, 0, 200),
+            'data' => $data
+        ];
+        
+        // 记录到缓存（用于实时监控）
+        $cache = xpk_cache();
+        $cacheKey = 'user_actions_' . date('Y-m-d-H');
+        $actions = $cache->get($cacheKey) ?? [];
+        $actions[] = $logData;
+        
+        // 只保留最近100条记录
+        if (count($actions) > 100) {
+            $actions = array_slice($actions, -100);
+        }
+        
+        $cache->set($cacheKey, $actions, 3600); // 1小时过期
+        
+        // 异步写入数据库（如果有日志表）
+        $this->asyncLogToDatabase($logData);
+    }
+
+    /**
+     * 异步写入数据库日志
+     * @param array $logData 日志数据
+     */
+    private function asyncLogToDatabase(array $logData): void
+    {
+        try {
+            // 检查是否存在日志表
+            $db = XpkDatabase::getInstance();
+            $tableExists = $db->queryOne("SHOW TABLES LIKE '" . DB_PREFIX . "user_logs'");
+            
+            if ($tableExists) {
+                $db->insert(DB_PREFIX . 'user_logs', [
+                    'log_time' => $logData['timestamp'],
+                    'log_level' => $logData['level'],
+                    'user_id' => $logData['user_id'],
+                    'user_ip' => $logData['ip'],
+                    'log_action' => $logData['action'],
+                    'log_uri' => $logData['uri'],
+                    'log_data' => json_encode($logData['data'], JSON_UNESCAPED_UNICODE),
+                    'user_agent' => $logData['user_agent']
+                ]);
+            }
+        } catch (Exception $e) {
+            // 静默失败，不影响正常业务
+        }
+    }
+
+    /**
+     * 记录安全事件
+     * @param string $event 事件类型
+     * @param array $data 事件数据
+     */
+    protected function logSecurityEvent(string $event, array $data = []): void
+    {
+        $this->logUserAction($event, $data, XpkLogLevel::WARNING);
+        
+        // 安全事件额外记录到专门的缓存键
+        $cache = xpk_cache();
+        $cacheKey = 'security_events_' . date('Y-m-d');
+        $events = $cache->get($cacheKey) ?? [];
+        
+        $events[] = [
+            'timestamp' => time(),
+            'event' => $event,
+            'ip' => $_SERVER['REMOTE_ADDR'] ?? '',
+            'user_id' => $_SESSION['user']['user_id'] ?? 0,
+            'data' => $data
+        ];
+        
+        // 只保留最近50条安全事件
+        if (count($events) > 50) {
+            $events = array_slice($events, -50);
+        }
+        
+        $cache->set($cacheKey, $events, 86400); // 24小时过期
     }
 }

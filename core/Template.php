@@ -17,10 +17,10 @@ class XpkTemplate
         $this->cachePath = RUNTIME_PATH . 'cache/';
         
         // 从数据库获取当前模板配置
-        $template = 'default';
+        $template = XpkTemplateConstants::DEFAULT_TEMPLATE;
         try {
             $db = XpkDatabase::getInstance();
-            $row = $db->queryOne("SELECT config_value FROM " . DB_PREFIX . "config WHERE config_name = 'site_template'");
+            $row = $db->queryOne("SELECT config_value FROM " . DB_PREFIX . "config WHERE config_name = ?", [XpkConfigKeys::SYSTEM_TEMPLATE]);
             if ($row && !empty($row['config_value'])) {
                 $template = $row['config_value'];
             }
@@ -31,8 +31,8 @@ class XpkTemplate
         // 验证模板目录是否存在
         $tplDir = TPL_PATH . $template . '/';
         if (!is_dir($tplDir)) {
-            $template = 'default';
-            $tplDir = TPL_PATH . 'default/';
+            $template = XpkTemplateConstants::DEFAULT_TEMPLATE;
+            $tplDir = TPL_PATH . XpkTemplateConstants::DEFAULT_TEMPLATE . '/';
         }
         
         $this->tplPath = $tplDir;
@@ -68,7 +68,7 @@ class XpkTemplate
         $tplFile = $this->tplPath . $template . '.html';
         
         if (!file_exists($tplFile)) {
-            throw new Exception("模板文件不存在: {$template}");
+            throw new Exception(XpkErrorMessages::NOT_FOUND . ": {$template}");
         }
 
         // 检查必须的 footer 标签
@@ -128,28 +128,46 @@ class XpkTemplate
         $content = $this->compileFooterTag($content);
 
         // 编译变量 {$xxx}
-        $content = preg_replace('/\{\$(\w+)\.(\w+)\}/', '<?php echo htmlspecialchars($${1}[\'${2}\'] ?? \'\'); ?>', $content);
-        $content = preg_replace('/\{\$(\w+)\}/', '<?php echo htmlspecialchars($${1} ?? \'\'); ?>', $content);
+        $content = preg_replace('/\{\$(\w+)\.(\w+)\}/', '<?php echo htmlspecialchars($${1}[\'${2}\'] ?? \'\', ENT_QUOTES, \'UTF-8\'); ?>', $content);
+        $content = preg_replace('/\{\$(\w+)\}/', '<?php echo htmlspecialchars($${1} ?? \'\', ENT_QUOTES, \'UTF-8\'); ?>', $content);
 
-        // 编译原始变量 {:$xxx} 不转义
-        $content = preg_replace('/\{:\$(\w+)\.(\w+)\}/', '<?php echo $${1}[\'${2}\'] ?? \'\'; ?>', $content);
-        $content = preg_replace('/\{:\$(\w+)\}/', '<?php echo $${1} ?? \'\'; ?>', $content);
+        // 原始变量输出功能已移除，出于安全考虑
+        // 如需输出HTML内容，请在控制器中进行安全验证后使用
+        // $content = preg_replace('/\{:\$(\w+)\.(\w+)\}/', '<?php echo $${1}[\'${2}\'] ?? \'\'; ?>', $content);
+        // $content = preg_replace('/\{:\$(\w+)\}/', '<?php echo $${1} ?? \'\'; ?>', $content);
 
         // 编译 if 语句
-        $content = preg_replace('/\{if\s+(.+?)\}/', '<?php if(${1}): ?>', $content);
-        $content = preg_replace('/\{elseif\s+(.+?)\}/', '<?php elseif(${1}): ?>', $content);
+        $content = preg_replace_callback('/\{if\s+(.+?)\}/', function($m) {
+            return '<?php if(' . $m[1] . '): ?>';
+        }, $content);
+        $content = preg_replace_callback('/\{elseif\s+(.+?)\}/', function($m) {
+            return '<?php elseif(' . $m[1] . '): ?>';
+        }, $content);
         $content = str_replace('{else}', '<?php else: ?>', $content);
         $content = str_replace('{/if}', '<?php endif; ?>', $content);
 
         // 编译 foreach 语句
-        $content = preg_replace('/\{foreach\s+\$(\w+)\s+as\s+\$(\w+)\}/', '<?php foreach($${1} as $${2}): ?>', $content);
-        $content = preg_replace('/\{foreach\s+\$(\w+)\s+as\s+\$(\w+)\s*=>\s*\$(\w+)\}/', '<?php foreach($${1} as $${2} => $${3}): ?>', $content);
+        $content = preg_replace_callback('/\{foreach\s+\$(\w+)\s+as\s+\$(\w+)\}/', function($m) {
+            return '<?php foreach($' . $m[1] . ' as $' . $m[2] . '): ?>';
+        }, $content);
+        $content = preg_replace_callback('/\{foreach\s+\$(\w+)\s+as\s+\$(\w+)\s*=>\s*\$(\w+)\}/', function($m) {
+            return '<?php foreach($' . $m[1] . ' as $' . $m[2] . ' => $' . $m[3] . '): ?>';
+        }, $content);
         $content = str_replace('{/foreach}', '<?php endforeach; ?>', $content);
 
-        // 编译 include - 使用绝对路径
+        // 编译 include - 使用绝对路径，防止路径遍历
         $tplPath = $this->tplPath;
         $content = preg_replace_callback('/\{include\s+file="(.+?)"\}/', function($matches) use ($tplPath) {
             $file = $matches[1];
+            
+            // 安全检查：只允许文件名，不允许路径遍历
+            $file = basename($file); // 移除路径，只保留文件名
+            $file = preg_replace('/[^a-zA-Z0-9_\-]/', '', $file); // 只允许安全字符
+            
+            if (empty($file)) {
+                return '<?php // 无效的模板文件名 ?>';
+            }
+            
             return '<?php include \'' . addslashes($tplPath) . $file . '.html\'; ?>';
         }, $content);
 
@@ -167,8 +185,8 @@ class XpkTemplate
             $attrs = $this->parseAttrs($matches[1]);
             $inner = $matches[2];
             
-            $num = $attrs['num'] ?? 10;
-            $order = $attrs['order'] ?? 'time';
+            $num = $attrs['num'] ?? XPK_DEFAULT_PAGE_SIZE;
+            $order = $attrs['order'] ?? XPK_ORDER_TIME_DESC;
             $type = $attrs['type'] ?? '';
             
             $code = '<?php ';
@@ -215,8 +233,8 @@ class XpkTemplate
             $attrs = $this->parseAttrs($matches[1]);
             $inner = $matches[2];
             
-            $num = $attrs['num'] ?? 10;
-            $order = $attrs['order'] ?? 'id';
+            $num = $attrs['num'] ?? XPK_PAGE_SIZE_SMALL;
+            $order = $attrs['order'] ?? XPK_ORDER_NAME_ASC;
             
             $code = '<?php ';
             $code .= '$_actor_list = (new XpkActor())->getList(' . $num . ', "' . $order . '");';
@@ -239,8 +257,8 @@ class XpkTemplate
             $attrs = $this->parseAttrs($matches[1]);
             $inner = $matches[2];
             
-            $num = $attrs['num'] ?? 10;
-            $order = $attrs['order'] ?? 'time';
+            $num = $attrs['num'] ?? XPK_PAGE_SIZE_SMALL;
+            $order = $attrs['order'] ?? XPK_ORDER_TIME_DESC;
             
             $code = '<?php ';
             $code .= '$_art_list = (new XpkArt())->getList(' . $num . ', "' . $order . '");';
@@ -263,7 +281,7 @@ class XpkTemplate
             $attrs = $this->parseAttrs($matches[1]);
             $inner = $matches[2];
             
-            $num = $attrs['num'] ?? 10;
+            $num = $attrs['num'] ?? XPK_PAGE_SIZE_SMALL;
             
             $code = '<?php ';
             $code .= '$_hot_list = (new XpkVod())->getHot(' . $num . ');';
@@ -286,7 +304,7 @@ class XpkTemplate
             $position = $attrs['position'] ?? '';
             $random = isset($attrs['random']) && $attrs['random'] === 'true';
             
-            return '<?php echo xpk_ad(\'' . $position . '\', ' . ($random ? 'true' : 'false') . '); ?>';
+            return '<?php echo xpk_ad(' . var_export($position, true) . ', ' . ($random ? 'true' : 'false') . '); ?>';
         }, $content);
         
         // 多个广告循环 {xpk:adlist position="xxx"}...{/xpk:adlist}
@@ -299,7 +317,7 @@ class XpkTemplate
             $code = '<?php ';
             $code .= 'require_once MODEL_PATH . "Ad.php";';
             $code .= '$_ad_model = new XpkAd();';
-            $code .= '$_ad_list = $_ad_model->getByPosition(\'' . $position . '\');';
+            $code .= '$_ad_list = $_ad_model->getByPosition(' . var_export($position, true) . ');';
             $code .= 'foreach($_ad_list as $ad): ';
             $code .= '$_ad_model->incrementShow($ad["ad_id"]); ?>';
             $code .= $inner;
@@ -318,7 +336,7 @@ class XpkTemplate
     {
         return preg_replace_callback('/\{xpk:score\s+(.*?)\/?\}/', function($matches) {
             $attrs = $this->parseAttrs($matches[1]);
-            $type = $attrs['type'] ?? 'vod';
+            $type = $attrs['type'] ?? XPK_SEARCH_TYPE_VOD;
             $id = $attrs['id'] ?? '0';
             $size = $attrs['size'] ?? 'normal';
             
@@ -329,7 +347,7 @@ class XpkTemplate
                 $idCode = $id;
             }
             
-            return '<div class="xpk-score-container" data-type="' . $type . '" data-id="<?php echo ' . $idCode . '; ?>" data-size="' . $size . '"></div>';
+            return '<div class="xpk-score-container" data-type="' . htmlspecialchars($type, ENT_QUOTES, 'UTF-8') . '" data-id="<?php echo ' . $idCode . '; ?>" data-size="' . htmlspecialchars($size, ENT_QUOTES, 'UTF-8') . '"></div>';
         }, $content);
     }
 

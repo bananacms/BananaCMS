@@ -39,7 +39,7 @@ class XpkScore {
                 this.hasRated = data.data.has_rated;
             }
         } catch (e) {
-            console.error('加载评分失败', e);
+            // 静默处理加载评分失败
         }
     }
 
@@ -262,6 +262,12 @@ function xpkScoreDisplay(container, score, count = 0) {
     `;
 }
 
-// 全局暴露
-window.XpkScore = XpkScore;
-window.xpkScoreDisplay = xpkScoreDisplay;
+// 注册到命名空间
+if (typeof window.XPK !== 'undefined') {
+    window.XPK.register('Score', XpkScore);
+    window.XPK.registerUtil('scoreDisplay', xpkScoreDisplay);
+} else {
+    // 降级：全局暴露
+    window.XpkScore = XpkScore;
+    window.xpkScoreDisplay = xpkScoreDisplay;
+}

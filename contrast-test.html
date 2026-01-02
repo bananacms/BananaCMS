@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>颜色对比度测试工具</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        
+        .color-sample {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        
+        .contrast-info {
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        
+        .pass { color: #059669; }
+        .fail { color: #dc2626; }
+        
+        .form-group {
+            margin: 10px 0;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        input[type="color"], input[type="text"] {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background: #2563eb;
+        }
+        
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>颜色对比度测试工具</h1>
+    <p>此工具用于测试文字颜色和背景颜色的对比度是否符合WCAG标准。</p>
+    
+    <div class="test-section">
+        <h2>常见颜色对比度测试</h2>
+        
+        <div class="color-sample" style="background: #ffffff; color: #9ca3af;">
+            <strong>text-gray-400 on white</strong> - 这是灰色文字示例
+            <div class="contrast-info" id="gray400-white"></div>
+        </div>
+        
+        <div class="color-sample" style="background: #ffffff; color: #6b7280;">
+            <strong>text-gray-500 on white</strong> - 这是改进后的灰色文字示例
+            <div class="contrast-info" id="gray500-white"></div>
+        </div>
+        
+        <div class="color-sample" style="background: #ffffff; color: #4b5563;">
+            <strong>text-gray-600 on white</strong> - 这是更深的灰色文字示例
+            <div class="contrast-info" id="gray600-white"></div>
+        </div>
+        
+        <div class="color-sample" style="background: #1f2937; color: #9ca3af;">
+            <strong>text-gray-400 on dark</strong> - 深色背景上的灰色文字
+            <div class="contrast-info" id="gray400-dark"></div>
+        </div>
+        
+        <div class="color-sample" style="background: #1f2937; color: #d1d5db;">
+            <strong>text-gray-300 on dark</strong> - 深色背景上的浅色文字
+            <div class="contrast-info" id="gray300-dark"></div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>自定义颜色测试</h2>
+        
+        <div class="form-group">
+            <label for="textColor">文字颜色:</label>
+            <input type="color" id="textColor" value="#6b7280">
+            <input type="text" id="textColorHex" value="#6b7280" placeholder="#000000">
+        </div>
+        
+        <div class="form-group">
+            <label for="bgColor">背景颜色:</label>
+            <input type="color" id="bgColor" value="#ffffff">
+            <input type="text" id="bgColorHex" value="#ffffff" placeholder="#ffffff">
+        </div>
+        
+        <button onclick="testCustomColors()">测试对比度</button>
+        
+        <div class="color-sample" id="customSample" style="background: #ffffff; color: #6b7280;">
+            <strong>自定义颜色测试</strong> - 这是测试文字示例
+            <div class="contrast-info" id="customResult"></div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>WCAG标准说明</h2>
+        <ul>
+            <li><strong>AA级普通文字:</strong> 对比度至少 4.5:1</li>
+            <li><strong>AA级大文字:</strong> 对比度至少 3:1 (18pt以上或14pt粗体以上)</li>
+            <li><strong>AAA级普通文字:</strong> 对比度至少 7:1</li>
+            <li><strong>AAA级大文字:</strong> 对比度至少 4.5:1</li>
+        </ul>
+    </div>
+
+    <script>
+        // 颜色对比度计算函数
+        function parseColor(color) {
+            const hex = color.replace('#', '');
+            return {
+                r: parseInt(hex.substr(0, 2), 16),
+                g: parseInt(hex.substr(2, 2), 16),
+                b: parseInt(hex.substr(4, 2), 16)
+            };
+        }
+        
+        function getLuminance(rgb) {
+            const { r, g, b } = rgb;
+            const [rs, gs, bs] = [r, g, b].map(c => {
+                c = c / 255;
+                return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+            });
+            return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+        }
+        
+        function calculateContrast(color1, color2) {
+            const rgb1 = parseColor(color1);
+            const rgb2 = parseColor(color2);
+            
+            const l1 = getLuminance(rgb1);
+            const l2 = getLuminance(rgb2);
+            
+            const lighter = Math.max(l1, l2);
+            const darker = Math.min(l1, l2);
+            
+            return (lighter + 0.05) / (darker + 0.05);
+        }
+        
+        function getContrastStatus(ratio) {
+            const aa = ratio >= 4.5;
+            const aaLarge = ratio >= 3.0;
+            const aaa = ratio >= 7.0;
+            const aaaLarge = ratio >= 4.5;
+            
+            let status = [];
+            if (aa) status.push('AA普通');
+            if (aaLarge) status.push('AA大文字');
+            if (aaa) status.push('AAA普通');
+            if (aaaLarge) status.push('AAA大文字');
+            
+            return status.length > 0 ? status.join(', ') : '不符合标准';
+        }
+        
+        function displayContrastInfo(elementId, textColor, bgColor) {
+            const ratio = calculateContrast(textColor, bgColor);
+            const status = getContrastStatus(ratio);
+            const isPass = ratio >= 4.5;
+            
+            const element = document.getElementById(elementId);
+            element.innerHTML = `
+                对比度: ${ratio.toFixed(2)}:1 
+                <span class="${isPass ? 'pass' : 'fail'}">(${status})</span>
+            `;
+        }
+        
+        function testCustomColors() {
+            const textColor = document.getElementById('textColorHex').value;
+            const bgColor = document.getElementById('bgColorHex').value;
+            
+            const sample = document.getElementById('customSample');
+            sample.style.color = textColor;
+            sample.style.background = bgColor;
+            
+            displayContrastInfo('customResult', textColor, bgColor);
+        }
+        
+        // 同步颜色选择器和文本输入
+        document.getElementById('textColor').addEventListener('change', function() {
+            document.getElementById('textColorHex').value = this.value;
+            testCustomColors();
+        });
+        
+        document.getElementById('bgColor').addEventListener('change', function() {
+            document.getElementById('bgColorHex').value = this.value;
+            testCustomColors();
+        });
+        
+        document.getElementById('textColorHex').addEventListener('input', function() {
+            if (this.value.match(/^#[0-9A-Fa-f]{6}$/)) {
+                document.getElementById('textColor').value = this.value;
+                testCustomColors();
+            }
+        });
+        
+        document.getElementById('bgColorHex').addEventListener('input', function() {
+            if (this.value.match(/^#[0-9A-Fa-f]{6}$/)) {
+                document.getElementById('bgColor').value = this.value;
+                testCustomColors();
+            }
+        });
+        
+        // 初始化测试
+        window.addEventListener('load', function() {
+            displayContrastInfo('gray400-white', '#9ca3af', '#ffffff');
+            displayContrastInfo('gray500-white', '#6b7280', '#ffffff');
+            displayContrastInfo('gray600-white', '#4b5563', '#ffffff');
+            displayContrastInfo('gray400-dark', '#9ca3af', '#1f2937');
+            displayContrastInfo('gray300-dark', '#d1d5db', '#1f2937');
+            testCustomColors();
+        });
+    </script>
+</body>
+</html>

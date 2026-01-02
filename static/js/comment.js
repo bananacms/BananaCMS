@@ -29,29 +29,40 @@ class XpkComment {
                 <h3 class="text-lg font-bold mb-4">💬 评论</h3>
                 
                 <!-- 发表评论 -->
-                <div class="xpk-comment-form bg-gray-50 p-4 rounded mb-6">
-                    <textarea id="commentContent" class="w-full border rounded p-3 resize-none" 
-                              rows="3" placeholder="说点什么吧..." maxlength="500"></textarea>
+                <div class="xpk-comment-form bg-gray-50 p-4 rounded mb-6" role="form" aria-labelledby="commentFormTitle">
+                    <h4 id="commentFormTitle" class="sr-only">发表评论</h4>
+                    <label for="commentContent" class="sr-only">评论内容</label>
+                    <textarea id="commentContent" 
+                              class="w-full border rounded p-3 resize-none" 
+                              rows="3" 
+                              placeholder="说点什么吧..." 
+                              maxlength="500"
+                              aria-describedby="commentHint charCount"
+                              aria-label="评论内容"></textarea>
+                    <div id="commentHint" class="sr-only">请输入您的评论，最多500个字符</div>
                     <div class="flex justify-between items-center mt-2">
-                        <span class="text-sm text-gray-400">
+                        <span class="text-sm text-gray-400" aria-live="polite">
                             <span id="charCount">0</span>/500
                         </span>
-                        <button id="submitComment" class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700">
+                        <button id="submitComment" 
+                                class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700"
+                                aria-describedby="submitStatus">
                             发表评论
                         </button>
                     </div>
+                    <div id="submitStatus" class="sr-only" aria-live="polite" aria-atomic="true"></div>
                 </div>
 
                 <!-- 评论列表 -->
-                <div id="commentList" class="space-y-4"></div>
+                <div id="commentList" class="space-y-4" role="list" aria-label="评论列表"></div>
 
                 <!-- 加载更多 -->
                 <div id="loadMore" class="text-center py-4 hidden">
-                    <button class="text-gray-500 hover:text-gray-700">加载更多评论</button>
+                    <button class="text-gray-500 hover:text-gray-700" aria-label="加载更多评论">加载更多评论</button>
                 </div>
 
                 <!-- 空状态 -->
-                <div id="emptyState" class="text-center py-8 text-gray-400 hidden">
+                <div id="emptyState" class="text-center py-8 text-gray-400 hidden" role="status">
                     暂无评论，快来抢沙发吧~
                 </div>
             </div>
@@ -125,7 +136,18 @@ class XpkComment {
 
         try {
             const res = await fetch(`/comment/list?type=${this.type}&id=${this.targetId}&page=${this.page}`);
+            
+            // 检查HTTP状态
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            
             const data = await res.json();
+            
+            // 检查响应格式
+            if (!data || typeof data !== 'object') {
+                throw new Error('Invalid response format');
+            }
 
             if (data.code === 0) {
                 this.userVotes = data.data.user_votes || {};
@@ -139,12 +161,30 @@ class XpkComment {
                 // 显示/隐藏加载更多
                 const hasMore = this.page * 20 < data.data.total;
                 this.container.querySelector('#loadMore').classList.toggle('hidden', !hasMore);
+            } else {
+                throw new Error(data.msg || '加载评论失败');
             }
-        } catch (e) {
-            console.error('加载评论失败', e);
+        } catch (error) {
+            this.showError('加载评论失败，请刷新页面重试');
+            
+            // 显示错误状态
+            const container = this.container.querySelector('#commentList');
+            const emptyState = this.container.querySelector('#emptyState');
+            
+            if (container && emptyState) {
+                container.innerHTML = '';
+                emptyState.innerHTML = `
+                    <div class="text-center py-8">
+                        <p class="text-red-500 mb-2">😕 加载失败</p>
+                        <p class="text-gray-500 text-sm mb-4">${error.message}</p>
+                        <button onclick="location.reload()" class="text-blue-600 hover:underline">刷新页面</button>
+                    </div>
+                `;
+                emptyState.classList.remove('hidden');
+            }
+        } finally {
+            this.loading = false;
         }
-
-        this.loading = false;
     }
 
     renderComments(list, total) {
@@ -172,35 +212,46 @@ class XpkComment {
         const replyCount = item.reply_count || 0;
 
         return `
-            <div class="comment-item border-b pb-4" data-id="${item.comment_id}">
+            <div class="comment-item border-b pb-4" data-id="${this.escape(item.comment_id)}" role="listitem">
                 <div class="flex gap-3">
-                    <img src="${item.user_pic || '/static/images/avatar.svg'}" 
-                         class="w-10 h-10 rounded-full bg-gray-200" alt="">
+                    <img src="${this.escape(item.user_pic || '/static/images/avatar.svg')}" 
+                         class="w-10 h-10 rounded-full bg-gray-200" 
+                         alt="${this.escape(item.user_nick_name || item.user_name || '游客')}的头像">
                     <div class="flex-1">
                         <div class="flex items-center gap-2 mb-1">
                             <span class="font-medium">${this.escape(item.user_nick_name || item.user_name || '游客')}</span>
-                            <span class="text-xs text-gray-400">${this.formatTime(item.comment_time)}</span>
+                            <time class="text-xs text-gray-400" datetime="${new Date(item.comment_time * 1000).toISOString()}">${this.formatTime(item.comment_time)}</time>
                         </div>
                         <p class="text-gray-700 mb-2">${this.escape(item.comment_content)}</p>
-                        <div class="flex items-center gap-4 text-sm text-gray-500">
+                        <div class="flex items-center gap-4 text-sm text-gray-500" role="group" aria-label="评论操作">
                             <button class="vote-btn flex items-center gap-1 hover:text-red-600 ${userVote === 'up' ? 'text-red-600' : ''}" 
-                                    data-id="${item.comment_id}" data-action="up">
+                                    data-id="${this.escape(item.comment_id)}" 
+                                    data-action="up"
+                                    aria-label="点赞，当前${item.comment_up}个赞"
+                                    aria-pressed="${userVote === 'up' ? 'true' : 'false'}">
                                 👍 <span class="up-count">${item.comment_up}</span>
                             </button>
                             <button class="vote-btn flex items-center gap-1 hover:text-gray-700 ${userVote === 'down' ? 'text-gray-700' : ''}" 
-                                    data-id="${item.comment_id}" data-action="down">
+                                    data-id="${this.escape(item.comment_id)}" 
+                                    data-action="down"
+                                    aria-label="踩，当前${item.comment_down}个踩"
+                                    aria-pressed="${userVote === 'down' ? 'true' : 'false'}">
                                 👎 <span class="down-count">${item.comment_down}</span>
                             </button>
-                            <button class="reply-btn hover:text-blue-600" data-id="${item.comment_id}">回复</button>
+                            <button class="reply-btn hover:text-blue-600" 
+                                    data-id="${this.escape(item.comment_id)}"
+                                    aria-label="回复这条评论">回复</button>
                         </div>
 
                         <!-- 回复列表 -->
                         ${replies.length > 0 ? `
-                        <div class="replies mt-3 pl-4 border-l-2 border-gray-100 space-y-3">
+                        <div class="replies mt-3 pl-4 border-l-2 border-gray-100 space-y-3" role="list" aria-label="回复列表">
                             ${replies.map(reply => this.renderReplyItem(reply, item.comment_id)).join('')}
                             ${replyCount > replies.length ? `
                             <button class="load-replies text-sm text-blue-600 hover:underline" 
-                                    data-parent-id="${item.comment_id}" data-offset="${replies.length}">
+                                    data-parent-id="${item.comment_id}" 
+                                    data-offset="${replies.length}"
+                                    aria-label="查看更多${replyCount - replies.length}条回复">
                                 查看更多 ${replyCount - replies.length} 条回复
                             </button>
                             ` : ''}
@@ -217,9 +268,9 @@ class XpkComment {
         const replyTo = reply.reply_to_name ? `<span class="text-blue-600">@${this.escape(reply.reply_to_name)}</span> ` : '';
 
         return `
-            <div class="reply-item" data-id="${reply.comment_id}">
+            <div class="reply-item" data-id="${this.escape(reply.comment_id)}">
                 <div class="flex gap-2">
-                    <img src="${reply.user_pic || '/static/images/avatar.svg'}" 
+                    <img src="${this.escape(reply.user_pic || '/static/images/avatar.svg')}" 
                          class="w-8 h-8 rounded-full bg-gray-200" alt="">
                     <div class="flex-1">
                         <div class="flex items-center gap-2 mb-1">
@@ -229,11 +280,11 @@ class XpkComment {
                         <p class="text-gray-700 text-sm mb-1">${replyTo}${this.escape(reply.comment_content)}</p>
                         <div class="flex items-center gap-3 text-xs text-gray-500">
                             <button class="vote-btn flex items-center gap-1 hover:text-red-600 ${userVote === 'up' ? 'text-red-600' : ''}" 
-                                    data-id="${reply.comment_id}" data-action="up">
+                                    data-id="${this.escape(reply.comment_id)}" data-action="up">
                                 👍 <span class="up-count">${reply.comment_up}</span>
                             </button>
                             <button class="reply-btn hover:text-blue-600" 
-                                    data-id="${reply.comment_id}" data-parent-id="${parentId}">回复</button>
+                                    data-id="${this.escape(reply.comment_id)}" data-parent-id="${this.escape(parentId)}">回复</button>
                         </div>
                     </div>
                 </div>
@@ -248,53 +299,114 @@ class XpkComment {
         const item = this.container.querySelector(`[data-id="${replyId}"]`);
         if (!item) return;
 
+        const replyFormId = `reply-form-${replyId}`;
+        const replyTextareaId = `reply-textarea-${replyId}`;
+
         const form = document.createElement('div');
         form.className = 'reply-form-box mt-3 bg-gray-50 p-3 rounded';
         form.innerHTML = `
-            <textarea class="reply-content w-full border rounded p-2 text-sm resize-none" 
-                      rows="2" placeholder="回复..." maxlength="500"></textarea>
+            <div class="form-group">
+                <label for="${replyTextareaId}" class="sr-only">回复内容</label>
+                <textarea id="${replyTextareaId}"
+                          class="reply-content w-full border rounded p-2 text-sm resize-none" 
+                          rows="2" 
+                          placeholder="回复..." 
+                          maxlength="500"
+                          aria-describedby="${replyFormId}-hint"
+                          aria-label="回复内容"></textarea>
+                <div id="${replyFormId}-hint" class="sr-only">请输入回复内容，最多500个字符</div>
+            </div>
             <div class="flex justify-end gap-2 mt-2">
-                <button class="cancel-reply text-sm text-gray-500 hover:text-gray-700 px-3 py-1">取消</button>
+                <button class="cancel-reply text-sm text-gray-500 hover:text-gray-700 px-3 py-1"
+                        aria-label="取消回复">取消</button>
                 <button class="submit-reply text-sm bg-red-600 text-white px-4 py-1 rounded hover:bg-red-700"
-                        data-parent-id="${parentId}" data-reply-id="${replyId}">回复</button>
+                        data-parent-id="${parentId}" 
+                        data-reply-id="${replyId}"
+                        aria-label="提交回复">回复</button>
             </div>
         `;
 
         item.appendChild(form);
-        form.querySelector('textarea').focus();
+        const textarea = form.querySelector('textarea');
+        textarea.focus();
+        
+        // 设置焦点到文本框末尾
+        textarea.setSelectionRange(textarea.value.length, textarea.value.length);
     }
 
     async submitComment() {
         const textarea = this.container.querySelector('#commentContent');
         const content = textarea.value.trim();
+        const submitBtn = this.container.querySelector('#submitComment');
+        const statusDiv = this.container.querySelector('#submitStatus');
 
         if (!content) {
-            xpk.toast('请输入评论内容', 'warning');
+            this.showError('请输入评论内容');
+            textarea.focus();
             return;
+        }
+
+        // 防止重复提交
+        if (submitBtn.disabled) return;
+        
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = '发表中...';
+        
+        if (statusDiv) {
+            statusDiv.textContent = '正在发表评论...';
         }
 
         try {
             const res = await fetch('/comment/post', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                headers: { 
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
                 body: `type=${this.type}&target_id=${this.targetId}&content=${encodeURIComponent(content)}`
             });
+
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+
             const data = await res.json();
+            
+            if (!data || typeof data !== 'object') {
+                throw new Error('Invalid response format');
+            }
 
             if (data.code === 0) {
-                xpk.toast(data.msg, 'success');
+                xpk.toast(data.msg || '评论发表成功', 'success');
                 textarea.value = '';
                 this.container.querySelector('#charCount').textContent = '0';
                 this.page = 1;
-                this.loadComments();
+                await this.loadComments();
+                
+                if (statusDiv) {
+                    statusDiv.textContent = '评论发表成功';
+                }
             } else if (data.code === 2) {
-                xpk.toast('请先登录', 'warning');
-                // 可跳转登录页
+                this.showError('请先登录后再发表评论');
+                // 可以添加登录跳转逻辑
+                setTimeout(() => {
+                    if (confirm('需要登录才能发表评论，是否前往登录页面？')) {
+                        window.location.href = '/user/login?redirect=' + encodeURIComponent(window.location.href);
+                    }
+                }, 1000);
             } else {
-                xpk.toast(data.msg, 'error');
+                throw new Error(data.msg || '发表评论失败');
             }
-        } catch (e) {
-            xpk.toast('发表失败', 'error');
+        } catch (error) {
+            this.showError(`发表失败: ${error.message}`);
+            
+            if (statusDiv) {
+                statusDiv.textContent = `发表失败: ${error.message}`;
+            }
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
         }
     }
 
@@ -360,7 +472,7 @@ class XpkComment {
                 xpk.toast('请先登录', 'warning');
             }
         } catch (e) {
-            console.error('投票失败', e);
+            // 静默处理投票失败
         }
     }
 
@@ -407,7 +519,7 @@ class XpkComment {
                 btn.remove();
             }
         } catch (e) {
-            console.error('加载回复失败', e);
+            // 静默处理加载回复失败
         }
     }
 
@@ -427,11 +539,90 @@ class XpkComment {
     }
 
     escape(str) {
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
+        if (typeof str !== 'string') {
+            return '';
+        }
+        
+        // 使用更安全的字符映射表进行转义
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;',
+            '/': '&#x2F;',
+            '`': '&#x60;',
+            '=': '&#x3D;'
+        };
+        
+        return str.replace(/[&<>"'`=\/]/g, function(s) {
+            return map[s];
+        });
+    }
+    
+    // 显示错误消息
+    showError(message) {
+        xpk.toast(message, 'error');
+    }
+    
+    // 显示成功消息
+    showSuccess(message) {
+        xpk.toast(message, 'success');
+    }
+    
+    // 显示警告消息
+    showWarning(message) {
+        xpk.toast(message, 'warning');
+    }
+    
+    // 网络错误处理
+    handleNetworkError(error) {
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            this.showError('网络连接失败，请检查网络连接');
+        } else if (error.message.includes('timeout')) {
+            this.showError('请求超时，请重试');
+        } else if (error.message.includes('HTTP error')) {
+            const status = error.message.match(/status: (\d+)/)?.[1];
+            switch (status) {
+                case '404':
+                    this.showError('请求的资源不存在');
+                    break;
+                case '500':
+                    this.showError('服务器内部错误，请稍后重试');
+                    break;
+                case '403':
+                    this.showError('没有权限执行此操作');
+                    break;
+                default:
+                    this.showError(`服务器错误 (${status})`);
+            }
+        } else {
+            this.showError(error.message || '操作失败，请重试');
+        }
+    }
+    
+    // 重试机制
+    async retryOperation(operation, maxRetries = 3, delay = 1000) {
+        for (let i = 0; i < maxRetries; i++) {
+            try {
+                return await operation();
+            } catch (error) {
+                if (i === maxRetries - 1) {
+                    throw error;
+                }
+                
+                // 静默重试
+                await new Promise(resolve => setTimeout(resolve, delay));
+                delay *= 2; // 指数退避
+            }
+        }
     }
 }
 
-// 全局暴露
-window.XpkComment = XpkComment;
+// 注册到命名空间
+if (typeof window.XPK !== 'undefined') {
+    window.XPK.register('Comment', XpkComment);
+} else {
+    // 降级：直接暴露到全局
+    window.XpkComment = XpkComment;
+}

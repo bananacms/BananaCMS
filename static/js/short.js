@@ -47,7 +47,7 @@ class XpkShortPlayer {
                 }
             }
         } catch (e) {
-            console.error('加载视频失败', e);
+            // 静默处理加载视频失败
         }
 
         this.loading = false;
@@ -309,7 +309,7 @@ class XpkShortPlayer {
                 this.videos[this.currentIndex].short_likes = data.data.likes;
             }
         } catch (e) {
-            console.error('点赞失败', e);
+            // 静默处理点赞失败
         }
     }
 
@@ -324,5 +324,10 @@ class XpkShortPlayer {
     }
 }
 
-// 全局暴露
-window.XpkShortPlayer = XpkShortPlayer;
+// 注册到命名空间
+if (typeof window.XPK !== 'undefined') {
+    window.XPK.register('ShortPlayer', XpkShortPlayer);
+} else {
+    // 降级：全局暴露
+    window.XpkShortPlayer = XpkShortPlayer;
+}

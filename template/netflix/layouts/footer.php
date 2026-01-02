@@ -117,8 +117,8 @@
         </div>
     </nav>
 
-    <script src="/static/js/xpk.js"></script>
-    <script>
+    <script src="/static/js/xpk.js" defer></script>
+    <script defer>
         // 导航栏滚动效果
         window.addEventListener('scroll', function() {
             const navbar = document.getElementById('navbar');

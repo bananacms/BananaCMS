@@ -83,7 +83,7 @@
 </form>
 
 <!-- Quill 编辑器 -->
-<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js" defer></script>
 <script>
 const quill = new Quill('#editor', {
     theme: 'snow',

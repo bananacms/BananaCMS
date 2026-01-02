@@ -69,6 +69,9 @@ class CommentController extends BaseController
      */
     public function postComment(): void
     {
+        // 速率限制检查
+        $this->requireRateLimit('comment', 5, 300); // 5分钟内最多5条评论
+        
         // 检查评论功能是否开启
         $config = xpk_cache()->get('site_config') ?: [];
         if (($config['comment_enabled'] ?? '1') !== '1') {
@@ -126,6 +129,15 @@ class CommentController extends BaseController
         $result = $this->commentModel->add($data);
 
         if ($result['id']) {
+            // 记录评论操作日志
+            $this->logUserAction(XpkEventTypes::COMMENT_POST, [
+                'comment_id' => $result['id'],
+                'type' => $type,
+                'target_id' => $targetId,
+                'content_length' => $contentLen,
+                'need_audit' => $result['need_audit']
+            ]);
+            
             $msg = $result['need_audit'] ? '评论已提交，等待审核' : '评论成功';
             $this->apiJson(0, $msg, [
                 'id' => $result['id'],
@@ -141,6 +153,9 @@ class CommentController extends BaseController
      */
     public function vote(): void
     {
+        // 速率限制检查
+        $this->requireRateLimit('vote', 20, 60); // 1分钟内最多20次投票
+        
         $userId = $this->getUserId();
         if (!$userId) {
             $this->apiJson(2, '请先登录');
@@ -154,6 +169,13 @@ class CommentController extends BaseController
         }
 
         $result = $this->commentModel->vote($commentId, $userId, $action);
+        
+        // 记录投票操作日志
+        $this->logUserAction('comment.vote', [
+            'comment_id' => $commentId,
+            'action' => $action,
+            'result_type' => $result['type']
+        ]);
         
         // 获取最新数据
         $comment = $this->commentModel->find($commentId);
@@ -187,6 +209,13 @@ class CommentController extends BaseController
         }
 
         $this->commentModel->delete($commentId, true);
+        
+        // 记录删除操作日志
+        $this->logUserAction('comment.delete', [
+            'comment_id' => $commentId,
+            'comment_content' => mb_substr($comment['comment_content'] ?? '', 0, 100)
+        ]);
+        
         $this->apiJson(0, '删除成功');
     }
 

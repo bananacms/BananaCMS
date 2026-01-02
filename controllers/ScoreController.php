@@ -20,6 +20,9 @@ class ScoreController extends BaseController
      */
     public function rate(): void
     {
+        // 速率限制检查
+        $this->requireRateLimit('score', 10, 300); // 5分钟内最多10次评分
+        
         $type = $this->post('type', 'vod');
         $targetId = (int)$this->post('target_id', 0);
         $score = (int)$this->post('score', 0);
@@ -56,6 +59,15 @@ class ScoreController extends BaseController
 
         // 获取最新统计
         $stats = $this->scoreModel->getStats($type, $targetId);
+
+        // 记录评分操作日志
+        $this->logUserAction(XpkEventTypes::SCORE_RATE, [
+            'type' => $type,
+            'target_id' => $targetId,
+            'score' => $score,
+            'action' => $result['action'],
+            'stats' => $stats
+        ]);
 
         $msg = $result['action'] === 'update' ? '评分已更新' : '评分成功';
         $this->apiJson(0, $msg, [

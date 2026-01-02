@@ -21,7 +21,11 @@
         <?php foreach ($newList as $vod): ?>
             <a href="<?php echo xpk_page_url('vod_detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="group cursor-pointer">
                 <div class="relative">
-                    <img src="<?php echo $vod['vod_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full aspect-video object-cover rounded-xl bg-gray-100">
+                    <img src="/static/images/placeholder.svg" 
+                         data-src="<?php echo $vod['vod_pic'] ?: '/static/images/no-image.svg'; ?>" 
+                         alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" 
+                         loading="lazy"
+                         class="w-full aspect-video object-cover rounded-xl bg-gray-100 lazy-load">
                     <div class="absolute bottom-1 right-1 bg-black/80 text-white text-xs px-1 rounded"><?php echo $vod['vod_remarks'] ?: '更新中'; ?></div>
                     <div class="play-btn"></div>
                 </div>
@@ -48,7 +52,11 @@
         <?php foreach ($hotList as $vod): ?>
             <a href="<?php echo xpk_page_url('vod_detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="group cursor-pointer">
                 <div class="relative">
-                    <img src="<?php echo $vod['vod_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full aspect-video object-cover rounded-xl bg-gray-100">
+                    <img src="/static/images/placeholder.svg" 
+                         data-src="<?php echo $vod['vod_pic'] ?: '/static/images/no-image.svg'; ?>" 
+                         alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" 
+                         loading="lazy"
+                         class="w-full aspect-video object-cover rounded-xl bg-gray-100 lazy-load">
                     <div class="absolute top-1 left-1 bg-red-600 text-white text-xs px-2 py-0.5 rounded">热门</div>
                     <div class="play-btn"></div>
                 </div>
@@ -78,7 +86,11 @@
                 <?php foreach ($item['vods'] as $vod): ?>
                     <a href="<?php echo xpk_page_url('vod_detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="group cursor-pointer card-hover">
                         <div class="relative">
-                            <img src="<?php echo $vod['vod_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full aspect-[2/3] object-cover rounded-lg bg-gray-100">
+                            <img src="/static/images/placeholder.svg" 
+                                 data-src="<?php echo $vod['vod_pic'] ?: '/static/images/no-image.svg'; ?>" 
+                                 alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" 
+                                 loading="lazy"
+                                 class="w-full aspect-[2/3] object-cover rounded-lg bg-gray-100 lazy-load">
                             <div class="absolute bottom-1 right-1 bg-black/80 text-white text-xs px-1 rounded"><?php echo $vod['vod_remarks'] ?: '更新中'; ?></div>
                         </div>
                         <h3 class="mt-2 text-sm truncate group-hover:text-red-600"><?php echo htmlspecialchars($vod['vod_name']); ?></h3>

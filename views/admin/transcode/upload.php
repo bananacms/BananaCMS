@@ -78,7 +78,7 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/resumablejs@1.1.0/resumable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/resumablejs@1.1.0/resumable.min.js" defer></script>
 <script>
 const csrfToken = '<?= $csrfToken ?>';
 

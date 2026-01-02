@@ -138,6 +138,30 @@ class XpkAd
      */
     private function buildHtml(array $ad): string
     {
+        // 安全检查
+        if (!empty($ad['ad_image'])) {
+            $validation = $this->validateAdUrl($ad['ad_image']);
+            if (!$validation['valid']) {
+                error_log("广告图片URL安全检查失败: " . $validation['error'] . " URL: " . $ad['ad_image']);
+                return '<!-- 广告内容被安全策略阻止 -->';
+            }
+        }
+        
+        if (!empty($ad['ad_video'])) {
+            $validation = $this->validateAdUrl($ad['ad_video']);
+            if (!$validation['valid']) {
+                error_log("广告视频URL安全检查失败: " . $validation['error'] . " URL: " . $ad['ad_video']);
+                return '<!-- 广告内容被安全策略阻止 -->';
+            }
+        }
+        
+        if (!empty($ad['ad_link'])) {
+            $validation = $this->validateAdUrl($ad['ad_link']);
+            if (!$validation['valid']) {
+                error_log("广告链接URL安全检查失败: " . $validation['error'] . " URL: " . $ad['ad_link']);
+                $ad['ad_link'] = ''; // 移除不安全的链接
+            }
+        }
         $type = $ad['ad_type'];
         $id = $ad['ad_id'];
         $position = $ad['ad_position'];
@@ -181,10 +205,12 @@ class XpkAd
                 // 弹窗广告只显示一次（每天）
                 (function(){
                     var key = "popup_ad_' . $id . '_" + new Date().toDateString();
-                    if (localStorage.getItem(key)) {
+                    if (xpkGetCookie && xpkGetCookie(key)) {
                         document.getElementById("popupAd' . $id . '").style.display = "none";
                     } else {
-                        localStorage.setItem(key, "1");
+                        if (xpkSetCookie) {
+                            xpkSetCookie(key, "1", 1); // 1天过期
+                        }
                     }
                 })();
                 </script>';
@@ -338,5 +364,82 @@ class XpkAd
             'clicks' => $clicks,
             'ctr' => $shows > 0 ? round($clicks / $shows * 100, 2) : 0
         ];
+    }
+
+    /**
+     * 验证广告URL安全性
+     */
+    public function validateAdUrl(string $url): array
+    {
+        $result = ['valid' => false, 'error' => ''];
+        
+        // 获取安全配置
+        $config = $this->getSecurityConfig();
+        
+        if (!$config['ad_url_check']) {
+            return ['valid' => true, 'error' => ''];
+        }
+        
+        // URL格式验证
+        if (!filter_var($url, FILTER_VALIDATE_URL)) {
+            return ['valid' => false, 'error' => 'URL格式无效'];
+        }
+        
+        // URL长度检查
+        if (strlen($url) > $config['ad_max_url_length']) {
+            return ['valid' => false, 'error' => 'URL长度超出限制'];
+        }
+        
+        // 协议检查
+        $protocol = parse_url($url, PHP_URL_SCHEME);
+        if (!in_array($protocol, $config['allowed_protocols'])) {
+            return ['valid' => false, 'error' => '不允许的协议: ' . $protocol];
+        }
+        
+        // 域名白名单检查
+        $host = parse_url($url, PHP_URL_HOST);
+        if (!empty($config['allowed_domains']) && !in_array($host, $config['allowed_domains'])) {
+            return ['valid' => false, 'error' => '域名不在白名单中: ' . $host];
+        }
+        
+        // 文件扩展名检查
+        $path = parse_url($url, PHP_URL_PATH);
+        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        if (!empty($extension) && in_array($extension, $config['blocked_extensions'])) {
+            return ['valid' => false, 'error' => '禁止的文件类型: ' . $extension];
+        }
+        
+        return ['valid' => true, 'error' => ''];
+    }
+
+    /**
+     * 获取广告安全配置
+     */
+    private function getSecurityConfig(): array
+    {
+        static $config = null;
+        
+        if ($config === null) {
+            $rows = $this->db->query("SELECT config_name, config_value FROM " . DB_PREFIX . "config WHERE config_name LIKE 'ad_%'");
+            $config = [];
+            foreach ($rows as $row) {
+                $config[$row['config_name']] = $row['config_value'];
+            }
+            
+            // 处理数组类型的配置
+            $config['allowed_domains'] = !empty($config['ad_allowed_domains']) 
+                ? array_filter(array_map('trim', explode(',', $config['ad_allowed_domains'])))
+                : [];
+            $config['allowed_protocols'] = !empty($config['ad_allowed_protocols'])
+                ? array_filter(array_map('trim', explode(',', $config['ad_allowed_protocols'])))
+                : ['https', 'http'];
+            $config['blocked_extensions'] = !empty($config['ad_blocked_extensions'])
+                ? array_filter(array_map('trim', explode(',', $config['ad_blocked_extensions'])))
+                : [];
+            $config['ad_url_check'] = ($config['ad_url_check'] ?? '1') === '1';
+            $config['ad_max_url_length'] = (int)($config['ad_max_url_length'] ?? 500);
+        }
+        
+        return $config;
     }
 }

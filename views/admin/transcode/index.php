@@ -287,7 +287,7 @@ function toggleHelp() {
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest" defer></script>
 <script>
 const csrfToken = '<?= $csrfToken ?>';
 

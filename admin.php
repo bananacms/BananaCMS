@@ -19,6 +19,7 @@ if (APP_DEBUG) {
 // 加载核心类
 require_once CORE_PATH . 'ErrorHandler.php';
 require_once CORE_PATH . 'Database.php';
+require_once CORE_PATH . 'Security.php';
 require_once CORE_PATH . 'Router.php';
 require_once CORE_PATH . 'Cache.php';
 require_once CORE_PATH . 'RedisSession.php';
@@ -26,6 +27,9 @@ require_once CORE_PATH . 'Pinyin.php';
 
 // 注册错误处理
 XpkErrorHandler::register();
+
+// 设置安全响应头
+XpkSecurity::setSecurityHeaders('admin');
 
 // 从数据库读取调试模式配置并应用
 $dbDebug = xpk_config('app_debug', null);
@@ -264,6 +268,8 @@ $router->post($adminEntry . '.php/ad/edit/{id}', fn($id) => (new AdminAdControll
 $router->post($adminEntry . '.php/ad/delete', fn() => (new AdminAdController())->delete());
 $router->post($adminEntry . '.php/ad/toggle', fn() => (new AdminAdController())->toggle());
 $router->post($adminEntry . '.php/ad/click', fn() => (new AdminAdController())->click());
+$router->get($adminEntry . '.php/ad/securityConfig', fn() => (new AdminAdController())->securityConfig());
+$router->post($adminEntry . '.php/ad/securityConfig', fn() => (new AdminAdController())->securityConfig());
 
 // 评论管理
 require_once CTRL_PATH . 'admin/CommentController.php';

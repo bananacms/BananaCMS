@@ -11,21 +11,36 @@
         <div class="space-y-4">
             <h3 class="font-bold text-gray-700 border-b pb-2">基本信息</h3>
             
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">视频名称 *</label>
-                <input type="text" name="vod_name" value="<?= htmlspecialchars($vod['vod_name'] ?? '') ?>" required
-                    class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <div class="form-group">
+                <label for="vod_name" class="block text-sm font-medium text-gray-700 mb-1 required">视频名称</label>
+                <input type="text" 
+                       id="vod_name"
+                       name="vod_name" 
+                       value="<?= htmlspecialchars($vod['vod_name'] ?? '') ?>" 
+                       required
+                       class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                       aria-describedby="vod_name_hint">
+                <div id="vod_name_hint" class="hint-text">请输入视频的完整名称</div>
             </div>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">副标题</label>
-                <input type="text" name="vod_sub" value="<?= htmlspecialchars($vod['vod_sub'] ?? '') ?>"
-                    class="w-full border rounded px-3 py-2">
+            <div class="form-group">
+                <label for="vod_sub" class="block text-sm font-medium text-gray-700 mb-1">副标题</label>
+                <input type="text" 
+                       id="vod_sub"
+                       name="vod_sub" 
+                       value="<?= htmlspecialchars($vod['vod_sub'] ?? '') ?>"
+                       class="w-full border rounded px-3 py-2"
+                       aria-describedby="vod_sub_hint">
+                <div id="vod_sub_hint" class="hint-text">可选，视频的副标题或简短描述</div>
             </div>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">分类 *</label>
-                <select name="vod_type_id" required class="w-full border rounded px-3 py-2">
+            <div class="form-group">
+                <label for="vod_type_id" class="block text-sm font-medium text-gray-700 mb-1 required">分类</label>
+                <select id="vod_type_id" 
+                        name="vod_type_id" 
+                        required 
+                        class="w-full border rounded px-3 py-2"
+                        aria-describedby="vod_type_hint">
                     <option value="">请选择分类</option>
                     <?php foreach ($types as $t): ?>
                     <option value="<?= $t['type_id'] ?>" <?= ($vod['vod_type_id'] ?? 0) == $t['type_id'] ? 'selected' : '' ?>>
@@ -33,19 +48,34 @@
                     </option>
                     <?php endforeach; ?>
                 </select>
+                <div id="vod_type_hint" class="hint-text">选择视频所属的分类</div>
             </div>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">封面图</label>
-                <input type="text" name="vod_pic" value="<?= htmlspecialchars($vod['vod_pic'] ?? '') ?>"
-                    class="w-full border rounded px-3 py-2" placeholder="图片URL">
+            <div class="form-group">
+                <label for="vod_pic" class="block text-sm font-medium text-gray-700 mb-1">封面图</label>
+                <input type="url" 
+                       id="vod_pic"
+                       name="vod_pic" 
+                       value="<?= htmlspecialchars($vod['vod_pic'] ?? '') ?>"
+                       class="w-full border rounded px-3 py-2" 
+                       placeholder="https://example.com/image.jpg"
+                       aria-describedby="vod_pic_hint">
+                <div id="vod_pic_hint" class="hint-text">视频封面图片的URL地址</div>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">年份</label>
-                    <input type="text" name="vod_year" value="<?= htmlspecialchars($vod['vod_year'] ?? '') ?>"
-                        class="w-full border rounded px-3 py-2" placeholder="<?= date('Y') ?>">
+                <div class="form-group">
+                    <label for="vod_year" class="block text-sm font-medium text-gray-700 mb-1">年份</label>
+                    <input type="number" 
+                           id="vod_year"
+                           name="vod_year" 
+                           value="<?= htmlspecialchars($vod['vod_year'] ?? '') ?>"
+                           class="w-full border rounded px-3 py-2" 
+                           placeholder="<?= date('Y') ?>"
+                           min="1900"
+                           max="<?= date('Y') + 5 ?>"
+                           aria-describedby="vod_year_hint">
+                    <div id="vod_year_hint" class="hint-text">视频发布年份</div>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">评分</label>
@@ -224,7 +254,7 @@
 </form>
 
 <!-- Quill 编辑器 -->
-<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js" defer></script>
 <script>
 const quill = new Quill('#editor', {
     theme: 'snow',

@@ -202,4 +202,69 @@ class AdminAdController extends AdminBaseController
             'ad_remark' => trim($this->post('ad_remark', '')),
         ];
     }
+
+    /**
+     * 广告安全配置
+     */
+    public function securityConfig(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->updateSecurityConfig();
+            return;
+        }
+        
+        $config = $this->getAdSecurityConfig();
+        $this->assign('config', $config);
+        $this->assign('csrfToken', $this->csrfToken());
+        $this->render('ad/security', '广告安全配置');
+    }
+
+    /**
+     * 更新安全配置
+     */
+    private function updateSecurityConfig(): void
+    {
+        $configs = [
+            'ad_url_check' => $this->post('ad_url_check', '0'),
+            'ad_allowed_domains' => trim($this->post('ad_allowed_domains', '')),
+            'ad_allowed_protocols' => trim($this->post('ad_allowed_protocols', 'https,http')),
+            'ad_max_url_length' => (int)$this->post('ad_max_url_length', 500),
+            'ad_blocked_extensions' => trim($this->post('ad_blocked_extensions', 'exe,bat,sh,php,js')),
+            'ad_content_filter' => $this->post('ad_content_filter', '0')
+        ];
+        
+        foreach ($configs as $name => $value) {
+            $this->db->execute(
+                "INSERT INTO " . DB_PREFIX . "config (config_name, config_value) VALUES (?, ?) 
+                 ON DUPLICATE KEY UPDATE config_value = VALUES(config_value)",
+                [$name, $value]
+            );
+        }
+        
+        $this->jsonResponse(['code' => 0, 'msg' => '配置保存成功']);
+    }
+
+    /**
+     * 获取广告安全配置
+     */
+    private function getAdSecurityConfig(): array
+    {
+        $rows = $this->db->query("SELECT config_name, config_value FROM " . DB_PREFIX . "config WHERE config_name LIKE 'ad_%'");
+        $config = [];
+        foreach ($rows as $row) {
+            $config[$row['config_name']] = $row['config_value'];
+        }
+        
+        // 设置默认值
+        $defaults = [
+            'ad_url_check' => '1',
+            'ad_allowed_domains' => '',
+            'ad_allowed_protocols' => 'https,http',
+            'ad_max_url_length' => '500',
+            'ad_blocked_extensions' => 'exe,bat,sh,php,js',
+            'ad_content_filter' => '1'
+        ];
+        
+        return array_merge($defaults, $config);
+    }
 }

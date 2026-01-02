@@ -56,16 +56,33 @@ class UserController extends BaseController
 
         $user = $this->userModel->findByUsername($username);
         if (!$user) {
+            // 记录用户不存在的登录尝试
+            $this->logSecurityEvent('login.failed', [
+                'username' => $username,
+                'reason' => 'user_not_found'
+            ]);
             $this->error('用户不存在');
             return;
         }
 
         if ($user['user_status'] != 1) {
+            // 记录被禁用账户的登录尝试
+            $this->logSecurityEvent('login.failed', [
+                'username' => $username,
+                'user_id' => $user['user_id'],
+                'reason' => 'account_disabled'
+            ]);
             $this->error('账号已被禁用');
             return;
         }
 
         if (!$this->userModel->verifyPassword($password, $user['user_pwd'])) {
+            // 记录登录失败事件
+            $this->logSecurityEvent('login.failed', [
+                'username' => $username,
+                'user_id' => $user['user_id'],
+                'reason' => 'wrong_password'
+            ]);
             $this->error('密码错误');
             return;
         }
@@ -77,6 +94,12 @@ class UserController extends BaseController
         unset($user['user_pwd']);
         $_SESSION['user'] = $user;
         $_SESSION['user_id'] = $user['user_id']; // 兼容API收藏等功能
+
+        // 记录登录成功事件
+        $this->logUserAction(XpkEventTypes::USER_LOGIN, [
+            'user_id' => $user['user_id'],
+            'username' => $user['user_name']
+        ]);
 
         // 跳转到来源页面或用户中心
         $redirect = $this->post('redirect', '');
@@ -223,6 +246,14 @@ class UserController extends BaseController
      */
     public function logout(): void
     {
+        // 记录退出登录事件
+        if (isset($_SESSION['user'])) {
+            $this->logUserAction(XpkEventTypes::USER_LOGOUT, [
+                'user_id' => $_SESSION['user']['user_id'] ?? 0,
+                'username' => $_SESSION['user']['user_name'] ?? ''
+            ]);
+        }
+        
         unset($_SESSION['user']);
         unset($_SESSION['user_id']);
         $this->redirect(xpk_url());

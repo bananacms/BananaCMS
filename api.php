@@ -20,6 +20,7 @@ if (APP_DEBUG) {
 
 // 加载核心类
 require_once CORE_PATH . 'Database.php';
+require_once CORE_PATH . 'Security.php';
 require_once CORE_PATH . 'Cache.php';
 require_once CORE_PATH . 'RedisSession.php';
 
@@ -47,7 +48,10 @@ require_once MODEL_PATH . 'User.php';
 // CORS
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Token');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Token, X-CSRF-Token');
+
+// 设置API安全响应头
+XpkSecurity::setSecurityHeaders('api');
 header('Content-Type: application/json; charset=utf-8');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {

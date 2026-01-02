@@ -32,6 +32,11 @@ class SearchController extends BaseController
         // 支持排序参数（用于"查看更多"功能）
         $order = $this->get('order', '');
         
+        // 对搜索请求进行速率限制
+        if (!empty($keyword)) {
+            $this->requireRateLimit('search', 30, 60); // 1分钟内最多30次搜索
+        }
+        
         if (empty($keyword) && empty($order)) {
             // 获取热门搜索词和最新搜索词
             $hotKeywords = $this->searchLogModel->getHotKeywords(8);
@@ -94,6 +99,9 @@ class SearchController extends BaseController
      */
     public function suggest(): void
     {
+        // 搜索建议也需要速率限制
+        $this->requireRateLimit('suggest', 60, 60); // 1分钟内最多60次建议请求
+        
         $query = trim($this->get('q', ''));
         
         if (strlen($query) < 2) {

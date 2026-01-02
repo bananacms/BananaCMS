@@ -482,4 +482,95 @@ class AdminConfigController extends AdminBaseController
         }
         return true;
     }
+
+    /**
+     * 安全配置页面
+     */
+    public function security(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->updateSecurityConfig();
+            return;
+        }
+        
+        $config = $this->getSecurityConfig();
+        $this->assign('config', $config);
+        $this->assign('csrfToken', $this->csrfToken());
+        $this->render('config/security', '安全配置');
+    }
+
+    /**
+     * 更新安全配置
+     */
+    private function updateSecurityConfig(): void
+    {
+        $configs = [
+            'security_csp_enabled' => $this->post('security_csp_enabled', '0'),
+            'security_csp_script_src' => trim($this->post('security_csp_script_src', "'self' 'unsafe-inline'")),
+            'security_csp_style_src' => trim($this->post('security_csp_style_src', "'self' 'unsafe-inline'")),
+            'security_csp_img_src' => trim($this->post('security_csp_img_src', "'self' data: https:")),
+            'security_frame_options' => $this->post('security_frame_options', 'SAMEORIGIN'),
+            'security_xss_protection' => $this->post('security_xss_protection', '1'),
+            'security_referrer_policy' => $this->post('security_referrer_policy', 'strict-origin-when-cross-origin'),
+            'security_hsts_max_age' => (int)$this->post('security_hsts_max_age', 31536000),
+            'security_hsts_include_subdomains' => $this->post('security_hsts_include_subdomains', '1'),
+            'security_hsts_preload' => $this->post('security_hsts_preload', '0'),
+            'security_permissions_policy' => trim($this->post('security_permissions_policy', 'camera=(), microphone=(), geolocation=(), payment=()')),
+            'security_coep_enabled' => $this->post('security_coep_enabled', '0'),
+            'security_coop_enabled' => $this->post('security_coop_enabled', '0'),
+            'security_coop_policy' => $this->post('security_coop_policy', 'same-origin'),
+            'security_corp_enabled' => $this->post('security_corp_enabled', '0'),
+            'security_corp_policy' => $this->post('security_corp_policy', 'same-origin'),
+            'security_hide_server_info' => $this->post('security_hide_server_info', '1')
+        ];
+        
+        foreach ($configs as $name => $value) {
+            $this->db->execute(
+                "INSERT INTO " . DB_PREFIX . "config (config_name, config_value) VALUES (?, ?) 
+                 ON DUPLICATE KEY UPDATE config_value = VALUES(config_value)",
+                [$name, $value]
+            );
+        }
+        
+        // 清理安全配置缓存
+        require_once CORE_PATH . 'Security.php';
+        XpkSecurity::clearConfigCache();
+        
+        $this->jsonResponse(['code' => 0, 'msg' => '安全配置保存成功']);
+    }
+
+    /**
+     * 获取安全配置
+     */
+    private function getSecurityConfig(): array
+    {
+        $rows = $this->db->query("SELECT config_name, config_value FROM " . DB_PREFIX . "config WHERE config_name LIKE 'security_%'");
+        $config = [];
+        foreach ($rows as $row) {
+            $config[$row['config_name']] = $row['config_value'];
+        }
+        
+        // 设置默认值
+        $defaults = [
+            'security_csp_enabled' => '1',
+            'security_csp_script_src' => "'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com",
+            'security_csp_style_src' => "'self' 'unsafe-inline' https://cdn.tailwindcss.com https://fonts.googleapis.com",
+            'security_csp_img_src' => "'self' data: https: http:",
+            'security_frame_options' => 'SAMEORIGIN',
+            'security_xss_protection' => '1',
+            'security_referrer_policy' => 'strict-origin-when-cross-origin',
+            'security_hsts_max_age' => '31536000',
+            'security_hsts_include_subdomains' => '1',
+            'security_hsts_preload' => '0',
+            'security_permissions_policy' => 'camera=(), microphone=(), geolocation=(), payment=()',
+            'security_coep_enabled' => '0',
+            'security_coop_enabled' => '0',
+            'security_coop_policy' => 'same-origin',
+            'security_corp_enabled' => '0',
+            'security_corp_policy' => 'same-origin',
+            'security_hide_server_info' => '1'
+        ];
+        
+        return array_merge($defaults, $config);
+    }
 }

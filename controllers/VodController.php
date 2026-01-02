@@ -37,7 +37,13 @@ class VodController extends BaseController
         $this->assign('baseUrl', '/vod/type/' . $typeId);
         
         // SEO
-        $this->assign('title', $type['type_name'] . ' - ' . SITE_NAME);
+        $seoVars = [
+            'name' => $type['type_name'],
+            'description' => $type['type_des'] ?? ''
+        ];
+        $this->assign('title', $this->seoTitle('type', $seoVars));
+        $this->assign('keywords', $this->seoKeywords('type', $seoVars));
+        $this->assign('description', $this->seoDescription('type', $seoVars));
         
         $this->render('vod/type');
     }
@@ -56,7 +62,13 @@ class VodController extends BaseController
         $this->assign('baseUrl', '/hot');
         
         // SEO
-        $this->assign('title', '热门视频 - ' . SITE_NAME);
+        $seoVars = [
+            'name' => '热门视频',
+            'description' => '最受欢迎的热门视频推荐'
+        ];
+        $this->assign('title', $this->seoTitle('hot', $seoVars));
+        $this->assign('keywords', $this->seoKeywords('hot', $seoVars));
+        $this->assign('description', $this->seoDescription('hot', $seoVars));
         
         $this->render('vod/hot');
     }

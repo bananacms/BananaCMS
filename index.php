@@ -25,6 +25,7 @@ if (!file_exists(ROOT_PATH . 'config/install.lock')) {
 // 加载核心类
 require_once CORE_PATH . 'ErrorHandler.php';
 require_once CORE_PATH . 'Database.php';
+require_once CORE_PATH . 'Security.php';
 require_once CORE_PATH . 'Router.php';
 require_once CORE_PATH . 'Template.php';
 require_once CORE_PATH . 'Cache.php';
@@ -32,6 +33,9 @@ require_once CORE_PATH . 'RedisSession.php';
 
 // 注册错误处理
 XpkErrorHandler::register();
+
+// 设置安全响应头
+XpkSecurity::setSecurityHeaders('frontend');
 
 // 从数据库读取调试模式配置并应用
 $dbDebug = xpk_config('app_debug', null);
