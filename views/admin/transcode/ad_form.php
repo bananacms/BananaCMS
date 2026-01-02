@@ -4,7 +4,7 @@
 </div>
 
 <div class="bg-white rounded-lg shadow p-6 max-w-2xl">
-    <form method="post" class="space-y-6">
+    <form method="post" class="space-y-6" id="adForm" onsubmit="return submitForm(event)">
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">广告名称 <span class="text-red-500">*</span></label>
             <input type="text" name="ad_name" value="<?= htmlspecialchars($ad['ad_name'] ?? '') ?>" required
@@ -68,13 +68,50 @@
         </div>
         
         <div class="flex gap-4 pt-4">
-            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded">保存</button>
+            <input type="hidden" name="_token" value="<?= $csrfToken ?>">
+            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded" id="submitBtn">保存</button>
             <a href="/admin.php/transcode/ad" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded">取消</a>
         </div>
     </form>
 </div>
 
 <script>
+function submitForm(e) {
+    e.preventDefault();
+    
+    const form = document.getElementById('adForm');
+    const btn = document.getElementById('submitBtn');
+    const formData = new FormData(form);
+    
+    btn.disabled = true;
+    btn.textContent = '保存中...';
+    
+    fetch(form.action || window.location.href, {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.code === 0) {
+            xpkToast(data.msg || '保存成功', 'success');
+            setTimeout(() => {
+                window.location.href = data.data?.url || '/admin.php/transcode/ad';
+            }, 500);
+        } else {
+            xpkToast(data.msg || '保存失败', 'error');
+            btn.disabled = false;
+            btn.textContent = '保存';
+        }
+    })
+    .catch(() => {
+        xpkToast('请求失败', 'error');
+        btn.disabled = false;
+        btn.textContent = '保存';
+    });
+    
+    return false;
+}
+
 function uploadVideo(input) {
     if (!input.files || !input.files[0]) return;
     
