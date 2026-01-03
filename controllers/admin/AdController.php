@@ -7,12 +7,14 @@
 class AdminAdController extends AdminBaseController
 {
     private XpkAd $adModel;
+    private XpkDatabase $db;
 
     public function __construct()
     {
         parent::__construct();
         require_once MODEL_PATH . 'Ad.php';
         $this->adModel = new XpkAd();
+        $this->db = XpkDatabase::getInstance();
     }
 
     /**
