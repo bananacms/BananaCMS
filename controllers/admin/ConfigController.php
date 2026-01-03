@@ -142,12 +142,13 @@ class AdminConfigController extends AdminBaseController
         }
 
         // 清除配置缓存
-        xpk_cache()->delete('site_config');
+        xpk_cache()->delete(XPK_CACHE_CONFIG);
         // 清除首页相关缓存（导航分类数量变更后需要刷新）
         xpk_cache()->delete('home_type_vods');
         xpk_cache()->delete('home_slide');
         xpk_cache()->delete('home_new');
         xpk_cache()->delete('home_hot');
+        xpk_cache()->delete(XPK_CACHE_NAV_TYPES);
 
         $this->log('修改', '配置', '更新站点配置');
         $this->flash('success', '保存成功');
