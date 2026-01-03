@@ -100,11 +100,19 @@ class AdminStatsController extends AdminBaseController
      */
     public function clean(): void
     {
+        if (!$this->verifyCsrf()) {
+            $this->error('CSRF验证失败');
+        }
+
         $keepDays = (int)($this->post('days', 90));
-        $deleted = $this->statsModel->cleanOldLogs($keepDays);
         
-        $this->log('清理', '统计日志', "保留{$keepDays}天，删除{$deleted}条");
-        $this->success("已清理 {$deleted} 条过期日志");
+        try {
+            $deleted = $this->statsModel->cleanOldLogs($keepDays);
+            $this->log('清理', '统计日志', "保留{$keepDays}天，删除{$deleted}条");
+            $this->success("已清理 {$deleted} 条过期日志");
+        } catch (Exception $e) {
+            $this->error('清理失败: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -127,17 +135,21 @@ class AdminStatsController extends AdminBaseController
             'chunk_days' => (int)($this->post('chunk_days', 7)),
         ];
 
-        $results = $this->statsModel->cleanAllLogs($options);
-        
-        $total = array_sum($results);
-        $details = [];
-        foreach ($results as $table => $count) {
-            if ($count > 0) {
-                $details[] = "{$table}: {$count}条";
+        try {
+            $results = $this->statsModel->cleanAllLogs($options);
+            
+            $total = array_sum($results);
+            $details = [];
+            foreach ($results as $table => $count) {
+                if ($count > 0) {
+                    $details[] = "{$table}: {$count}条";
+                }
             }
+            
+            $this->log('清理', '全部日志', "清理结果: " . implode(', ', $details) . "，共{$total}条");
+            $this->success("已清理 {$total} 条记录", $results);
+        } catch (Exception $e) {
+            $this->error('清理失败: ' . $e->getMessage());
         }
-        
-        $this->log('清理', '全部日志', "清理结果: " . implode(', ', $details) . "，共{$total}条");
-        $this->success("已清理 {$total} 条记录", $results);
     }
 }
