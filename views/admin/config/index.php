@@ -379,16 +379,16 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">缓存驱动</label>
-                    <select name="cache_driver" class="w-full border rounded px-3 py-2" <?= !$redisExtLoaded ? 'disabled' : '' ?>>
+                    <select name="cache_driver" class="w-full border rounded px-3 py-2">
                         <option value="file" <?= $cacheDriver === 'file' ? 'selected' : '' ?>>文件缓存</option>
-                        <option value="redis" <?= $cacheDriver === 'redis' ? 'selected' : '' ?> <?= !$redisExtLoaded ? 'disabled' : '' ?>>Redis</option>
+                        <option value="redis" <?= $cacheDriver === 'redis' ? 'selected' : '' ?> <?= !$redisExtLoaded ? 'disabled' : '' ?>>Redis<?= !$redisExtLoaded ? '（未安装扩展）' : '' ?></option>
                     </select>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Session 驱动</label>
-                    <select name="session_driver" class="w-full border rounded px-3 py-2" <?= !$redisExtLoaded ? 'disabled' : '' ?>>
+                    <select name="session_driver" class="w-full border rounded px-3 py-2">
                         <option value="file" <?= $sessionDriver === 'file' ? 'selected' : '' ?>>文件</option>
-                        <option value="redis" <?= $sessionDriver === 'redis' ? 'selected' : '' ?> <?= !$redisExtLoaded ? 'disabled' : '' ?>>Redis</option>
+                        <option value="redis" <?= $sessionDriver === 'redis' ? 'selected' : '' ?> <?= !$redisExtLoaded ? 'disabled' : '' ?>>Redis<?= !$redisExtLoaded ? '（未安装扩展）' : '' ?></option>
                     </select>
                 </div>
             </div>

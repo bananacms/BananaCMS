@@ -37,6 +37,7 @@ class AdminCommentController extends AdminBaseController
         $this->assign('type', $type);
         $this->assign('stats', $stats);
         $this->assign('flash', $this->getFlash());
+        $this->assign('csrfToken', $this->csrfToken());
 
         $this->render('comment/index', '评论管理');
     }
@@ -197,7 +198,6 @@ class AdminCommentController extends AdminBaseController
         xpk_cache()->set('site_config', $config);
         
         $this->log('修改', '评论设置', '');
-        $this->flash('success', '设置已保存');
-        $this->redirect('/' . $this->adminEntry . '/comment/setting');
+        $this->success('设置已保存', ['url' => '/' . $this->adminEntry . '/comment']);
     }
 }
