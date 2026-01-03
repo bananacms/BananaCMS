@@ -391,7 +391,7 @@ $envPass = !in_array(false, array_column($envChecks, 3));
                         'data.sql' => '数据库结构',
                         'README.md' => '项目说明',
                         'README.en.md' => '英文说明',
-                        '部署.md' => '部署文档',
+                        '部署指南.md' => '部署文档',
                         '模板制作.md' => '模板文档',
                         '备注.txt' => '开发备注',
                     ];

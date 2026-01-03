@@ -1,5 +1,16 @@
 # 🍌 BananaCMS
 
+<div align="center">
+
+![GitHub stars](https://img.shields.io/github/stars/bananacms/BananaCMS?style=flat-square&logo=github)
+![GitHub forks](https://img.shields.io/github/forks/bananacms/BananaCMS?style=flat-square&logo=github)
+![GitHub issues](https://img.shields.io/github/issues/bananacms/BananaCMS?style=flat-square&logo=github)
+![GitHub license](https://img.shields.io/github/license/bananacms/BananaCMS?style=flat-square)
+![PHP Version](https://img.shields.io/badge/PHP-8.0+-777BB4?style=flat-square&logo=php&logoColor=white)
+![MySQL Version](https://img.shields.io/badge/MySQL-5.7+-4479A1?style=flat-square&logo=mysql&logoColor=white)
+
+</div>
+
 <div align="right">
   <a href="README.en.md">English</a> | <strong>中文</strong>
 </div>
@@ -37,14 +48,14 @@
 
 1. 下载代码到网站目录
 2. 访问 `http://你的域名/install.php`
-3. 按向导填写数据库信息
-4. 完成！访问 `/admin.php` 进入后台
+3. 按向导填写数据库信息、管理员账号、自定义后台入口路径
+4. 完成！访问你设置的后台路径进入管理后台
 
 ## 📁 目录结构
 
 ```
 ├── index.php           # 前台入口
-├── admin.php           # 后台入口
+├── admin.php           # 后台入口（安装时可自定义文件名）
 ├── api.php             # API入口
 ├── install.php         # 安装向导
 ├── cron.php            # 定时任务
@@ -149,61 +160,51 @@
 
 ## 🔧 配置说明
 
-### 基础配置
+> 配置文件 `config/config.php` 在安装时自动生成，包含数据库连接、站点信息等基础配置。以下为可选的高级配置。
 
-编辑 `config/config.php`：
+### 缓存配置
 
 ```php
-// 站点信息
-define('SITE_NAME', '香蕉影视');
-define('SITE_URL', 'https://yourdomain.com');
-define('SITE_KEYWORDS', '香蕉CMS,BananaCMS,免费影视CMS');
-define('SITE_DESCRIPTION', '香蕉CMS - 轻量级影视内容管理系统');
-
-// 数据库配置
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'bananacms');
-define('DB_USER', 'root');
-define('DB_PASS', 'password');
-
 // 缓存驱动（file 或 redis）
 define('CACHE_DRIVER', 'file');
 
-// 存储驱动（local 或 r2）
-define('STORAGE_DRIVER', 'local');
+// Session驱动（file 或 redis）
+define('SESSION_DRIVER', 'file');
 ```
 
 ### Redis配置（可选）
 
 ```php
-// Redis缓存配置
+// Redis配置（当CACHE_DRIVER或SESSION_DRIVER为redis时生效）
 define('REDIS_HOST', '127.0.0.1');
 define('REDIS_PORT', 6379);
-define('REDIS_PASS', '');
-define('REDIS_DB', 0);
-
-// Redis Session配置
-define('SESSION_DRIVER', 'redis');
+define('REDIS_PASS', '');           // Redis密码，无密码留空
+define('REDIS_DB', 0);              // 缓存使用的数据库
+define('REDIS_SESSION_DB', 1);      // Session使用的数据库
+define('REDIS_PREFIX', 'xpk:');     // 缓存键前缀
 ```
 
 ### Cloudflare R2配置（可选）
 
 ```php
-// Cloudflare R2存储配置
-define('R2_ACCOUNT_ID', 'your_account_id');
-define('R2_ACCESS_KEY_ID', 'your_access_key');
-define('R2_SECRET_ACCESS_KEY', 'your_secret_key');
-define('R2_BUCKET', 'your_bucket_name');
-define('R2_PUBLIC_URL', 'https://your-bucket.r2.dev');
+// 存储驱动（local 或 r2）
+define('STORAGE_DRIVER', 'local');
+
+// Cloudflare R2 配置（当STORAGE_DRIVER为r2时生效）
+define('R2_ACCOUNT_ID', '');        // Cloudflare Account ID
+define('R2_ACCESS_KEY_ID', '');     // R2 Access Key ID
+define('R2_SECRET_ACCESS_KEY', ''); // R2 Secret Access Key
+define('R2_BUCKET', '');            // Bucket名称
+define('R2_PUBLIC_URL', '');        // 公开访问域名
 ```
 
 ### 安全配置
 
 ```php
-// 管理员IP混淆盐值（请修改为随机字符串）
+// 管理员IP混淆盐值（安装时自动生成）
 define('ADMIN_IP_SALT', 'your_random_salt_here');
 
-// 安全密钥（请修改为随机字符串）
+// 安全密钥（安装时自动生成）
 define('APP_SECRET', 'your_app_secret_here');
 
 // 调试模式（生产环境请设为false）
@@ -272,100 +273,36 @@ location / {
 
 ## 📱 API 文档
 
-基础地址: `/api.php`
+BananaCMS 提供完整的 RESTful API，支持开发原生 APP、小程序、第三方客户端。
 
-返回格式: `{ "code": 0, "msg": "success", "data": {...} }`
+详细文档请参考 [接口文档.md](接口文档.md)。
 
-### 认证方式
+### 快速概览
 
-需要登录的接口（标记🔐），请在请求头携带 Token：
-```
-X-Token: {token}
-```
+- 基础地址: `/api.php`
+- 返回格式: `{ "code": 0, "msg": "success", "data": {...} }`
+- 认证方式: 请求头 `X-Token: {token}`
 
-### 接口列表
+### 接口统计
 
-**系统**
-| 接口 | 说明 |
-|------|------|
-| `?action=config` | 获取站点配置 |
-| `?action=init` | APP初始化 |
-| `?action=home` | 首页数据 |
-
-**用户**
-| 接口 | 参数 | 说明 |
-|------|------|------|
-| `?action=user.register` | username, password, email | 注册 |
-| `?action=user.login` | username, password | 登录 |
-| `?action=user.info` | - | 用户信息 🔐 |
-| `?action=user.update` | nickname, avatar | 更新资料 🔐 |
-| `?action=user.password` | old_password, new_password | 修改密码 🔐 |
-
-**视频**
-| 接口 | 参数 | 说明 |
-|------|------|------|
-| `?action=vod.list` | page, limit, type, order | 视频列表 |
-| `?action=vod.detail` | id | 视频详情 |
-| `?action=vod.play` | id, sid, nid | 播放地址 |
-| `?action=vod.related` | id, limit | 相关推荐 |
-
-**分类/演员/文章**
-| 接口 | 说明 |
-|------|------|
-| `?action=type.list` | 分类树 |
-| `?action=actor.list` | 演员列表 |
-| `?action=actor.detail&id=` | 演员详情 |
-| `?action=art.list` | 文章列表 |
-| `?action=art.detail&id=` | 文章详情 |
-
-**搜索**
-| 接口 | 参数 | 说明 |
-|------|------|------|
-| `?action=search` | wd, page, type | 搜索 |
-| `?action=search.hot` | limit | 热门搜索 |
-| `?action=search.suggest` | wd | 搜索建议 |
-
-**收藏 🔐**
-| 接口 | 参数 | 说明 |
-|------|------|------|
-| `?action=favorite.list` | page | 收藏列表 |
-| `?action=favorite.add` | vod_id | 添加收藏 |
-| `?action=favorite.remove` | vod_id | 取消收藏 |
-| `?action=favorite.check` | vod_id | 检查收藏 |
-
-**历史 🔐**
-| 接口 | 参数 | 说明 |
-|------|------|------|
-| `?action=history.list` | page | 历史列表 |
-| `?action=history.add` | vod_id, sid, nid, progress | 添加历史 |
-| `?action=history.remove` | vod_id | 删除历史 |
-| `?action=history.clear` | - | 清空历史 |
-
-**评论**
-| 接口 | 参数 | 说明 |
-|------|------|------|
-| `?action=comment.list` | type, id, page | 评论列表 |
-| `?action=comment.post` | type, target_id, content | 发表 🔐 |
-| `?action=comment.vote` | id, action | 点赞/踩 |
-
-**评分**
-| 接口 | 参数 | 说明 |
-|------|------|------|
-| `?action=score.submit` | type, target_id, score | 提交评分 |
-| `?action=score.stats` | type, id | 评分统计 |
-
-**短视频**
-| 接口 | 参数 | 说明 |
-|------|------|------|
-| `?action=short.list` | page, type | 列表 |
-| `?action=short.detail` | id | 详情 |
-| `?action=short.like` | id | 点赞 |
-
-**广告**
-| 接口 | 参数 | 说明 |
-|------|------|------|
-| `?action=ad.get` | position | 获取广告 |
-| `?action=ad.click` | id | 记录点击 |
+| 分类 | 接口数 | 说明 |
+|------|--------|------|
+| 系统 | 3 | config, init, home |
+| 用户 | 6 | 注册、登录、资料管理 |
+| 视频 | 6 | 列表、详情、播放、热门、最新 |
+| 分类 | 2 | 分类树、分类视频 |
+| 演员 | 2 | 列表、详情 |
+| 文章 | 2 | 列表、详情 |
+| 搜索 | 3 | 搜索、热词、建议 |
+| 收藏 | 4 | 列表、添加、删除、检查 |
+| 历史 | 4 | 列表、添加、删除、清空 |
+| 评论 | 4 | 列表、发表、删除、投票 |
+| 评分 | 2 | 提交、统计 |
+| 短视频 | 5 | 列表、详情、点赞、剧集、随机 |
+| 广告 | 3 | 获取、点击、展示 |
+| 友链 | 2 | 列表、申请 |
+| 单页 | 2 | 列表、详情 |
+| **总计** | **50+** | |
 
 ### 错误码
 
@@ -373,11 +310,8 @@ X-Token: {token}
 |------|------|
 | 0 | 成功 |
 | 1 | 通用错误 |
-| 2 | 参数错误 |
 | 401 | 未登录/Token过期 |
-| 403 | 权限不足 |
 | 404 | 资源不存在 |
-| 500 | 服务器错误 |
 
 ## 🚀 部署指南
 
@@ -398,8 +332,8 @@ X-Token: {token}
 2. **代码部署**
    ```bash
    # 下载代码
-   git clone https://github.com/your-repo/bananacms.git
-   cd bananacms
+   git clone https://github.com/bananacms/BananaCMS.git
+   cd BananaCMS
    
    # 设置权限
    chmod -R 755 .
@@ -473,7 +407,7 @@ crontab -e
 A: 检查数据库配置信息，确保MySQL服务正常运行，用户权限正确。
 
 **Q: 安装后无法访问后台？**
-A: 检查伪静态配置是否正确，确保admin.php文件存在且有执行权限。
+A: 检查伪静态配置是否正确，确保后台入口文件存在且有执行权限。后台路径在安装时自定义设置。
 
 **Q: 上传文件失败？**
 A: 检查upload目录权限是否为777，PHP上传限制是否足够大。
@@ -513,7 +447,7 @@ A: 检查数据库索引，优化SQL查询，考虑读写分离，定期清理�
 2. **下载新版本**
    ```bash
    # 下载新版本
-   wget https://github.com/your-repo/bananacms/releases/latest
+   wget https://github.com/bananacms/BananaCMS/releases/latest
    ```
 
 3. **覆盖文件**
@@ -547,8 +481,8 @@ A: 检查数据库索引，优化SQL查询，考虑读写分离，定期清理�
 
 1. **克隆项目**
    ```bash
-   git clone https://github.com/your-repo/bananacms.git
-   cd bananacms
+   git clone https://github.com/bananacms/BananaCMS.git
+   cd BananaCMS
    ```
 
 2. **安装依赖**
@@ -578,20 +512,9 @@ A: 检查数据库索引，优化SQL查询，考虑读写分离，定期清理�
 
 ## 📞 技术支持
 
-### 官方渠道
-- **官方网站**: [https://bananacms.com](https://bananacms.com)
-- **文档中心**: [https://docs.bananacms.com](https://docs.bananacms.com)
-- **GitHub**: [https://github.com/bananacms/bananacms](https://github.com/bananacms/bananacms)
-
-### 社区支持
-- **Telegram群**: [@BananaCMS](https://t.me/BananaCMS)
-- **QQ群**: 123456789
-- **微信群**: 扫码加入
-
-### 商业支持
-- **定制开发**: 联系官方获取报价
-- **技术咨询**: 提供专业技术咨询服务
-- **部署服务**: 提供一站式部署服务
+- **GitHub**: [https://github.com/bananacms/BananaCMS](https://github.com/bananacms/BananaCMS)
+- **Telegram**: [@BananaCMS](https://t.me/BananaCMS)
+- **邮箱**: banana@xpornkit.com
 
 ## 🛠 技术栈
 
@@ -627,65 +550,34 @@ A: 检查数据库索引，优化SQL查询，考虑读写分离，定期清理�
 
 ## 🎨 模板系统
 
-### 模板标签
+BananaCMS 提供强大的模板标签系统，详细文档请参考 [模板变量.md](模板变量.md)。
 
-BananaCMS提供强大的模板标签系统：
+### 快速示例
 
 ```html
 <!-- 视频列表 -->
 {xpk:vod num="10" order="time" type="1"}
   <div class="video-item">
-    <h3>{$vod.vod_name}</h3>
-    <img src="{$vod.vod_pic}" alt="{$vod.vod_name}">
-    <p>{$vod.vod_content}</p>
+    <h3>{$vo.vod_name}</h3>
+    <img src="{$vo.vod_pic}" alt="{$vo.vod_name}">
   </div>
 {/xpk:vod}
 
 <!-- 分类列表 -->
 {xpk:type}
-  <a href="{$type.type_url}">{$type.type_name}</a>
+  <a href="/type/{$vo.type_id}">{$vo.type_name}</a>
 {/xpk:type}
 
-<!-- 演员列表 -->
-{xpk:actor num="20"}
-  <div class="actor-item">
-    <img src="{$actor.actor_pic}" alt="{$actor.actor_name}">
-    <span>{$actor.actor_name}</span>
-  </div>
-{/xpk:actor}
-
 <!-- 热门视频 -->
-{xpk:hot num="10" type="1"}
-  <div class="hot-video">{$vod.vod_name}</div>
+{xpk:hot num="10"}
+  <div class="hot-video">{$vo.vod_name}</div>
 {/xpk:hot}
 
 <!-- 广告位 -->
 {xpk:ad position="home_top"}
 
-<!-- 评分组件 -->
-{xpk:score type="vod" id="123" size="large"}
-```
-
-### 模板变量
-
-常用模板变量：
-
-```php
-// 站点信息
-{$siteConfig.site_name}        // 站点名称
-{$siteConfig.site_keywords}    // 站点关键词
-{$siteConfig.site_description} // 站点描述
-
-// 用户信息
-{$user.user_name}              // 用户名
-{$user.user_nick_name}         // 昵称
-{$user.user_avatar}            // 头像
-
-// 视频信息
-{$vod.vod_name}                // 视频名称
-{$vod.vod_pic}                 // 视频封面
-{$vod.vod_content}             // 视频简介
-{$vod.vod_play_url}            // 播放地址
+<!-- 页脚版权（必须保留） -->
+{xpk:footer}
 ```
 
 ### 自定义模板
@@ -723,16 +615,15 @@ BananaCMS提供强大的模板标签系统：
 | 数据模型 | 22个 | Vod, User, Comment, Score等完整模型 |
 | 前台控制器 | 12个 | 首页、视频、用户等功能控制器 |
 | 后台控制器 | 22个 | 完整的后台管理功能 |
-| API接口 | 40+个 | 完整的RESTful API |
+| API接口 | 50+个 | 完整的RESTful API |
 | 模板标签 | 10+个 | 自定义模板标签系统 |
 | 数据表 | 25+个 | 完整的数据库结构 |
-| 代码行数 | 50000+ | 高质量PHP代码 |
+| 代码行数 | 48000+ | PHP/HTML/JS/CSS代码 |
 
 ## 📢 社区
 
-- **Telegram 频道**: [@BananaCMS](https://t.me/BananaCMS)
-- **GitHub**: [BananaCMS](https://github.com/bananacms/bananacms)
-- **官方网站**: [https://bananacms.com](https://bananacms.com)
+- **Telegram**: [@BananaCMS](https://t.me/BananaCMS)
+- **GitHub**: [BananaCMS](https://github.com/bananacms/BananaCMS)
 
 ## 📄 开源协议
 

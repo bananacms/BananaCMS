@@ -102,6 +102,7 @@ class XpkApi
             // 用户
             case 'user.register': $this->userRegister(); break;
             case 'user.login': $this->userLogin(); break;
+            case 'user.logout': $this->userLogout(); break;
             case 'user.info': $this->userInfo(); break;
             case 'user.update': $this->userUpdate(); break;
             case 'user.password': $this->userPassword(); break;
@@ -111,6 +112,8 @@ class XpkApi
             case 'vod.detail': $this->vodDetail(); break;
             case 'vod.play': $this->vodPlay(); break;
             case 'vod.related': $this->vodRelated(); break;
+            case 'vod.hot': $this->vodHot(); break;
+            case 'vod.latest': $this->vodLatest(); break;
             
             // 分类
             case 'type.list': $this->typeList(); break;
@@ -155,11 +158,21 @@ class XpkApi
             case 'short.list': $this->shortList(); break;
             case 'short.detail': $this->shortDetail(); break;
             case 'short.like': $this->shortLike(); break;
+            case 'short.episodes': $this->shortEpisodes(); break;
+            case 'short.random': $this->shortRandom(); break;
             
             // 广告
             case 'ad.get': $this->adGet(); break;
             case 'ad.click': $this->adClick(); break;
             case 'ad.show': $this->adShow(); break;
+            
+            // 友情链接
+            case 'link.list': $this->linkList(); break;
+            case 'link.apply': $this->linkApply(); break;
+            
+            // 单页面
+            case 'page.list': $this->pageList(); break;
+            case 'page.detail': $this->pageDetail(); break;
             
             // 首页
             case 'home': $this->home(); break;
@@ -344,6 +357,15 @@ class XpkApi
         $this->success('密码修改成功');
     }
 
+    /**
+     * 用户退出
+     */
+    private function userLogout(): void
+    {
+        // Token 方式无需服务端处理，客户端删除 Token 即可
+        $this->success('退出成功');
+    }
+
     // ==================== 视频接口 ====================
 
     /**
@@ -464,6 +486,46 @@ class XpkApi
         $list = $vodModel->getRelated($vod['vod_type_id'], $id, $limit);
         
         $this->success(array_map([$this, 'formatVod'], $list));
+    }
+
+    /**
+     * 热门视频
+     */
+    private function vodHot(): void
+    {
+        $page = max(1, (int)($_GET['page'] ?? 1));
+        $limit = min(50, max(1, (int)($_GET['limit'] ?? 20)));
+
+        $vodModel = new XpkVod();
+        $result = $vodModel->getHotPaged($page, $limit);
+
+        $this->success([
+            'list' => array_map([$this, 'formatVod'], $result['list']),
+            'page' => $result['page'],
+            'limit' => $limit,
+            'total' => $result['total'],
+            'pages' => $result['totalPages'],
+        ]);
+    }
+
+    /**
+     * 最新视频
+     */
+    private function vodLatest(): void
+    {
+        $page = max(1, (int)($_GET['page'] ?? 1));
+        $limit = min(50, max(1, (int)($_GET['limit'] ?? 20)));
+
+        $vodModel = new XpkVod();
+        $result = $vodModel->getListPaged($page, $limit, 'time');
+
+        $this->success([
+            'list' => array_map([$this, 'formatVod'], $result['list']),
+            'page' => $result['page'],
+            'limit' => $limit,
+            'total' => $result['total'],
+            'pages' => $result['totalPages'],
+        ]);
     }
 
     // ==================== 分类接口 ====================
@@ -1003,9 +1065,39 @@ class XpkApi
 
         require_once MODEL_PATH . 'Short.php';
         $shortModel = new XpkShort();
-        $shortModel->like($id);
+        $likes = $shortModel->like($id);
 
-        $this->success('ok');
+        $this->success(['likes' => $likes]);
+    }
+
+    /**
+     * 短剧剧集列表
+     */
+    private function shortEpisodes(): void
+    {
+        $id = (int)($_GET['id'] ?? 0);
+        if ($id <= 0) $this->error('参数错误');
+
+        require_once MODEL_PATH . 'Short.php';
+        $shortModel = new XpkShort();
+        $episodes = $shortModel->getEpisodes($id);
+
+        $this->success($episodes);
+    }
+
+    /**
+     * 随机短视频（滑动播放用）
+     */
+    private function shortRandom(): void
+    {
+        $limit = min(20, max(1, (int)($_GET['limit'] ?? 10)));
+        $excludeId = (int)($_GET['exclude'] ?? 0);
+
+        require_once MODEL_PATH . 'Short.php';
+        $shortModel = new XpkShort();
+        $list = $shortModel->getRandom($limit, $excludeId);
+
+        $this->success($list);
     }
 
     // ==================== 广告接口 ====================
@@ -1047,6 +1139,109 @@ class XpkApi
             (new XpkAd())->incrementShow($id);
         }
         $this->success('ok');
+    }
+
+    // ==================== 友情链接接口 ====================
+
+    /**
+     * 友情链接列表
+     */
+    private function linkList(): void
+    {
+        require_once MODEL_PATH . 'Link.php';
+        $linkModel = new XpkLink();
+        $this->success($linkModel->getActive());
+    }
+
+    /**
+     * 申请友情链接
+     */
+    private function linkApply(): void
+    {
+        $name = trim($this->input('name', ''));
+        $url = trim($this->input('url', ''));
+        $logo = trim($this->input('logo', ''));
+        $contact = trim($this->input('contact', ''));
+
+        if (empty($name) || empty($url)) {
+            $this->error('请填写网站名称和地址');
+        }
+
+        if (!filter_var($url, FILTER_VALIDATE_URL)) {
+            $this->error('网站地址格式错误');
+        }
+
+        require_once MODEL_PATH . 'Link.php';
+        $linkModel = new XpkLink();
+        
+        $linkId = $linkModel->insert([
+            'link_name' => mb_substr($name, 0, 50),
+            'link_url' => $url,
+            'link_logo' => $logo,
+            'link_contact' => mb_substr($contact, 0, 100),
+            'link_status' => 0, // 待审核
+        ]);
+
+        $this->success(['link_id' => $linkId, 'message' => '申请已提交，等待审核']);
+    }
+
+    // ==================== 单页面接口 ====================
+
+    /**
+     * 单页面列表
+     */
+    private function pageList(): void
+    {
+        require_once MODEL_PATH . 'Page.php';
+        $pageModel = new XpkPage();
+        $pages = $pageModel->getEnabled();
+        
+        // 只返回基本信息
+        $list = array_map(function($page) {
+            return [
+                'page_id' => $page['page_id'],
+                'page_slug' => $page['page_slug'],
+                'page_title' => $page['page_title'],
+            ];
+        }, $pages);
+        
+        $this->success($list);
+    }
+
+    /**
+     * 单页面详情
+     */
+    private function pageDetail(): void
+    {
+        $slug = trim($_GET['slug'] ?? '');
+        $id = (int)($_GET['id'] ?? 0);
+
+        if (empty($slug) && $id <= 0) {
+            $this->error('参数错误');
+        }
+
+        require_once MODEL_PATH . 'Page.php';
+        $pageModel = new XpkPage();
+        
+        if (!empty($slug)) {
+            $page = $pageModel->findBySlug($slug);
+        } else {
+            $page = $pageModel->find($id);
+            if ($page && $page['page_status'] != 1) {
+                $page = null;
+            }
+        }
+
+        if (!$page) {
+            $this->error('页面不存在');
+        }
+
+        $this->success([
+            'page_id' => $page['page_id'],
+            'page_slug' => $page['page_slug'],
+            'page_title' => $page['page_title'],
+            'page_content' => $page['page_content'],
+        ]);
     }
 
     // ==================== 首页接口 ====================

@@ -1,5 +1,16 @@
 # 🍌 BananaCMS
 
+<div align="center">
+
+![GitHub stars](https://img.shields.io/github/stars/bananacms/BananaCMS?style=flat-square&logo=github)
+![GitHub forks](https://img.shields.io/github/forks/bananacms/BananaCMS?style=flat-square&logo=github)
+![GitHub issues](https://img.shields.io/github/issues/bananacms/BananaCMS?style=flat-square&logo=github)
+![GitHub license](https://img.shields.io/github/license/bananacms/BananaCMS?style=flat-square)
+![PHP Version](https://img.shields.io/badge/PHP-8.0+-777BB4?style=flat-square&logo=php&logoColor=white)
+![MySQL Version](https://img.shields.io/badge/MySQL-5.7+-4479A1?style=flat-square&logo=mysql&logoColor=white)
+
+</div>
+
 <div align="right">
   <strong>English</strong> | <a href="README.md">中文</a>
 </div>
@@ -37,14 +48,14 @@ Optional:
 
 1. Download code to website directory
 2. Visit `http://yourdomain.com/install.php`
-3. Follow wizard to fill in database information
-4. Done! Visit `/admin.php` to enter backend
+3. Follow wizard to fill in database info, admin account, and custom backend entry path
+4. Done! Visit your custom backend path to enter admin panel
 
 ## 📁 Directory Structure
 
 ```
 ├── index.php           # Frontend entry
-├── admin.php           # Backend entry
+├── admin.php           # Backend entry (customizable during installation)
 ├── api.php             # API entry
 ├── install.php         # Installation wizard
 ├── cron.php            # Scheduled tasks
@@ -117,25 +128,42 @@ Supports connecting to resource site APIs (JSON/XML), automatic video collection
 
 ## 🔧 Configuration
 
-Edit `config/config.php`:
+> The config file `config/config.php` is auto-generated during installation with database connection and site info. Below are optional advanced configurations.
+
+### Cache Configuration
 
 ```php
 // Cache driver (file or redis)
 define('CACHE_DRIVER', 'file');
 
+// Session driver (file or redis)
+define('SESSION_DRIVER', 'file');
+```
+
+### Redis Configuration (Optional)
+
+```php
+// Redis config (effective when CACHE_DRIVER or SESSION_DRIVER is redis)
+define('REDIS_HOST', '127.0.0.1');
+define('REDIS_PORT', 6379);
+define('REDIS_PASS', '');           // Redis password, leave empty if none
+define('REDIS_DB', 0);              // Database for cache
+define('REDIS_SESSION_DB', 1);      // Database for session
+define('REDIS_PREFIX', 'xpk:');     // Cache key prefix
+```
+
+### Cloudflare R2 Configuration (Optional)
+
+```php
 // Storage driver (local or r2)
 define('STORAGE_DRIVER', 'local');
 
-// Redis configuration (optional)
-define('REDIS_HOST', '127.0.0.1');
-define('REDIS_PORT', 6379);
-
-// Cloudflare R2 configuration (optional)
-define('R2_ACCOUNT_ID', '');
-define('R2_ACCESS_KEY_ID', '');
-define('R2_SECRET_ACCESS_KEY', '');
-define('R2_BUCKET', '');
-define('R2_PUBLIC_URL', '');
+// Cloudflare R2 config (effective when STORAGE_DRIVER is r2)
+define('R2_ACCOUNT_ID', '');        // Cloudflare Account ID
+define('R2_ACCESS_KEY_ID', '');     // R2 Access Key ID
+define('R2_SECRET_ACCESS_KEY', ''); // R2 Secret Access Key
+define('R2_BUCKET', '');            // Bucket name
+define('R2_PUBLIC_URL', '');        // Public access domain
 ```
 
 ## 🌐 URL Rewrite Configuration
@@ -321,16 +349,15 @@ X-Token: {token}
 | Data Models | 22 | Complete models for Vod, User, Comment, Score, etc. |
 | Frontend Controllers | 12 | Homepage, video, user and other functional controllers |
 | Backend Controllers | 22 | Complete backend management functions |
-| API Interfaces | 40+ | Complete RESTful API |
+| API Interfaces | 50+ | Complete RESTful API |
 | Template Tags | 10+ | Custom template tag system |
 | Database Tables | 25+ | Complete database structure |
-| Lines of Code | 50000+ | High-quality PHP code |
+| Lines of Code | 48000+ | PHP/HTML/JS/CSS code |
 
 ## 📢 Community
 
-- **Telegram Channel**: [@BananaCMS](https://t.me/BananaCMS)
-- **GitHub**: [BananaCMS](https://github.com/bananacms/bananacms)
-- **Official Website**: [https://bananacms.com](https://bananacms.com)
+- **Telegram**: [@BananaCMS](https://t.me/BananaCMS)
+- **GitHub**: [BananaCMS](https://github.com/bananacms/BananaCMS)
 
 ## 📄 License
 
