@@ -152,7 +152,7 @@
 
 <!-- 分页 -->
 <?php 
-$baseUrl = "/<?= $adminEntry ?>/vod?type={$typeId}&status={$status}&collect_id={$collectId}&keyword=" . urlencode($keyword);
+$baseUrl = "/{$adminEntry}/vod?type={$typeId}&status={$status}&collect_id={$collectId}&keyword=" . urlencode($keyword);
 include __DIR__ . '/../components/pagination.php'; 
 ?>
 

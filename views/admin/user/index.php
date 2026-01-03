@@ -73,7 +73,7 @@
 
 <!-- 分页 -->
 <?php 
-$baseUrl = "/<?= $adminEntry ?>/user?keyword=" . urlencode($keyword) . "&status={$status}";
+$baseUrl = "/{$adminEntry}/user?keyword=" . urlencode($keyword) . "&status={$status}";
 include __DIR__ . '/../components/pagination.php'; 
 ?>
 

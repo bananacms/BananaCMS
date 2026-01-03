@@ -125,7 +125,7 @@
 
     <!-- 分页 -->
     <?php 
-    $baseUrl = "/<?= $adminEntry ?>/link?status={$status}";
+    $baseUrl = "/{$adminEntry}/link?status={$status}";
     include __DIR__ . '/../components/pagination.php'; 
     ?>
 </div>

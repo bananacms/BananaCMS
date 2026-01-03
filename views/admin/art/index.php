@@ -84,6 +84,6 @@
 
 <!-- 分页 -->
 <?php 
-$baseUrl = "/<?= $adminEntry ?>/art?type_id={$typeId}&keyword=" . urlencode($keyword);
+$baseUrl = "/{$adminEntry}/art?type_id={$typeId}&keyword=" . urlencode($keyword);
 include __DIR__ . '/../components/pagination.php'; 
 ?>

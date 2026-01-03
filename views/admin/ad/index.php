@@ -138,7 +138,7 @@
 
 <!-- 分页 -->
 <?php 
-$baseUrl = "/<?= $adminEntry ?>/ad?position=" . urlencode($position);
+$baseUrl = "/{$adminEntry}/ad?position=" . urlencode($position);
 include __DIR__ . '/../components/pagination.php'; 
 ?>
 

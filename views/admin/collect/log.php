@@ -169,7 +169,7 @@
 <!-- 分页 -->
 <?php if ($logs['totalPages'] > 1): ?>
 <?php 
-$baseUrl = "/<?= $adminEntry ?>/collect/log" . ($collectId ? "?collect_id={$collectId}" : "");
+$baseUrl = "/{$adminEntry}/collect/log" . ($collectId ? "?collect_id={$collectId}" : "");
 $page = $logs['page'];
 $totalPages = $logs['totalPages'];
 include __DIR__ . '/../components/pagination.php'; 

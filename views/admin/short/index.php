@@ -158,7 +158,7 @@
 
 <!-- 分页 -->
 <?php 
-$baseUrl = "/<?= $adminEntry ?>/short?type=" . urlencode($type) . "&status=" . urlencode($status);
+$baseUrl = "/{$adminEntry}/short?type=" . urlencode($type) . "&status=" . urlencode($status);
 include __DIR__ . '/../components/pagination.php'; 
 ?>
 

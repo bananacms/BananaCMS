@@ -80,7 +80,7 @@
 
 <!-- 分页 -->
 <?php 
-$baseUrl = "/<?= $adminEntry ?>/actor?keyword=" . urlencode($keyword);
+$baseUrl = "/{$adminEntry}/actor?keyword=" . urlencode($keyword);
 include __DIR__ . '/../components/pagination.php'; 
 ?>
 
