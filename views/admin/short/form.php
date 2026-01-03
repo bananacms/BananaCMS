@@ -8,7 +8,7 @@
 <!-- Quill 编辑器样式 -->
 <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
 
-<form method="post" action="/<?= $adminEntry ?>/short/<?= isset($short) ? 'doEdit/' . $short['short_id'] : 'doAdd' ?>" class="bg-white rounded shadow p-6 max-w-3xl">
+<form method="post" action="/<?= $adminEntry ?>/short/<?= isset($short) ? 'doEdit/' . $short['short_id'] : 'doAdd' ?>" class="bg-white rounded shadow p-6 max-w-3xl" data-no-ajax="true">
     <input type="hidden" name="_token" value="<?= $csrfToken ?>">
     <input type="hidden" name="short_type" value="<?= $type ?>">
 
