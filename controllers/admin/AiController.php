@@ -236,59 +236,16 @@ class AdminAiController extends AdminBaseController
      */
     private function getRewriteStats(): array
     {
-        // 检查字段是否存在
-        try {
-            $total = $this->db->queryOne("SELECT COUNT(*) as cnt FROM " . DB_PREFIX . "vod")['cnt'] ?? 0;
-            $rewritten = $this->db->queryOne("SELECT COUNT(*) as cnt FROM " . DB_PREFIX . "vod WHERE vod_ai_rewrite = 1")['cnt'] ?? 0;
-            $failed = $this->db->queryOne("SELECT COUNT(*) as cnt FROM " . DB_PREFIX . "vod WHERE vod_ai_rewrite = 2")['cnt'] ?? 0;
-            $pending = $this->db->queryOne("SELECT COUNT(*) as cnt FROM " . DB_PREFIX . "vod WHERE vod_ai_rewrite = 0 AND vod_content != '' AND LENGTH(vod_content) > 20")['cnt'] ?? 0;
-        } catch (Exception $e) {
-            // 字段不存在
-            return [
-                'total' => 0,
-                'rewritten' => 0,
-                'failed' => 0,
-                'pending' => 0,
-                'field_missing' => true
-            ];
-        }
+        $total = $this->db->queryOne("SELECT COUNT(*) as cnt FROM " . DB_PREFIX . "vod")['cnt'] ?? 0;
+        $rewritten = $this->db->queryOne("SELECT COUNT(*) as cnt FROM " . DB_PREFIX . "vod WHERE vod_ai_rewrite = 1")['cnt'] ?? 0;
+        $failed = $this->db->queryOne("SELECT COUNT(*) as cnt FROM " . DB_PREFIX . "vod WHERE vod_ai_rewrite = 2")['cnt'] ?? 0;
+        $pending = $this->db->queryOne("SELECT COUNT(*) as cnt FROM " . DB_PREFIX . "vod WHERE vod_ai_rewrite = 0 AND vod_content != '' AND LENGTH(vod_content) > 20")['cnt'] ?? 0;
 
         return [
             'total' => $total,
             'rewritten' => $rewritten,
             'failed' => $failed,
-            'pending' => $pending,
-            'field_missing' => false
+            'pending' => $pending
         ];
-    }
-
-    /**
-     * 添加数据库字段
-     */
-    public function addField(): void
-    {
-        if (!$this->verifyCsrf()) {
-            $this->error('非法请求');
-        }
-
-        try {
-            // 检查字段是否已存在
-            $columns = $this->db->query("SHOW COLUMNS FROM " . DB_PREFIX . "vod LIKE 'vod_ai_rewrite'");
-            
-            if (empty($columns)) {
-                $this->db->execute(
-                    "ALTER TABLE " . DB_PREFIX . "vod ADD COLUMN `vod_ai_rewrite` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'AI改写:0未处理,1已改写,2失败' AFTER `vod_lock`"
-                );
-                $this->db->execute(
-                    "ALTER TABLE " . DB_PREFIX . "vod ADD INDEX `idx_ai_rewrite` (`vod_ai_rewrite`)"
-                );
-                $this->log('添加', 'AI改写', '添加数据库字段 vod_ai_rewrite');
-                $this->success('字段添加成功');
-            } else {
-                $this->success('字段已存在');
-            }
-        } catch (Exception $e) {
-            $this->error('添加字段失败: ' . $e->getMessage());
-        }
     }
 }

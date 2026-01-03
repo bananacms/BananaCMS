@@ -6,25 +6,7 @@
 
 <h1 class="text-2xl font-bold mb-6">AI 内容改写</h1>
 
-<!-- 字段检测提示 -->
-<?php if (!empty($stats['field_missing'])): ?>
-<div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-    <div class="flex items-center justify-between">
-        <div class="flex items-center">
-            <svg class="w-5 h-5 text-yellow-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-            </svg>
-            <span class="text-yellow-800">数据库缺少 <code class="bg-yellow-100 px-1 rounded">vod_ai_rewrite</code> 字段，需要先添加才能使用此功能</span>
-        </div>
-        <button onclick="addField()" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">
-            添加字段
-        </button>
-    </div>
-</div>
-<?php endif; ?>
-
 <!-- 统计卡片 -->
-<?php if (empty($stats['field_missing'])): ?>
 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
     <div class="bg-white rounded-lg shadow p-4">
         <div class="text-sm text-gray-500">视频总数</div>
@@ -43,7 +25,6 @@
         <div class="text-2xl font-bold text-red-600"><?= number_format($stats['failed']) ?></div>
     </div>
 </div>
-<?php endif; ?>
 
 <div class="bg-white rounded-lg shadow p-6">
     <input type="hidden" id="csrfToken" value="<?= $csrfToken ?>">
@@ -153,7 +134,6 @@
     </div>
 
     <!-- 操作按钮 -->
-    <?php if (empty($stats['field_missing'])): ?>
     <div class="border-t pt-6">
         <h3 class="font-bold text-gray-700 mb-4">手动执行</h3>
         <div class="flex flex-wrap gap-3">
@@ -175,7 +155,6 @@
             提示：建议配置定时任务自动执行，命令：<code class="bg-gray-100 px-1 rounded">php cron.php ai_rewrite</code>
         </p>
     </div>
-    <?php endif; ?>
 </div>
 
 <!-- 测试结果弹窗 -->
@@ -342,22 +321,6 @@ function resetAll() {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: '_token=' + document.getElementById('csrfToken').value + '&type=all'
-    })
-    .then(r => r.json())
-    .then(res => {
-        showToast(res.msg, res.code === 0 ? 'success' : 'error');
-        if (res.code === 0) setTimeout(() => location.reload(), 1000);
-    })
-    .catch(() => showToast('请求失败', 'error'));
-}
-
-function addField() {
-    if (!confirm('确定要添加数据库字段吗？')) return;
-    
-    fetch('/' + adminEntry + '/ai/addField', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: '_token=' + document.getElementById('csrfToken').value
     })
     .then(r => r.json())
     .then(res => {

@@ -195,7 +195,6 @@ $router->post($adminEntry . '.php/ai/save', fn() => (new AdminAiController())->s
 $router->post($adminEntry . '.php/ai/test', fn() => (new AdminAiController())->test());
 $router->post($adminEntry . '.php/ai/run', fn() => (new AdminAiController())->run());
 $router->post($adminEntry . '.php/ai/reset', fn() => (new AdminAiController())->reset());
-$router->post($adminEntry . '.php/ai/addField', fn() => (new AdminAiController())->addField());
 
 // 云转码
 require_once CTRL_PATH . 'admin/TranscodeController.php';
