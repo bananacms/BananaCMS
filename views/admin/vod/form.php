@@ -254,56 +254,58 @@
 </form>
 
 <!-- Quill 编辑器 -->
-<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
 <script>
-const quill = new Quill('#editor', {
-    theme: 'snow',
-    modules: {
-        toolbar: [
-            [{ 'header': [1, 2, 3, false] }],
-            ['bold', 'italic', 'underline'],
-            [{ 'color': [] }],
-            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-            ['link'],
-            ['clean']
-        ]
-    }
-});
+document.addEventListener('DOMContentLoaded', function() {
+    const quill = new Quill('#editor', {
+        theme: 'snow',
+        modules: {
+            toolbar: [
+                [{ 'header': [1, 2, 3, false] }],
+                ['bold', 'italic', 'underline'],
+                [{ 'color': [] }],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                ['link'],
+                ['clean']
+            ]
+        }
+    });
 
-// 表单AJAX提交
-document.querySelector('form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    // 同步编辑器内容
-    document.getElementById('vod_content').value = quill.root.innerHTML;
-    
-    const form = this;
-    const btn = form.querySelector('button[type="submit"]');
-    const btnText = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = '保存中...';
-    
-    fetch(form.action || location.href, {
-        method: 'POST',
-        body: new FormData(form)
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.code === 0) {
-            xpkToast(data.msg, 'success');
-            setTimeout(() => {
-                location.href = adminUrl('/vod');
-            }, 1000);
-        } else {
-            xpkToast(data.msg, 'error');
+    // 表单AJAX提交
+    document.querySelector('form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // 同步编辑器内容
+        document.getElementById('vod_content').value = quill.root.innerHTML;
+        
+        const form = this;
+        const btn = form.querySelector('button[type="submit"]');
+        const btnText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = '保存中...';
+        
+        fetch(form.action || location.href, {
+            method: 'POST',
+            body: new FormData(form)
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.code === 0) {
+                xpkToast(data.msg, 'success');
+                setTimeout(() => {
+                    location.href = adminUrl('/vod');
+                }, 1000);
+            } else {
+                xpkToast(data.msg, 'error');
+                btn.disabled = false;
+                btn.textContent = btnText;
+            }
+        })
+        .catch(err => {
+            xpkToast('请求失败', 'error');
             btn.disabled = false;
             btn.textContent = btnText;
-        }
-    })
-    .catch(err => {
-        xpkToast('请求失败', 'error');
-        btn.disabled = false;
-        btn.textContent = btnText;
+        });
     });
 });
 </script>

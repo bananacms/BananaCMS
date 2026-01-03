@@ -88,6 +88,7 @@ class AdminVodController extends AdminBaseController
         $this->assign('collectId', $collectId);
         $this->assign('keyword', $keyword);
         $this->assign('flash', $this->getFlash());
+        $this->assign('csrfToken', $this->csrfToken());
 
         $this->render('vod/index', '视频管理');
     }
