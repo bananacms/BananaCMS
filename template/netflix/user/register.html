@@ -6,6 +6,14 @@ include $netflixLayoutPath . 'header.php';
 <!-- 注册页 -->
 <div class="min-h-screen flex items-center justify-center px-4 py-20">
     <div class="bg-black/80 rounded-lg p-8 md:p-12 w-full max-w-md">
+        {if $registerClosed}
+        <div class="text-center py-8">
+            <div class="text-6xl mb-4">🚫</div>
+            <h1 class="text-2xl md:text-3xl font-bold text-white mb-4">注册已关闭</h1>
+            <p class="text-gray-400 mb-6">网站暂未开放注册，请稍后再试</p>
+            <a href="/user/login" class="inline-block bg-red-600 text-white px-6 py-3 rounded font-semibold hover:bg-red-700 transition">去登录</a>
+        </div>
+        {else}
         <h1 class="text-2xl md:text-3xl font-bold mb-8">注册</h1>
         
         <?php if (!empty($error)): ?>
@@ -50,6 +58,7 @@ include $netflixLayoutPath . 'header.php';
                 <a href="/user/login<?php echo !empty($redirect) ? '?redirect=' . urlencode($redirect) : ''; ?>" class="text-white hover:underline">立即登录</a>
             </p>
         </div>
+        {/if}
     </div>
 </div>
 

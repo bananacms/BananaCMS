@@ -2,6 +2,14 @@
 
 <div class="max-w-md mx-auto py-12">
     <div class="bg-white rounded-lg shadow-sm border p-8">
+        {if $registerClosed}
+        <div class="text-center py-8">
+            <div class="text-6xl mb-4">🚫</div>
+            <h1 class="text-2xl font-bold text-gray-800 mb-4">注册已关闭</h1>
+            <p class="text-gray-500 mb-6">网站暂未开放注册，请稍后再试</p>
+            <a href="<?= xpk_url('user/login') ?>" class="inline-block bg-red-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-red-700">去登录</a>
+        </div>
+        {else}
         <h1 id="registerTitle" class="text-2xl font-bold text-center mb-8">用户注册</h1>
         
         <form action="<?= xpk_url('user/register') ?>" method="post" data-ajax role="form" aria-labelledby="registerTitle">
@@ -58,6 +66,7 @@
         <div class="mt-6 text-center text-sm text-gray-500">
             已有账号？<a href="<?= xpk_url('user/login') . ($redirect ? '?redirect=' . urlencode($redirect) : '') ?>" class="text-red-600 hover:underline">立即登录</a>
         </div>
+        {/if}
     </div>
 </div>
 
