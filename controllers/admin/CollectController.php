@@ -31,6 +31,7 @@ class AdminCollectController extends AdminBaseController
         $collects = $this->collectModel->getAll();
         $this->assign('collects', $collects);
         $this->assign('flash', $this->getFlash());
+        $this->assign('csrfToken', $this->csrfToken());
         $this->render('collect/index', '采集管理');
     }
 
