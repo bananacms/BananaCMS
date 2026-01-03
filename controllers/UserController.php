@@ -246,17 +246,9 @@ class UserController extends BaseController
      */
     public function logout(): void
     {
-        // 记录退出登录事件
-        if (isset($_SESSION['user'])) {
-            $this->logUserAction(XpkEventTypes::USER_LOGOUT, [
-                'user_id' => $_SESSION['user']['user_id'] ?? 0,
-                'username' => $_SESSION['user']['user_name'] ?? ''
-            ]);
-        }
-        
         unset($_SESSION['user']);
         unset($_SESSION['user_id']);
-        $this->redirect(xpk_url());
+        $this->redirect('/');
     }
 
     /**
