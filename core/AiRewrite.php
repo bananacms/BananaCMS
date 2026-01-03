@@ -172,19 +172,12 @@ class XpkAiRewrite
         $error = curl_error($ch);
         curl_close($ch);
 
-        if ($error) {
-            $this->logError("cURL 错误: {$error}");
-            return null;
-        }
-
-        if ($httpCode !== 200) {
-            $this->logError("HTTP {$httpCode}: {$response}");
+        if ($error || $httpCode !== 200) {
             return null;
         }
 
         $data = json_decode($response, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
-            $this->logError("JSON 解析错误: " . json_last_error_msg());
             return null;
         }
 
@@ -217,20 +210,5 @@ class XpkAiRewrite
             'message' => '连接失败，请检查 API 配置',
             'duration' => $duration . 'ms'
         ];
-    }
-
-    /**
-     * 记录错误日志
-     */
-    private function logError(string $message): void
-    {
-        $logDir = RUNTIME_PATH . 'logs/';
-        if (!is_dir($logDir)) {
-            @mkdir($logDir, 0755, true);
-        }
-        
-        $logFile = $logDir . date('Y-m-d') . '_ai.log';
-        $logMsg = "[" . date('Y-m-d H:i:s') . "] {$message}\n";
-        @file_put_contents($logFile, $logMsg, FILE_APPEND);
     }
 }
