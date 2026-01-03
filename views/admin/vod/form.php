@@ -3,7 +3,7 @@
 <!-- Quill 编辑器样式 -->
 <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
 
-<form method="POST" class="bg-white rounded-lg shadow p-6">
+<form method="POST" class="bg-white rounded-lg shadow p-6" data-no-ajax="true">
     <input type="hidden" name="_token" value="<?= $csrfToken ?>">
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

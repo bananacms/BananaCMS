@@ -110,7 +110,7 @@
 <div id="renameModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
     <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
         <h3 class="text-lg font-bold mb-4">重命名播放源</h3>
-        <form id="renameForm">
+        <form id="renameForm" data-no-ajax="true">
             <input type="hidden" name="_token" value="<?= $csrfToken ?>">
             <input type="hidden" name="old_name" id="renameOldName">
             

@@ -11,7 +11,7 @@
     <div class="bg-white rounded-lg shadow p-6">
         <h3 class="font-bold mb-4">自动采集设置</h3>
         
-        <form method="POST" id="cronForm">
+        <form method="POST" id="cronForm" data-no-ajax="true">
             <input type="hidden" name="_token" value="<?= $csrfToken ?>">
             
             <div class="space-y-4">

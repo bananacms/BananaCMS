@@ -20,7 +20,7 @@
 <!-- 广告配置 -->
 <div class="bg-white rounded-lg shadow p-6 mb-6">
     <h2 class="text-lg font-bold mb-4">广告配置</h2>
-    <form id="configForm" class="space-y-4">
+    <form id="configForm" class="space-y-4" data-no-ajax="true">
         <div class="flex items-center gap-6">
             <label class="flex items-center">
                 <input type="checkbox" name="enable" value="1" <?= !empty($config['enable']) ? 'checked' : '' ?> class="mr-2">

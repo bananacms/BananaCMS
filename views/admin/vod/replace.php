@@ -30,7 +30,7 @@
         </h3>
         <p class="text-sm text-gray-500 mb-4">批量替换播放地址中的域名或任意字符串</p>
         
-        <form id="replaceForm" class="space-y-4">
+        <form id="replaceForm" class="space-y-4" data-no-ajax="true">
             <input type="hidden" name="_token" value="<?= $csrfToken ?>">
             
             <div>
