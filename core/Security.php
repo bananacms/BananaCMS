@@ -98,11 +98,11 @@ class XpkSecurity
         switch ($context) {
             case 'admin':
                 return "default-src 'self'; " .
-                       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; " .
+                       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://static.cloudflareinsights.com; " .
                        "style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; " .
                        "img-src 'self' data: https: http:; " .
                        "font-src 'self' data:; " .
-                       "connect-src 'self'; " .
+                       "connect-src 'self' https://cloudflareinsights.com; " .
                        "media-src 'self' https: http:; " .
                        "object-src 'none'; " .
                        "base-uri 'self'; " .
