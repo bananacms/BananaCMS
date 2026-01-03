@@ -116,18 +116,18 @@
                     <?php endif; ?>
                 </td>
                 <td class="px-4 py-3 text-sm">
-                    <span class="text-gray-600 flex items-center">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293H15M9 10V9a2 2 0 012-2h2a2 2 0 012 2v1M9 10v5a2 2 0 002 2h2a2 2 0 002-2v-5m-6 0h6"></path>
+                    <div class="flex items-center text-gray-600">
+                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"></path>
                         </svg>
                         <?= number_format($item['short_hits']) ?>
-                    </span>
-                    <span class="text-red-500 ml-2 flex items-center">
+                    </div>
+                    <div class="flex items-center text-red-500 mt-1">
                         <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path>
                         </svg>
                         <?= number_format($item['short_likes']) ?>
-                    </span>
+                    </div>
                 </td>
                 <td class="px-4 py-3">
                     <?php if ($item['short_status']): ?>

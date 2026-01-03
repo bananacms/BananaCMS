@@ -45,14 +45,13 @@
                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">标题</th>
                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">时长</th>
                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">播放量</th>
-                <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">免费</th>
                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">操作</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-gray-200">
             <?php if (empty($episodes)): ?>
             <tr>
-                <td colspan="7" class="px-4 py-8 text-center text-gray-500">暂无剧集，点击上方按钮添加</td>
+                <td colspan="6" class="px-4 py-8 text-center text-gray-500">暂无剧集，点击上方按钮添加</td>
             </tr>
             <?php else: ?>
             <?php foreach ($episodes as $index => $ep): ?>
@@ -69,13 +68,6 @@
                     <?= $ep['episode_duration'] ? gmdate('i:s', $ep['episode_duration']) : '-' ?>
                 </td>
                 <td class="px-4 py-3 text-sm"><?= number_format($ep['episode_hits']) ?></td>
-                <td class="px-4 py-3">
-                    <?php if ($ep['episode_free']): ?>
-                    <span class="text-green-600 text-sm">免费</span>
-                    <?php else: ?>
-                    <span class="text-yellow-600 text-sm">付费</span>
-                    <?php endif; ?>
-                </td>
                 <td class="px-4 py-3 text-sm space-x-2">
                     <button onclick="openEpisodeModal(<?= htmlspecialchars(json_encode($ep)) ?>)" class="text-blue-600 hover:underline">编辑</button>
                     <button onclick="deleteItem(adminUrl('/short/deleteEpisode'), <?= $ep['episode_id'] ?>)" class="text-red-600 hover:underline">删除</button>
@@ -129,14 +121,6 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">排序</label>
                     <input type="number" name="episode_sort" id="episode_sort" class="w-full border rounded px-3 py-2" min="0" value="0">
                 </div>
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">是否免费</label>
-                <select name="episode_free" id="episode_free" class="w-full border rounded px-3 py-2">
-                    <option value="1">免费观看</option>
-                    <option value="0">付费观看</option>
-                </select>
             </div>
 
             <div class="flex justify-end gap-3 pt-4 border-t">
