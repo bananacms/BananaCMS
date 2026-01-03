@@ -183,6 +183,7 @@ class AdminShortController extends AdminBaseController
         $this->assign('short', $short);
         $this->assign('episodes', $episodes);
         $this->assign('flash', $this->getFlash());
+        $this->assign('csrfToken', $this->csrfToken());
         $this->render('short/episodes', '剧集管理 - ' . $short['short_name']);
     }
 
