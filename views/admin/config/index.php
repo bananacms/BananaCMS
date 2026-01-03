@@ -345,6 +345,107 @@
             </div>
         </div>
 
+        <!-- Redis 缓存配置 -->
+        <div>
+            <h3 class="font-bold text-gray-700 border-b pb-2 mb-4">Redis 缓存配置</h3>
+            <?php
+            // 检测 Redis 扩展
+            $redisExtLoaded = extension_loaded('redis');
+            // 当前配置
+            $cacheDriver = defined('CACHE_DRIVER') ? CACHE_DRIVER : 'file';
+            $sessionDriver = defined('SESSION_DRIVER') ? SESSION_DRIVER : 'file';
+            $redisHost = defined('REDIS_HOST') ? REDIS_HOST : '127.0.0.1';
+            $redisPort = defined('REDIS_PORT') ? REDIS_PORT : 6379;
+            $redisPass = defined('REDIS_PASS') ? REDIS_PASS : '';
+            $redisDb = defined('REDIS_DB') ? REDIS_DB : 0;
+            $redisSessionDb = defined('REDIS_SESSION_DB') ? REDIS_SESSION_DB : 1;
+            $redisPrefix = defined('REDIS_PREFIX') ? REDIS_PREFIX : 'xpk:';
+            ?>
+            
+            <?php if (!$redisExtLoaded): ?>
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                <div class="flex">
+                    <svg class="w-5 h-5 text-yellow-400 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                    </svg>
+                    <div>
+                        <h4 class="text-sm font-medium text-yellow-800">Redis 扩展未安装</h4>
+                        <p class="text-sm text-yellow-700 mt-1">请先安装 PHP Redis 扩展才能使用 Redis 缓存功能</p>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">缓存驱动</label>
+                    <select name="cache_driver" class="w-full border rounded px-3 py-2" <?= !$redisExtLoaded ? 'disabled' : '' ?>>
+                        <option value="file" <?= $cacheDriver === 'file' ? 'selected' : '' ?>>文件缓存</option>
+                        <option value="redis" <?= $cacheDriver === 'redis' ? 'selected' : '' ?> <?= !$redisExtLoaded ? 'disabled' : '' ?>>Redis</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Session 驱动</label>
+                    <select name="session_driver" class="w-full border rounded px-3 py-2" <?= !$redisExtLoaded ? 'disabled' : '' ?>>
+                        <option value="file" <?= $sessionDriver === 'file' ? 'selected' : '' ?>>文件</option>
+                        <option value="redis" <?= $sessionDriver === 'redis' ? 'selected' : '' ?> <?= !$redisExtLoaded ? 'disabled' : '' ?>>Redis</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="mt-4 p-4 bg-gray-50 rounded-lg" id="redisConfig">
+                <h4 class="text-sm font-medium text-gray-700 mb-3">Redis 连接配置</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">主机地址</label>
+                        <input type="text" name="redis_host" value="<?= htmlspecialchars($redisHost) ?>"
+                            class="w-full border rounded px-3 py-2" placeholder="127.0.0.1">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">端口</label>
+                        <input type="number" name="redis_port" value="<?= htmlspecialchars($redisPort) ?>"
+                            class="w-full border rounded px-3 py-2" placeholder="6379">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">密码</label>
+                        <input type="password" name="redis_pass" value="<?= htmlspecialchars($redisPass) ?>"
+                            class="w-full border rounded px-3 py-2" placeholder="无密码留空">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">缓存数据库</label>
+                        <input type="number" name="redis_db" value="<?= htmlspecialchars($redisDb) ?>"
+                            class="w-full border rounded px-3 py-2" min="0" max="15" placeholder="0">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">Session 数据库</label>
+                        <input type="number" name="redis_session_db" value="<?= htmlspecialchars($redisSessionDb) ?>"
+                            class="w-full border rounded px-3 py-2" min="0" max="15" placeholder="1">
+                        <p class="text-xs text-gray-500 mt-1">建议与缓存分开</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">键前缀</label>
+                        <input type="text" name="redis_prefix" value="<?= htmlspecialchars($redisPrefix) ?>"
+                            class="w-full border rounded px-3 py-2" placeholder="xpk:">
+                    </div>
+                </div>
+                <div class="mt-4 flex gap-2">
+                    <button type="button" onclick="testRedis()" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 text-sm" <?= !$redisExtLoaded ? 'disabled' : '' ?>>
+                        测试连接
+                    </button>
+                    <span id="redisTestResult" class="text-sm leading-8"></span>
+                </div>
+            </div>
+            
+            <div class="mt-3 p-3 bg-blue-50 border border-blue-200 rounded text-sm">
+                <p class="text-blue-800 flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    修改 Redis 配置后需要重启 PHP 服务才能生效（配置会写入 config/config.php）
+                </p>
+            </div>
+        </div>
+
         <!-- Sitemap 站点地图 -->
         <div>
             <h3 class="font-bold text-gray-700 border-b pb-2 mb-4">Sitemap 站点地图</h3>
@@ -626,5 +727,35 @@ function checkSitemap() {
         .catch(error => {
             statusContent.innerHTML = '<span class="text-red-600 flex items-center"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>请求失败，可能是跨域限制。请直接点击"打开"按钮测试</span>';
         });
+}
+
+function testRedis() {
+    const result = document.getElementById('redisTestResult');
+    result.innerHTML = '<span class="text-gray-500">测试中...</span>';
+    
+    const data = {
+        _token: '<?= $csrfToken ?>',
+        redis_host: document.querySelector('input[name="redis_host"]').value,
+        redis_port: document.querySelector('input[name="redis_port"]').value,
+        redis_pass: document.querySelector('input[name="redis_pass"]').value,
+        redis_db: document.querySelector('input[name="redis_db"]').value
+    };
+    
+    fetch(adminUrl('/config/testRedis'), {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: new URLSearchParams(data)
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.code === 0) {
+            result.innerHTML = '<span class="text-green-600">✓ ' + res.msg + '</span>';
+        } else {
+            result.innerHTML = '<span class="text-red-600">✗ ' + res.msg + '</span>';
+        }
+    })
+    .catch(() => {
+        result.innerHTML = '<span class="text-red-600">✗ 请求失败</span>';
+    });
 }
 </script>

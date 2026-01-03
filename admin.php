@@ -167,6 +167,7 @@ $router->post($adminEntry . '.php/config/uploadTemplate', fn() => (new AdminConf
 $router->post($adminEntry . '.php/config/deleteTemplate', fn() => (new AdminConfigController())->deleteTemplate());
 $router->get($adminEntry . '.php/config/security', fn() => (new AdminConfigController())->security());
 $router->post($adminEntry . '.php/config/security', fn() => (new AdminConfigController())->security());
+$router->post($adminEntry . '.php/config/testRedis', fn() => (new AdminConfigController())->testRedis());
 
 // 采集管理
 $router->get($adminEntry . '.php/collect', fn() => (new AdminCollectController())->index());

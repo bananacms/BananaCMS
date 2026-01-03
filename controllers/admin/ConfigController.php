@@ -141,12 +141,136 @@ class AdminConfigController extends AdminBaseController
             }
         }
 
+        // 保存 Redis 配置到 config.php
+        $this->saveRedisConfig();
+
         // 清除所有缓存
         xpk_cache()->clear();
 
         $this->log('修改', '配置', '更新站点配置');
         $this->flash('success', '保存成功');
         $this->redirect('/' . $this->adminEntry . '/config');
+    }
+
+    /**
+     * 保存 Redis 配置到 config.php
+     */
+    private function saveRedisConfig(): void
+    {
+        $cacheDriver = trim($this->post('cache_driver', ''));
+        $sessionDriver = trim($this->post('session_driver', ''));
+        
+        // 如果没有提交 Redis 配置，跳过
+        if (empty($cacheDriver) && empty($sessionDriver)) {
+            return;
+        }
+        
+        $redisHost = trim($this->post('redis_host', '127.0.0.1'));
+        $redisPort = (int)$this->post('redis_port', 6379);
+        $redisPass = $this->post('redis_pass', '');
+        $redisDb = (int)$this->post('redis_db', 0);
+        $redisSessionDb = (int)$this->post('redis_session_db', 1);
+        $redisPrefix = trim($this->post('redis_prefix', 'xpk:'));
+        
+        $configFile = CONFIG_PATH . 'config.php';
+        if (!file_exists($configFile) || !is_writable($configFile)) {
+            return;
+        }
+        
+        $content = file_get_contents($configFile);
+        
+        // 更新或添加配置项
+        $replacements = [
+            'CACHE_DRIVER' => $cacheDriver,
+            'SESSION_DRIVER' => $sessionDriver,
+            'REDIS_HOST' => $redisHost,
+            'REDIS_PORT' => $redisPort,
+            'REDIS_PASS' => $redisPass,
+            'REDIS_DB' => $redisDb,
+            'REDIS_SESSION_DB' => $redisSessionDb,
+            'REDIS_PREFIX' => $redisPrefix,
+        ];
+        
+        foreach ($replacements as $key => $value) {
+            // 根据值类型决定格式
+            if (is_int($value)) {
+                $valueStr = $value;
+            } else {
+                $valueStr = "'" . addslashes($value) . "'";
+            }
+            
+            // 尝试替换现有配置
+            $pattern = "/define\('{$key}',\s*[^)]+\);/";
+            $replacement = "define('{$key}', {$valueStr});";
+            
+            if (preg_match($pattern, $content)) {
+                $content = preg_replace($pattern, $replacement, $content);
+            } else {
+                // 如果不存在，在文件末尾添加（在最后一个 require 之前）
+                $insertPos = strrpos($content, 'require_once');
+                if ($insertPos !== false) {
+                    $content = substr($content, 0, $insertPos) . $replacement . "\n" . substr($content, $insertPos);
+                }
+            }
+        }
+        
+        file_put_contents($configFile, $content);
+    }
+
+    /**
+     * 测试 Redis 连接
+     */
+    public function testRedis(): void
+    {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+        
+        if (!extension_loaded('redis')) {
+            $this->error('Redis 扩展未安装');
+        }
+        
+        $host = trim($this->post('redis_host', '127.0.0.1'));
+        $port = (int)$this->post('redis_port', 6379);
+        $pass = $this->post('redis_pass', '');
+        $db = (int)$this->post('redis_db', 0);
+        
+        try {
+            $redis = new \Redis();
+            $connected = @$redis->connect($host, $port, 3);
+            
+            if (!$connected) {
+                $this->error('无法连接到 Redis 服务器');
+            }
+            
+            if (!empty($pass)) {
+                if (!$redis->auth($pass)) {
+                    $this->error('Redis 密码错误');
+                }
+            }
+            
+            $redis->select($db);
+            
+            // 测试读写
+            $testKey = 'xpk_test_' . time();
+            $redis->set($testKey, 'test', 5);
+            $value = $redis->get($testKey);
+            $redis->del($testKey);
+            
+            if ($value !== 'test') {
+                $this->error('Redis 读写测试失败');
+            }
+            
+            $info = $redis->info('server');
+            $version = $info['redis_version'] ?? '未知';
+            
+            $redis->close();
+            
+            $this->success("连接成功，Redis 版本: {$version}");
+            
+        } catch (\Exception $e) {
+            $this->error('连接失败: ' . $e->getMessage());
+        }
     }
 
     /**
