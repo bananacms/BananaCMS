@@ -101,8 +101,8 @@ class XpkSecurity
                        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://static.cloudflareinsights.com; " .
                        "style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; " .
                        "img-src 'self' data: https: http:; " .
-                       "font-src 'self' data:; " .
-                       "connect-src 'self' https://cloudflareinsights.com; " .
+                       "font-src 'self' data: https://cdn.jsdelivr.net; " .
+                       "connect-src 'self' https://cdn.jsdelivr.net https://cloudflareinsights.com; " .
                        "media-src 'self' https: http:; " .
                        "object-src 'none'; " .
                        "base-uri 'self'; " .
