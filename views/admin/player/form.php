@@ -1,6 +1,6 @@
 <h1 class="text-2xl font-bold mb-6"><?= isset($player) ? '编辑播放器' : '添加播放器' ?></h1>
 
-<form method="POST" class="bg-white rounded-lg shadow p-6">
+<form method="POST" class="bg-white rounded-lg shadow p-6" data-no-ajax="true">
     <input type="hidden" name="_token" value="<?= $csrfToken ?>">
 
     <div class="space-y-4">
