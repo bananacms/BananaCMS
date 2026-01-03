@@ -128,6 +128,13 @@ class AdminAiController extends AdminBaseController
             $this->error('加载 AI 配置失败');
         }
 
+        // 检查 vod_ai_rewrite 字段是否存在
+        try {
+            $this->db->queryOne("SELECT vod_ai_rewrite FROM " . DB_PREFIX . "vod LIMIT 1");
+        } catch (Exception $e) {
+            $this->error('数据库缺少 vod_ai_rewrite 字段，请先执行数据库升级');
+        }
+
         // 获取批量大小
         $batchSize = (int)$this->db->queryOne(
             "SELECT config_value FROM " . DB_PREFIX . "config WHERE config_name = 'ai_batch_size'"
@@ -188,6 +195,13 @@ class AdminAiController extends AdminBaseController
             $this->error('非法请求');
         }
 
+        // 检查 vod_ai_rewrite 字段是否存在
+        try {
+            $this->db->queryOne("SELECT vod_ai_rewrite FROM " . DB_PREFIX . "vod LIMIT 1");
+        } catch (Exception $e) {
+            $this->error('数据库缺少 vod_ai_rewrite 字段，请先执行数据库升级');
+        }
+
         $type = $this->post('type', 'failed'); // failed=仅失败的, all=全部
 
         if ($type === 'all') {
@@ -237,9 +251,18 @@ class AdminAiController extends AdminBaseController
     private function getRewriteStats(): array
     {
         $total = $this->db->queryOne("SELECT COUNT(*) as cnt FROM " . DB_PREFIX . "vod")['cnt'] ?? 0;
-        $rewritten = $this->db->queryOne("SELECT COUNT(*) as cnt FROM " . DB_PREFIX . "vod WHERE vod_ai_rewrite = 1")['cnt'] ?? 0;
-        $failed = $this->db->queryOne("SELECT COUNT(*) as cnt FROM " . DB_PREFIX . "vod WHERE vod_ai_rewrite = 2")['cnt'] ?? 0;
-        $pending = $this->db->queryOne("SELECT COUNT(*) as cnt FROM " . DB_PREFIX . "vod WHERE vod_ai_rewrite = 0 AND vod_content != '' AND LENGTH(vod_content) > 20")['cnt'] ?? 0;
+        
+        // 检查 vod_ai_rewrite 字段是否存在
+        try {
+            $rewritten = $this->db->queryOne("SELECT COUNT(*) as cnt FROM " . DB_PREFIX . "vod WHERE vod_ai_rewrite = 1")['cnt'] ?? 0;
+            $failed = $this->db->queryOne("SELECT COUNT(*) as cnt FROM " . DB_PREFIX . "vod WHERE vod_ai_rewrite = 2")['cnt'] ?? 0;
+            $pending = $this->db->queryOne("SELECT COUNT(*) as cnt FROM " . DB_PREFIX . "vod WHERE vod_ai_rewrite = 0 AND vod_content != '' AND LENGTH(vod_content) > 20")['cnt'] ?? 0;
+        } catch (Exception $e) {
+            // 字段不存在，返回默认值
+            $rewritten = 0;
+            $failed = 0;
+            $pending = 0;
+        }
 
         return [
             'total' => $total,

@@ -426,6 +426,14 @@ function runAiRewrite(array $options): void {
     
     $db = XpkDatabase::getInstance();
     
+    // 检查 vod_ai_rewrite 字段是否存在
+    try {
+        $db->queryOne("SELECT vod_ai_rewrite FROM " . DB_PREFIX . "vod LIMIT 1");
+    } catch (Exception $e) {
+        clog('数据库缺少 vod_ai_rewrite 字段，请先执行数据库升级');
+        return;
+    }
+    
     // 获取批量大小
     $batchSize = (int)($db->queryOne(
         "SELECT config_value FROM " . DB_PREFIX . "config WHERE config_name = 'ai_batch_size'"
