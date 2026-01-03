@@ -1,0 +1,43 @@
+<?php 
+$netflixLayoutPath = TPL_PATH . 'netflix/layouts/';
+include $netflixLayoutPath . 'header.php'; 
+?>
+
+<!-- 最新更新页 -->
+<div class="pt-20 md:pt-24 px-4 md:px-12 pb-10">
+    <h1 class="text-2xl md:text-3xl font-bold mb-2">📺 最新更新</h1>
+    <p class="text-gray-400 mb-6">共 <?php echo $total; ?> 部视频</p>
+
+    <!-- 视频列表 -->
+    <?php if (!empty($vodList)): ?>
+    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 md:gap-4">
+        <?php foreach ($vodList as $vod): ?>
+        <a href="<?php echo xpk_page_url('vod_detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="card cursor-pointer relative overflow-hidden rounded group">
+            <img src="<?php echo $vod['vod_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full aspect-[2/3] object-cover bg-gray-800">
+            <div class="card-overlay absolute inset-0 bg-black/60 opacity-0 flex items-center justify-center">
+                <span class="w-10 h-10 md:w-12 md:h-12 bg-white/90 rounded-full flex items-center justify-center">
+                    <svg class="w-5 h-5 md:w-6 md:h-6 text-black ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                </span>
+            </div>
+            <div class="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                <p class="text-xs md:text-sm truncate"><?php echo htmlspecialchars($vod['vod_name']); ?></p>
+                <p class="text-xs text-gray-400"><?php echo number_format($vod['vod_hits']); ?>次播放</p>
+            </div>
+            <?php if ($vod['vod_remarks']): ?>
+            <span class="absolute top-1 right-1 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded"><?php echo $vod['vod_remarks']; ?></span>
+            <?php endif; ?>
+        </a>
+        <?php endforeach; ?>
+    </div>
+
+    <!-- 分页 -->
+    <?php include TPL_PATH . 'netflix/components/pagination.php'; ?>
+
+    <?php else: ?>
+    <div class="text-center py-20">
+        <p class="text-gray-500 text-lg">暂无视频</p>
+    </div>
+    <?php endif; ?>
+</div>
+
+<?php include $netflixLayoutPath . 'footer.php'; ?>

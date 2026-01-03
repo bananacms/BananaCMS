@@ -73,6 +73,31 @@ class VodController extends BaseController
         $this->render('vod/hot');
     }
 
+    /**
+     * 最新视频列表
+     */
+    public function latest(int $page = 1): void
+    {
+        $result = $this->vodModel->getListPaged($page, PAGE_SIZE, 'time');
+        
+        $this->assign('vodList', $result['list']);
+        $this->assign('page', $result['page']);
+        $this->assign('totalPages', $result['totalPages']);
+        $this->assign('total', $result['total']);
+        $this->assign('baseUrl', '/latest');
+        
+        // SEO
+        $seoVars = [
+            'name' => '最新更新',
+            'description' => '最新更新的视频列表'
+        ];
+        $this->assign('title', $this->seoTitle('latest', $seoVars));
+        $this->assign('keywords', $this->seoKeywords('latest', $seoVars));
+        $this->assign('description', $this->seoDescription('latest', $seoVars));
+        
+        $this->render('vod/latest');
+    }
+
 
     /**
      * 按一级分类筛选

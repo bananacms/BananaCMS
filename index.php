@@ -152,6 +152,10 @@ $router->get('article/{slug}.html', fn($slug) => (new ArtController())->detailBy
 $router->get('hot', fn() => (new VodController())->hot());
 $router->get('hot/page/{page}', fn($page) => (new VodController())->hot((int)$page));
 
+// 最新视频
+$router->get('latest', fn() => (new VodController())->latest());
+$router->get('latest/page/{page}', fn($page) => (new VodController())->latest((int)$page));
+
 // 一级分类筛选
 $router->get('vod/top-type/{id}', fn($id) => (new VodController())->topType((int)$id));
 $router->get('vod/top-type/{id}/page/{page}', fn($id, $page) => (new VodController())->topType((int)$id, (int)$page));
