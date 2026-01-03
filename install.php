@@ -203,6 +203,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $config .= "define('UPLOAD_MAX_SIZE', 10485760);\n";
                 $config .= "define('UPLOAD_ALLOW_EXT', 'jpg,jpeg,png,gif,webp');\n";
                 $config .= "define('ADMIN_ENTRY', '{$adminEntry}.php');\n";
+                $config .= "define('XPK_ROOT', true);\n";
+                $config .= "require_once CONFIG_PATH . 'constants.php';\n";
                 
                 file_put_contents(CONFIG_PATH . 'config.php', $config);
                 file_put_contents(CONFIG_PATH . 'install.lock', date('Y-m-d H:i:s'));
