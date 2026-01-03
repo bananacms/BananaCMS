@@ -128,13 +128,8 @@ class XpkTemplate
         $content = $this->compileFooterTag($content);
 
         // 编译变量 {$xxx}
-        $content = preg_replace('/\{\$(\w+)\.(\w+)\}/', '<?php echo htmlspecialchars($${1}[\'${2}\'] ?? \'\', ENT_QUOTES, \'UTF-8\'); ?>', $content);
-        $content = preg_replace('/\{\$(\w+)\}/', '<?php echo htmlspecialchars($${1} ?? \'\', ENT_QUOTES, \'UTF-8\'); ?>', $content);
-
-        // 原始变量输出功能已移除，出于安全考虑
-        // 如需输出HTML内容，请在控制器中进行安全验证后使用
-        // $content = preg_replace('/\{:\$(\w+)\.(\w+)\}/', '<?php echo $${1}[\'${2}\'] ?? \'\'; ?>', $content);
-        // $content = preg_replace('/\{:\$(\w+)\}/', '<?php echo $${1} ?? \'\'; ?>', $content);
+        $content = preg_replace('/\{\$(\w+)\.(\w+)\}/', '<?php echo htmlspecialchars($$1[\'$2\'] ?? \'\', ENT_QUOTES, \'UTF-8\'); ?>', $content);
+        $content = preg_replace('/\{\$(\w+)\}/', '<?php echo htmlspecialchars($$1 ?? \'\', ENT_QUOTES, \'UTF-8\'); ?>', $content);
 
         // 编译 if 语句
         $content = preg_replace_callback('/\{if\s+(.+?)\}/', function($m) {

@@ -78,3 +78,6 @@ define('R2_ACCESS_KEY_ID', '');     // R2 Access Key ID
 define('R2_SECRET_ACCESS_KEY', ''); // R2 Secret Access Key
 define('R2_BUCKET', '');            // Bucket名称
 define('R2_PUBLIC_URL', '');        // 公开访问域名（如 https://cdn.example.com）
+
+// 加载常量定义
+require_once CONFIG_PATH . 'constants.php';

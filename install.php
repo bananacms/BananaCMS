@@ -216,6 +216,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     @unlink(ROOT_PATH . 'admin.php');
                 }
                 
+                // 自动删除敏感文件
+                $sensitiveExts = ['md', 'sql', 'txt', 'rar', 'zip'];
+                $excludeFiles = ['.htaccess', 'index.html', 'robots.txt'];
+                foreach (glob(ROOT_PATH . '*') as $file) {
+                    if (!is_file($file)) continue;
+                    $basename = basename($file);
+                    $ext = strtolower(pathinfo($basename, PATHINFO_EXTENSION));
+                    if (in_array($basename, $excludeFiles)) continue;
+                    if (in_array($ext, $sensitiveExts)) {
+                        @unlink($file);
+                    }
+                }
+                
                 $_SESSION['install_admin'] = $adminUser;
                 $_SESSION['install_admin_entry'] = $adminEntry . '.php';
                 header('Location: install.php?step=4');
