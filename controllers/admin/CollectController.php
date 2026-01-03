@@ -1179,6 +1179,32 @@ class AdminCollectController extends AdminBaseController
         if (empty($enabledCodes)) {
             return ['from' => $playFrom, 'url' => $playUrl];
         }
+        
+        // Auto-create missing players from collected sources
+        $fromArr = explode('$$$', $playFrom);
+        $db = XpkDatabase::getInstance();
+        $maxSort = $db->queryOne("SELECT MAX(player_sort) as max_sort FROM " . DB_PREFIX . "player")['max_sort'] ?? 100;
+        
+        foreach ($fromArr as $from) {
+            $from = trim($from);
+            if (empty($from)) continue;
+            
+            if (!in_array($from, $enabledCodes)) {
+                // Auto-create player with this code
+                $maxSort++;
+                $playerName = $from;
+                // Generate readable name
+                if (preg_match('/^(.+?)(m3u8|mp4)$/i', $from, $matches)) {
+                    $playerName = $matches[1] . '资源';
+                }
+                
+                $db->execute(
+                    "INSERT IGNORE INTO " . DB_PREFIX . "player (player_name, player_code, player_sort, player_status, player_tip) VALUES (?, ?, ?, 1, ?)",
+                    [$playerName, $from, $maxSort, '采集自动创建']
+                );
+                $enabledCodes[] = $from;
+            }
+        }
 
         $fromArr = explode('$$$', $playFrom);
         $urlArr = explode('$$$', $playUrl);

@@ -49,14 +49,37 @@ function clog(string $msg): void {
 }
 
 /**
- * 过滤播放源
+ * 过滤播放源（自动创建缺失的播放器）
  */
-function filterPlaySources(string $playFrom, string $playUrl, array $enabledCodes): array {
-    if (empty($playFrom) || empty($playUrl) || empty($enabledCodes)) {
+function filterPlaySources(string $playFrom, string $playUrl, array &$enabledCodes): array {
+    if (empty($playFrom) || empty($playUrl)) {
         return ['from' => $playFrom, 'url' => $playUrl];
     }
     
+    // Auto-create missing players
+    $db = XpkDatabase::getInstance();
     $fromArr = explode('$$$', $playFrom);
+    $maxSort = $db->queryOne("SELECT MAX(player_sort) as max_sort FROM " . DB_PREFIX . "player")['max_sort'] ?? 100;
+    
+    foreach ($fromArr as $from) {
+        $from = trim($from);
+        if (empty($from)) continue;
+        
+        if (!in_array($from, $enabledCodes)) {
+            $maxSort++;
+            $playerName = $from;
+            if (preg_match('/^(.+?)(m3u8|mp4)$/i', $from, $matches)) {
+                $playerName = $matches[1] . '资源';
+            }
+            
+            $db->execute(
+                "INSERT IGNORE INTO " . DB_PREFIX . "player (player_name, player_code, player_sort, player_status, player_tip) VALUES (?, ?, ?, 1, ?)",
+                [$playerName, $from, $maxSort, '采集自动创建']
+            );
+            $enabledCodes[] = $from;
+        }
+    }
+    
     $urlArr = explode('$$$', $playUrl);
     
     $filteredFrom = [];

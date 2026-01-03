@@ -218,6 +218,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     @unlink(ROOT_PATH . 'admin.php');
                 }
                 
+                // Generate robots.txt with full sitemap URL
+                $robotsContent = "User-agent: *\n";
+                $robotsContent .= "Allow: /\n";
+                $robotsContent .= "Disallow: /{$adminEntry}.php\n";
+                $robotsContent .= "Disallow: /api.php\n";
+                $robotsContent .= "Disallow: /install.php\n";
+                $robotsContent .= "Disallow: /search\n";
+                $robotsContent .= "Disallow: /search/\n";
+                $robotsContent .= "Disallow: /user/\n";
+                $robotsContent .= "Disallow: /config/\n";
+                $robotsContent .= "Disallow: /runtime/\n";
+                $robotsContent .= "Disallow: /controllers/\n";
+                $robotsContent .= "Disallow: /models/\n";
+                $robotsContent .= "Disallow: /core/\n";
+                $robotsContent .= "Disallow: /views/\n";
+                $robotsContent .= "\n";
+                $robotsContent .= "Sitemap: {$siteUrl}/sitemap.xml\n";
+                file_put_contents(ROOT_PATH . 'robots.txt', $robotsContent);
+                
                 // 自动删除敏感文件
                 $sensitiveExts = ['md', 'sql', 'txt', 'rar', 'zip'];
                 $excludeFiles = ['.htaccess', 'index.html', 'robots.txt'];
