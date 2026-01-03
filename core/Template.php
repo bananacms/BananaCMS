@@ -20,7 +20,7 @@ class XpkTemplate
         $template = XpkTemplateConstants::DEFAULT_TEMPLATE;
         try {
             $db = XpkDatabase::getInstance();
-            $row = $db->queryOne("SELECT config_value FROM " . DB_PREFIX . "config WHERE config_name = ?", [XpkConfigKeys::SYSTEM_TEMPLATE]);
+            $row = $db->queryOne("SELECT config_value FROM " . DB_PREFIX . "config WHERE config_name = ?", ['site_template']);
             if ($row && !empty($row['config_value'])) {
                 $template = $row['config_value'];
             }

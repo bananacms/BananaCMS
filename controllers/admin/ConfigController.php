@@ -144,12 +144,30 @@ class AdminConfigController extends AdminBaseController
         // 保存 Redis 配置到 config.php
         $this->saveRedisConfig();
 
-        // 清除所有缓存
+        // 清除所有缓存（包括模板编译缓存）
         xpk_cache()->clear();
+        $this->clearTemplateCache();
 
         $this->log('修改', '配置', '更新站点配置');
         $this->flash('success', '保存成功');
         $this->redirect('/' . $this->adminEntry . '/config');
+    }
+
+    /**
+     * 清除模板编译缓存
+     */
+    private function clearTemplateCache(): void
+    {
+        $cachePath = RUNTIME_PATH . 'cache/';
+        if (!is_dir($cachePath)) {
+            return;
+        }
+        
+        // 清除所有 .php 编译缓存文件
+        $files = glob($cachePath . '*.php');
+        foreach ($files as $file) {
+            @unlink($file);
+        }
     }
 
     /**
