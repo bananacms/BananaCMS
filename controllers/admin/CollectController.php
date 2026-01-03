@@ -60,8 +60,7 @@ class AdminCollectController extends AdminBaseController
 
         $this->collectModel->insert($data);
         $this->log('添加', '采集', $data['collect_name']);
-        $this->flash('success', '添加成功');
-        $this->redirect('/' . $this->adminEntry . '/collect');
+        $this->success('添加成功', ['url' => '/' . $this->adminEntry . '/collect']);
     }
 
     /**
@@ -121,8 +120,7 @@ class AdminCollectController extends AdminBaseController
 
         $this->collectModel->update($id, $data);
         $this->log('编辑', '采集', "ID:{$id} {$data['collect_name']}");
-        $this->flash('success', '保存成功');
-        $this->redirect('/' . $this->adminEntry . '/collect');
+        $this->success('保存成功', ['url' => '/' . $this->adminEntry . '/collect']);
     }
 
     /**

@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($title ?? SITE_NAME); ?></title>
-    <meta name="keywords" content="<?php echo htmlspecialchars($keywords ?? SITE_KEYWORDS); ?>">
-    <meta name="description" content="<?php echo htmlspecialchars($description ?? SITE_DESCRIPTION); ?>">
+    <title><?php echo htmlspecialchars($title ?? $siteName ?? SITE_NAME); ?></title>
+    <meta name="keywords" content="<?php echo htmlspecialchars($keywords ?? $siteKeywords ?? SITE_KEYWORDS); ?>">
+    <meta name="description" content="<?php echo htmlspecialchars($description ?? $siteDescription ?? SITE_DESCRIPTION); ?>">
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <?php if (!empty($noindex)): ?><meta name="robots" content="noindex, nofollow"><?php endif; ?>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -34,9 +34,9 @@
                         $siteLogo = $siteConfig['site_logo'] ?? '';
                         if ($siteLogo): 
                         ?>
-                        <img src="<?php echo htmlspecialchars($siteLogo); ?>" alt="<?php echo SITE_NAME; ?>" class="h-6 md:h-8">
+                        <img src="<?php echo htmlspecialchars($siteLogo); ?>" alt="<?php echo $siteName ?? SITE_NAME; ?>" class="h-6 md:h-8">
                         <?php else: ?>
-                        <span class="text-pink-500 text-xl md:text-2xl font-bold">( ゜- ゜)つロ <?php echo SITE_NAME; ?></span>
+                        <span class="text-pink-500 text-xl md:text-2xl font-bold">( ゜- ゜)つロ <?php echo $siteName ?? SITE_NAME; ?></span>
                         <?php endif; ?>
                     </a>
                     <div class="hidden md:flex space-x-4 text-sm">
