@@ -145,7 +145,7 @@ function syncCategories() {
         fetch(adminUrl('/collect/syncCategories'), {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: 'id=<?= $collect['collect_id'] ?>'
+            body: 'id=<?= $collect['collect_id'] ?>&_token=<?= $csrfToken ?>'
         })
         .then(r => r.json())
         .then(data => {
@@ -212,7 +212,7 @@ function copyFromOther() {
         fetch(adminUrl('/collect/copyBind'), {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: 'from_id=' + fromId + '&to_id=<?= $collect['collect_id'] ?>'
+            body: 'from_id=' + fromId + '&to_id=<?= $collect['collect_id'] ?>&_token=<?= $csrfToken ?>'
         })
         .then(r => r.json())
         .then(data => {
