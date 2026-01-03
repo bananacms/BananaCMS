@@ -5,49 +5,98 @@ include $netflixLayoutPath . 'header.php';
 
 <!-- 友情链接页 -->
 <div class="pt-20 md:pt-24 px-4 md:px-12 pb-10">
-    <h1 class="text-2xl md:text-3xl font-bold mb-8">友情链接</h1>
+    <h1 class="text-2xl md:text-3xl font-bold mb-8">🔗 友情链接</h1>
 
-    <?php if (!empty($links)): ?>
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        <?php foreach ($links as $link): ?>
-        <a href="<?php echo htmlspecialchars($link['link_url']); ?>" target="_blank" rel="noopener nofollow" 
-           class="bg-gray-900 rounded-lg p-4 hover:bg-gray-800 transition text-center">
-            <?php if ($link['link_logo']): ?>
-            <img src="<?php echo htmlspecialchars($link['link_logo']); ?>" alt="<?php echo htmlspecialchars($link['link_name']); ?>" class="h-8 mx-auto mb-2">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- 链接列表 -->
+        <div class="lg:col-span-2">
+            <?php if (!empty($links)): ?>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                <?php foreach ($links as $link): ?>
+                <a href="<?= htmlspecialchars($link['link_url']) ?>" target="_blank" rel="noopener nofollow" 
+                   class="bg-gray-900 rounded-lg p-4 hover:bg-gray-800 transition text-center">
+                    <?php if (!empty($link['link_logo'])): ?>
+                    <img src="<?= htmlspecialchars($link['link_logo']) ?>" alt="<?= htmlspecialchars($link['link_name']) ?>" class="h-10 mx-auto mb-2 object-contain">
+                    <?php else: ?>
+                    <div class="w-10 h-10 mx-auto mb-2 bg-red-600 rounded-full flex items-center justify-center text-white font-bold">
+                        <?= mb_substr($link['link_name'], 0, 1) ?>
+                    </div>
+                    <?php endif; ?>
+                    <p class="text-sm"><?= htmlspecialchars($link['link_name']) ?></p>
+                </a>
+                <?php endforeach; ?>
+            </div>
+            <?php else: ?>
+            <div class="text-center py-20">
+                <p class="text-gray-500 text-lg">暂无友情链接</p>
+            </div>
             <?php endif; ?>
-            <p class="text-sm"><?php echo htmlspecialchars($link['link_name']); ?></p>
-        </a>
-        <?php endforeach; ?>
-    </div>
-    <?php else: ?>
-    <div class="text-center py-20">
-        <p class="text-gray-500 text-lg">暂无友情链接</p>
-    </div>
-    <?php endif; ?>
-
-    <!-- 申请链接 -->
-    <div class="mt-12 bg-gray-900 rounded-lg p-6 md:p-8">
-        <h2 class="text-lg font-bold mb-4">申请友链</h2>
-        <p class="text-gray-400 text-sm mb-4">如需交换友情链接，请联系管理员。</p>
-        <div class="text-gray-500 text-sm space-y-1">
-            <p>本站名称：<?= htmlspecialchars($siteName ?? SITE_NAME) ?></p>
-            <p>本站地址：<?= htmlspecialchars($siteUrl ?? SITE_URL) ?></p>
         </div>
-        
-        <!-- 复制本站链接代码 -->
-        <div class="mt-4 p-3 bg-gray-800 rounded">
-            <p class="text-sm font-medium text-gray-300 mb-2">本站链接代码：</p>
-            <div class="bg-gray-700 rounded p-2 text-xs text-gray-300 font-mono break-all">&lt;a href="<?= htmlspecialchars($siteUrl ?? SITE_URL) ?>" target="_blank"&gt;<?= htmlspecialchars($siteName ?? SITE_NAME) ?>&lt;/a&gt;</div>
-            <button type="button" onclick="copyLinkCode()" class="mt-2 w-full py-1.5 bg-red-600 text-white rounded text-sm hover:bg-red-700 transition">
-                📋 复制代码
-            </button>
+
+        <!-- 申请表单 -->
+        <div class="lg:col-span-1">
+            <div class="bg-gray-900 rounded-lg p-6 sticky top-24">
+                <h2 class="text-lg font-bold mb-4">申请友链</h2>
+                
+                <div class="bg-gray-800 text-gray-300 text-sm p-3 rounded mb-4">
+                    <p class="font-medium mb-1 text-white">申请要求：</p>
+                    <ul class="list-disc list-inside space-y-1 text-xs">
+                        <li>网站正常运营中</li>
+                        <li>请先添加本站链接</li>
+                    </ul>
+                    <p class="mt-2 text-xs">
+                        本站名称：<strong class="text-white"><?= htmlspecialchars($siteName) ?></strong><br>
+                        本站地址：<strong class="text-white"><?= htmlspecialchars($siteUrl) ?></strong>
+                    </p>
+                </div>
+
+                <!-- 复制本站链接代码 -->
+                <div class="bg-gray-800 p-3 rounded mb-4">
+                    <p class="text-sm font-medium text-gray-300 mb-2">本站链接代码：</p>
+                    <div class="bg-gray-700 rounded p-2 text-xs text-gray-300 font-mono break-all">&lt;a href="<?= htmlspecialchars($siteUrl) ?>" target="_blank"&gt;<?= htmlspecialchars($siteName) ?>&lt;/a&gt;</div>
+                    <button type="button" onclick="copyLinkCode()" class="mt-2 w-full py-1.5 bg-gray-700 text-white rounded text-sm hover:bg-gray-600 transition">
+                        📋 复制代码
+                    </button>
+                </div>
+
+                <form id="linkForm" class="space-y-4">
+                    <input type="hidden" name="_token" value="<?= htmlspecialchars($csrfToken) ?>">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">网站名称 *</label>
+                        <input type="text" name="link_name" required
+                               class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white focus:outline-none focus:ring-2 focus:ring-red-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">网站地址 *</label>
+                        <input type="url" name="link_url" required placeholder="https://"
+                               class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white focus:outline-none focus:ring-2 focus:ring-red-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Logo地址</label>
+                        <input type="url" name="link_logo" placeholder="https://"
+                               class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white focus:outline-none focus:ring-2 focus:ring-red-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">联系方式</label>
+                        <input type="text" name="link_contact" placeholder="QQ/邮箱/Telegram"
+                               class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white focus:outline-none focus:ring-2 focus:ring-red-500">
+                    </div>
+
+                    <button type="submit" class="w-full py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
+                        提交申请
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
 function copyLinkCode() {
-    const code = '<a href="<?= htmlspecialchars($siteUrl ?? SITE_URL) ?>" target="_blank"><?= htmlspecialchars($siteName ?? SITE_NAME) ?></a>';
+    const code = '<a href="<?= htmlspecialchars($siteUrl) ?>" target="_blank"><?= htmlspecialchars($siteName) ?></a>';
     navigator.clipboard.writeText(code).then(() => {
         xpk.toast('代码已复制到剪贴板', 'success');
     }).catch(() => {
@@ -60,6 +109,34 @@ function copyLinkCode() {
         xpk.toast('代码已复制到剪贴板', 'success');
     });
 }
+
+document.getElementById('linkForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const btn = this.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.textContent = '提交中...';
+    
+    fetch('/link/apply', {
+        method: 'POST',
+        body: new URLSearchParams(formData)
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.code === 0) {
+            xpk.toast(data.msg, 'success');
+            this.reset();
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            xpk.toast(data.msg || '提交失败', 'error');
+        }
+    })
+    .catch(() => xpk.toast('提交失败，请稍后重试', 'error'))
+    .finally(() => {
+        btn.disabled = false;
+        btn.textContent = '提交申请';
+    });
+});
 </script>
 
 <?php include $netflixLayoutPath . 'footer.php'; ?>
