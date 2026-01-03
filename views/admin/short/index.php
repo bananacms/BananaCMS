@@ -167,7 +167,7 @@ function toggleStatus(id) {
     fetch(adminUrl('/short/toggle'), {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: 'id=' + id
+        body: 'id=' + id + '&_token=' + window.CSRF_TOKEN
     })
     .then(r => r.json())
     .then(data => {

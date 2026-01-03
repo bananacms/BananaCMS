@@ -17,6 +17,8 @@
         }
         // 全局后台入口变量
         window.ADMIN_ENTRY = '<?= $adminEntry ?>';
+        // 全局CSRF Token
+        window.CSRF_TOKEN = '<?= $csrfToken ?? '' ?>';
         
         // 辅助函数：构建后台URL
         window.adminUrl = function(path) {
@@ -270,7 +272,7 @@
             fetch(url, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: 'id=' + id
+                body: 'id=' + id + '&_token=' + (window.CSRF_TOKEN || '')
             })
             .then(r => r.json())
             .then(data => {

@@ -157,7 +157,7 @@ function testApi() {
     fetch(adminUrl('/collect/test'), {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: 'api=' + encodeURIComponent(api)
+        body: 'api=' + encodeURIComponent(api) + '&_token=<?= $csrfToken ?>'
     })
     .then(r => r.json())
     .then(data => {

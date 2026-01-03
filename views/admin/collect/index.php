@@ -93,7 +93,7 @@ function deleteCollectVods(collectId, collectName) {
         fetch(adminUrl('/collect/deleteVods'), {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: 'collect_id=' + collectId
+            body: 'collect_id=' + collectId + '&_token=' + window.CSRF_TOKEN
         })
         .then(r => r.json())
         .then(data => {
