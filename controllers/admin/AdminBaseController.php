@@ -8,14 +8,16 @@ class AdminBaseController
 {
     protected array $data = [];
     protected ?array $admin = null;
+    protected string $adminEntry;
 
     public function __construct()
     {
         $this->checkAuth();
         $this->admin = $_SESSION['admin'] ?? null;
+        $this->adminEntry = $this->getAdminEntry();
         $this->data['admin'] = $this->admin;
         $this->data['siteName'] = SITE_NAME;
-        $this->data['adminEntry'] = $this->getAdminEntry();
+        $this->data['adminEntry'] = $this->adminEntry;
     }
 
     /**
