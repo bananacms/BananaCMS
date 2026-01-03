@@ -122,7 +122,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.code === 0) {
                 xpkToast(data.msg, 'success');
                 setTimeout(() => {
-                    location.href = adminUrl('/short');
+                    // 使用服务器返回的跳转地址
+                    if (data.data && data.data.url) {
+                        location.href = data.data.url;
+                    } else {
+                        location.href = adminUrl('/short');
+                    }
                 }, 1000);
             } else {
                 xpkToast(data.msg, 'error');
