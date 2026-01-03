@@ -204,6 +204,11 @@
             setTimeout(() => toast.remove(), 300);
         }, 3000);
     }
+    
+    // 别名，兼容旧代码
+    function showToast(msg, type = 'success') {
+        xpkToast(msg, type);
+    }
 
     // 确认框（美化版）
     function xpkConfirm(msg, callback, cancelCallback) {
