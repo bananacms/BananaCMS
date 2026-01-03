@@ -150,10 +150,10 @@ document.getElementById('editForm').addEventListener('submit', function(e) {
         if (data.code === 0) {
             location.reload();
         } else {
-            alert(data.msg || '保存失败');
+            xpkToast(data.msg || '保存失败', 'error');
         }
     })
-    .catch(() => alert('请求失败'));
+    .catch(() => xpkToast('请求失败', 'error'));
 });
 
 // 点击遮罩关闭

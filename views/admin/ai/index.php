@@ -277,56 +277,56 @@ function closeTestModal() {
 }
 
 function runRewrite() {
-    if (!confirm('确定要执行一批改写任务吗？')) return;
-    
-    showToast('正在执行...', 'info');
-    
-    fetch('/' + adminEntry + '/ai/run', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: '_token=' + document.getElementById('csrfToken').value
-    })
-    .then(r => r.json())
-    .then(res => {
-        if (res.code === 0) {
-            showToast(res.msg, 'success');
-            setTimeout(() => location.reload(), 1500);
-        } else {
-            showToast(res.msg, 'error');
-        }
-    })
-    .catch(() => showToast('请求失败', 'error'));
+    xpkConfirm('确定要执行一批改写任务吗？', function() {
+        showToast('正在执行...', 'info');
+        
+        fetch('/' + adminEntry + '/ai/run', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: '_token=' + document.getElementById('csrfToken').value
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.code === 0) {
+                showToast(res.msg, 'success');
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showToast(res.msg, 'error');
+            }
+        })
+        .catch(() => showToast('请求失败', 'error'));
+    });
 }
 
 function resetFailed() {
-    if (!confirm('确定要重置所有失败状态吗？')) return;
-    
-    fetch('/' + adminEntry + '/ai/reset', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: '_token=' + document.getElementById('csrfToken').value + '&type=failed'
-    })
-    .then(r => r.json())
-    .then(res => {
-        showToast(res.msg, res.code === 0 ? 'success' : 'error');
-        if (res.code === 0) setTimeout(() => location.reload(), 1000);
-    })
-    .catch(() => showToast('请求失败', 'error'));
+    xpkConfirm('确定要重置所有失败状态吗？', function() {
+        fetch('/' + adminEntry + '/ai/reset', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: '_token=' + document.getElementById('csrfToken').value + '&type=failed'
+        })
+        .then(r => r.json())
+        .then(res => {
+            showToast(res.msg, res.code === 0 ? 'success' : 'error');
+            if (res.code === 0) setTimeout(() => location.reload(), 1000);
+        })
+        .catch(() => showToast('请求失败', 'error'));
+    });
 }
 
 function resetAll() {
-    if (!confirm('确定要重置全部改写状态吗？这将导致所有视频重新改写！')) return;
-    
-    fetch('/' + adminEntry + '/ai/reset', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: '_token=' + document.getElementById('csrfToken').value + '&type=all'
-    })
-    .then(r => r.json())
-    .then(res => {
-        showToast(res.msg, res.code === 0 ? 'success' : 'error');
-        if (res.code === 0) setTimeout(() => location.reload(), 1000);
-    })
-    .catch(() => showToast('请求失败', 'error'));
+    xpkConfirm('确定要重置全部改写状态吗？这将导致所有视频重新改写！', function() {
+        fetch('/' + adminEntry + '/ai/reset', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: '_token=' + document.getElementById('csrfToken').value + '&type=all'
+        })
+        .then(r => r.json())
+        .then(res => {
+            showToast(res.msg, res.code === 0 ? 'success' : 'error');
+            if (res.code === 0) setTimeout(() => location.reload(), 1000);
+        })
+        .catch(() => showToast('请求失败', 'error'));
+    });
 }
 </script>

@@ -1,20 +1,21 @@
-<?php
-$title = '安全配置';
-require_once VIEW_PATH . 'admin/layouts/header.php';
-?>
+<?php if (!empty($flash)): ?>
+<div class="mb-4 px-4 py-3 rounded <?= $flash['type'] === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' ?>">
+    <?= htmlspecialchars($flash['msg']) ?>
+</div>
+<?php endif; ?>
 
 <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold">安全配置</h1>
-    <a href="/<?= ADMIN_ENTRY ?>/config" class="text-gray-500 hover:text-gray-700">← 返回系统配置</a>
+    <a href="/<?= $adminEntry ?>/config" class="text-gray-500 hover:text-gray-700">← 返回系统配置</a>
 </div>
 
 <div class="bg-white rounded-lg shadow p-6">
-    <form method="POST" data-ajax class="space-y-8">
+    <form method="POST" class="space-y-8">
         <input type="hidden" name="_token" value="<?= $csrfToken ?>">
         
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <div class="flex">
-                <svg class="w-5 h-5 text-blue-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <svg class="w-5 h-5 text-blue-400 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
                 </svg>
                 <div>
@@ -69,8 +70,8 @@ require_once VIEW_PATH . 'admin/layouts/header.php';
                     <label class="block text-sm font-medium mb-2">X-Frame-Options</label>
                     <select name="security_frame_options" class="w-full border rounded px-3 py-2">
                         <option value="DENY" <?= ($config['security_frame_options'] ?? '') === 'DENY' ? 'selected' : '' ?>>DENY</option>
-                        <option value="SAMEORIGIN" <?= ($config['security_frame_options'] ?? '') === 'SAMEORIGIN' ? 'selected' : '' ?>>SAMEORIGIN</option>
-                        <option value="ALLOW-FROM" <?= ($config['security_frame_options'] ?? '') === 'ALLOW-FROM' ? 'selected' : '' ?>>ALLOW-FROM</option>
+                        <option value="SAMEORIGIN" <?= ($config['security_frame_options'] ?? 'SAMEORIGIN') === 'SAMEORIGIN' ? 'selected' : '' ?>>SAMEORIGIN</option>
+                        <option value="" <?= ($config['security_frame_options'] ?? '') === '' ? 'selected' : '' ?>>不设置</option>
                     </select>
                     <p class="text-sm text-gray-500 mt-1">防止点击劫持攻击</p>
                 </div>
@@ -80,7 +81,7 @@ require_once VIEW_PATH . 'admin/layouts/header.php';
                     <select name="security_referrer_policy" class="w-full border rounded px-3 py-2">
                         <option value="no-referrer" <?= ($config['security_referrer_policy'] ?? '') === 'no-referrer' ? 'selected' : '' ?>>no-referrer</option>
                         <option value="strict-origin" <?= ($config['security_referrer_policy'] ?? '') === 'strict-origin' ? 'selected' : '' ?>>strict-origin</option>
-                        <option value="strict-origin-when-cross-origin" <?= ($config['security_referrer_policy'] ?? '') === 'strict-origin-when-cross-origin' ? 'selected' : '' ?>>strict-origin-when-cross-origin</option>
+                        <option value="strict-origin-when-cross-origin" <?= ($config['security_referrer_policy'] ?? 'strict-origin-when-cross-origin') === 'strict-origin-when-cross-origin' ? 'selected' : '' ?>>strict-origin-when-cross-origin</option>
                         <option value="same-origin" <?= ($config['security_referrer_policy'] ?? '') === 'same-origin' ? 'selected' : '' ?>>same-origin</option>
                     </select>
                     <p class="text-sm text-gray-500 mt-1">控制 Referer 信息的发送</p>
@@ -117,7 +118,7 @@ require_once VIEW_PATH . 'admin/layouts/header.php';
                     <p class="text-sm text-gray-500 mt-1">HSTS 策略的有效期，默认1年</p>
                 </div>
                 
-                <div class="space-y-2">
+                <div class="space-y-2 pt-6">
                     <label class="flex items-center">
                         <input type="checkbox" name="security_hsts_include_subdomains" value="1" <?= ($config['security_hsts_include_subdomains'] ?? '1') === '1' ? 'checked' : '' ?> class="rounded">
                         <span class="ml-2 text-sm">包含子域名</span>
@@ -163,7 +164,7 @@ require_once VIEW_PATH . 'admin/layouts/header.php';
                         <span class="ml-2 font-medium">启用 Cross-Origin-Opener-Policy</span>
                     </label>
                     <select name="security_coop_policy" class="w-full border rounded px-3 py-2">
-                        <option value="unsafe-none" <?= ($config['security_coop_policy'] ?? '') === 'unsafe-none' ? 'selected' : '' ?>>unsafe-none</option>
+                        <option value="unsafe-none" <?= ($config['security_coop_policy'] ?? 'unsafe-none') === 'unsafe-none' ? 'selected' : '' ?>>unsafe-none</option>
                         <option value="same-origin-allow-popups" <?= ($config['security_coop_policy'] ?? '') === 'same-origin-allow-popups' ? 'selected' : '' ?>>same-origin-allow-popups</option>
                         <option value="same-origin" <?= ($config['security_coop_policy'] ?? '') === 'same-origin' ? 'selected' : '' ?>>same-origin</option>
                     </select>
@@ -175,7 +176,7 @@ require_once VIEW_PATH . 'admin/layouts/header.php';
                         <span class="ml-2 font-medium">启用 Cross-Origin-Resource-Policy</span>
                     </label>
                     <select name="security_corp_policy" class="w-full border rounded px-3 py-2">
-                        <option value="same-site" <?= ($config['security_corp_policy'] ?? '') === 'same-site' ? 'selected' : '' ?>>same-site</option>
+                        <option value="same-site" <?= ($config['security_corp_policy'] ?? 'same-site') === 'same-site' ? 'selected' : '' ?>>same-site</option>
                         <option value="same-origin" <?= ($config['security_corp_policy'] ?? '') === 'same-origin' ? 'selected' : '' ?>>same-origin</option>
                         <option value="cross-origin" <?= ($config['security_corp_policy'] ?? '') === 'cross-origin' ? 'selected' : '' ?>>cross-origin</option>
                     </select>
@@ -187,11 +188,9 @@ require_once VIEW_PATH . 'admin/layouts/header.php';
             <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded">
                 保存配置
             </button>
-            <a href="/<?= ADMIN_ENTRY ?>/config" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded">
+            <a href="/<?= $adminEntry ?>/config" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded">
                 取消
             </a>
         </div>
     </form>
 </div>
-
-<?php require_once VIEW_PATH . 'admin/layouts/footer.php'; ?>

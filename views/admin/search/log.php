@@ -117,22 +117,22 @@
 
 <script>
 function cleanLog() {
-    if (!xpkConfirm('确定要清理90天前的搜索日志吗？')) return;
-    
-    fetch(adminUrl('/search/cleanLog'), {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: '_token=<?= $csrfToken ?>&keep_days=90'
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.code === 0) {
-            xpkToast(data.msg, 'success');
-            setTimeout(() => location.reload(), 1000);
-        } else {
-            xpkToast(data.msg, 'error');
-        }
-    })
-    .catch(() => xpkToast('请求失败', 'error'));
+    xpkConfirm('确定要清理90天前的搜索日志吗？', function() {
+        fetch(adminUrl('/search/cleanLog'), {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: '_token=<?= $csrfToken ?>&keep_days=90'
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.code === 0) {
+                xpkToast(data.msg, 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                xpkToast(data.msg, 'error');
+            }
+        })
+        .catch(() => xpkToast('请求失败', 'error'));
+    });
 }
 </script>
