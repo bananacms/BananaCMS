@@ -9,9 +9,11 @@ class AdminBaseController
     protected array $data = [];
     protected ?array $admin = null;
     protected string $adminEntry;
+    protected XpkDatabase $db;
 
     public function __construct()
     {
+        $this->db = XpkDatabase::getInstance();
         $this->checkAuth();
         $this->admin = $_SESSION['admin'] ?? null;
         $this->adminEntry = $this->getAdminEntry();
