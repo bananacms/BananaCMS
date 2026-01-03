@@ -61,6 +61,7 @@ class AdminUserController extends AdminBaseController
         $this->assign('keyword', $keyword);
         $this->assign('status', $status);
         $this->assign('flash', $this->getFlash());
+        $this->assign('csrfToken', $this->csrfToken());
 
         $this->render('user/index', '用户管理');
     }

@@ -86,6 +86,7 @@ include __DIR__ . '/../components/pagination.php';
             <button onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600">&times;</button>
         </div>
         <form id="editForm" method="POST" class="p-6 space-y-4">
+            <input type="hidden" name="_token" value="<?= $csrfToken ?>">
             <input type="hidden" name="user_id" id="edit_user_id">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">用户名</label>
