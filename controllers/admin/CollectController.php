@@ -421,8 +421,7 @@ class AdminCollectController extends AdminBaseController
             $bindModel->saveGlobalBinds($bindData, $nameData);
         }
 
-        $this->flash('success', '绑定保存成功');
-        $this->redirect('/' . $this->adminEntry . '/collect');
+        $this->success('绑定保存成功', ['url' => '/' . $this->adminEntry . '/collect']);
     }
 
     /**
