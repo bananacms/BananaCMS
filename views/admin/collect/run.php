@@ -335,7 +335,8 @@ function doCollect(page) {
         total_added: totalAdded,
         total_updated: totalUpdated,
         total_skipped: totalSkipped,
-        log_id: currentLogId
+        log_id: currentLogId,
+        _token: '<?= $csrfToken ?>'
     });
     
     fetch(adminUrl('/collect/docollect'), {
