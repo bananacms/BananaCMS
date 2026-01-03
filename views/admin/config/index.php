@@ -501,6 +501,7 @@ function uploadLogo(input) {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('type', 'logo');
+    formData.append('_token', '<?= $csrfToken ?>');
     
     fetch(adminUrl('/config/upload'), {
         method: 'POST',
@@ -544,6 +545,7 @@ function uploadTemplate(input) {
     
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('_token', '<?= $csrfToken ?>');
     
     fetch(adminUrl('/config/uploadTemplate'), {
         method: 'POST',

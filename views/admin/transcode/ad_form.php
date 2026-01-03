@@ -82,6 +82,7 @@ function uploadVideo(input) {
     const file = input.files[0];
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('_token', '<?= $csrfToken ?>');
     
     const progress = document.getElementById('uploadProgress');
     const progressBar = document.getElementById('progressBar');
