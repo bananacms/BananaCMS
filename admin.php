@@ -165,6 +165,8 @@ $router->post($adminEntry . '.php/config/save', fn() => (new AdminConfigControll
 $router->post($adminEntry . '.php/config/upload', fn() => (new AdminConfigController())->upload());
 $router->post($adminEntry . '.php/config/uploadTemplate', fn() => (new AdminConfigController())->uploadTemplate());
 $router->post($adminEntry . '.php/config/deleteTemplate', fn() => (new AdminConfigController())->deleteTemplate());
+$router->get($adminEntry . '.php/config/security', fn() => (new AdminConfigController())->security());
+$router->post($adminEntry . '.php/config/security', fn() => (new AdminConfigController())->security());
 
 // 采集管理
 $router->get($adminEntry . '.php/collect', fn() => (new AdminCollectController())->index());
