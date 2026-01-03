@@ -16,7 +16,7 @@
         <?php endif; ?>
         <div>
             <h3 class="text-lg font-bold"><?= htmlspecialchars($short['short_name']) ?></h3>
-            <p class="text-gray-500 text-sm mt-1"><?= htmlspecialchars($short['short_desc'] ?: '暂无简介') ?></p>
+            <p class="text-gray-500 text-sm mt-1"><?= strip_tags($short['short_desc']) ?: '暂无简介' ?></p>
             <p class="text-gray-400 text-xs mt-2">共 <?= count($episodes) ?> 集</p>
         </div>
     </div>
