@@ -120,7 +120,7 @@ class XpkSecurity
                        "form-action 'none'";
                        
             default: // frontend
-                $scriptSrc = $config['security_csp_script_src'] ?? "'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com";
+                $scriptSrc = $config['security_csp_script_src'] ?? "'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://static.cloudflareinsights.com";
                 $styleSrc = $config['security_csp_style_src'] ?? "'self' 'unsafe-inline' https://cdn.tailwindcss.com https://fonts.googleapis.com";
                 $imgSrc = $config['security_csp_img_src'] ?? "'self' data: https: http:";
                 
@@ -129,7 +129,7 @@ class XpkSecurity
                        "style-src $styleSrc; " .
                        "img-src $imgSrc; " .
                        "font-src 'self' https://fonts.gstatic.com data:; " .
-                       "connect-src 'self'; " .
+                       "connect-src 'self' https://cloudflareinsights.com; " .
                        "media-src 'self' https: http:; " .
                        "object-src 'none'; " .
                        "base-uri 'self'; " .
