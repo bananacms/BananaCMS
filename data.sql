@@ -99,6 +99,7 @@ CREATE TABLE `xpk_vod` (
   `vod_down_url` text COMMENT '下载地址',
   `vod_status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态',
   `vod_lock` tinyint(1) NOT NULL DEFAULT 0 COMMENT '锁定:0未锁,1已锁',
+  `vod_ai_rewrite` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'AI改写:0未处理,1已改写,2失败',
   `vod_collect_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '采集站ID',
   `vod_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '更新时间',
   `vod_time_add` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '添加时间',
@@ -112,6 +113,7 @@ CREATE TABLE `xpk_vod` (
   KEY `vod_hits` (`vod_hits`),
   KEY `vod_status` (`vod_status`),
   KEY `vod_collect_id` (`vod_collect_id`),
+  KEY `vod_ai_rewrite` (`vod_ai_rewrite`),
   FULLTEXT KEY `ft_search` (`vod_name`, `vod_sub`, `vod_actor`) WITH PARSER ngram
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='视频表';
 

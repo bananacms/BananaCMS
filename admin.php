@@ -188,6 +188,15 @@ $router->post($adminEntry . '.php/collect/runCron', fn() => (new AdminCollectCon
 $router->get($adminEntry . '.php/collect/log', fn() => (new AdminCollectController())->logList());
 $router->post($adminEntry . '.php/collect/cleanLog', fn() => (new AdminCollectController())->cleanLog());
 
+// AI 内容改写
+require_once CTRL_PATH . 'admin/AiController.php';
+$router->get($adminEntry . '.php/ai', fn() => (new AdminAiController())->index());
+$router->post($adminEntry . '.php/ai/save', fn() => (new AdminAiController())->save());
+$router->post($adminEntry . '.php/ai/test', fn() => (new AdminAiController())->test());
+$router->post($adminEntry . '.php/ai/run', fn() => (new AdminAiController())->run());
+$router->post($adminEntry . '.php/ai/reset', fn() => (new AdminAiController())->reset());
+$router->post($adminEntry . '.php/ai/addField', fn() => (new AdminAiController())->addField());
+
 // 云转码
 require_once CTRL_PATH . 'admin/TranscodeController.php';
 $router->get($adminEntry . '.php/transcode', fn() => (new AdminTranscodeController())->index());

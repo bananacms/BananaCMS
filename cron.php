@@ -407,6 +407,83 @@ function runAuto(): void {
     }
 }
 
+/**
+ * AI 内容改写任务
+ */
+function runAiRewrite(array $options): void {
+    require_once CORE_PATH . 'AiRewrite.php';
+    
+    if (!XpkAiRewrite::isEnabled()) {
+        clog('AI 改写功能未启用或配置不完整');
+        return;
+    }
+    
+    $ai = XpkAiRewrite::fromDatabase();
+    if (!$ai) {
+        clog('加载 AI 配置失败');
+        return;
+    }
+    
+    $db = XpkDatabase::getInstance();
+    
+    // 获取批量大小
+    $batchSize = (int)($db->queryOne(
+        "SELECT config_value FROM " . DB_PREFIX . "config WHERE config_name = 'ai_batch_size'"
+    )['config_value'] ?? 10);
+    
+    // 支持命令行参数覆盖
+    if (!empty($options['batch'])) {
+        $batchSize = (int)$options['batch'];
+    }
+    
+    clog("开始 AI 改写任务，每批处理 {$batchSize} 条");
+    
+    // 获取待处理的视频
+    $videos = $db->query(
+        "SELECT vod_id, vod_name, vod_content FROM " . DB_PREFIX . "vod 
+         WHERE vod_ai_rewrite = 0 AND vod_content != '' AND LENGTH(vod_content) > 20
+         ORDER BY vod_id DESC LIMIT ?",
+        [$batchSize]
+    );
+    
+    if (empty($videos)) {
+        clog('没有待处理的视频');
+        return;
+    }
+    
+    clog("找到 " . count($videos) . " 条待处理视频");
+    
+    $processed = 0;
+    $failed = 0;
+    
+    foreach ($videos as $video) {
+        clog("处理: [{$video['vod_id']}] {$video['vod_name']}");
+        
+        $rewritten = $ai->rewrite($video['vod_content']);
+        
+        if ($rewritten) {
+            $db->execute(
+                "UPDATE " . DB_PREFIX . "vod SET vod_content = ?, vod_ai_rewrite = 1 WHERE vod_id = ?",
+                [$rewritten, $video['vod_id']]
+            );
+            $processed++;
+            clog("  ✓ 改写成功");
+        } else {
+            $db->execute(
+                "UPDATE " . DB_PREFIX . "vod SET vod_ai_rewrite = 2 WHERE vod_id = ?",
+                [$video['vod_id']]
+            );
+            $failed++;
+            clog("  ✗ 改写失败");
+        }
+        
+        // 避免请求过快
+        usleep(500000);
+    }
+    
+    clog("完成：成功 {$processed} 条，失败 {$failed} 条");
+}
+
 // 主逻辑
 switch ($action) {
     case 'collect':
@@ -414,6 +491,9 @@ switch ($action) {
         break;
     case 'auto':
         runAuto();
+        break;
+    case 'ai_rewrite':
+        runAiRewrite($options);
         break;
     default:
         echo "香蕉CMS 定时任务\n";
@@ -425,5 +505,7 @@ switch ($action) {
         echo "  php cron.php collect --id=1       只采集指定采集站\n";
         echo "  php cron.php collect --type=6     只采集指定分类\n";
         echo "  php cron.php auto                 执行自动采集（根据后台配置）\n";
+        echo "  php cron.php ai_rewrite           执行 AI 内容改写\n";
+        echo "  php cron.php ai_rewrite --batch=20  指定每批处理数量\n";
         break;
 }
