@@ -243,7 +243,7 @@ class AdminAdController extends AdminBaseController
             );
         }
         
-        $this->jsonResponse(['code' => 0, 'msg' => '配置保存成功']);
+        $this->success('配置保存成功');
     }
 
     /**
