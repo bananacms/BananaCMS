@@ -11,8 +11,12 @@ class XpkVod extends XpkModel
 
     /**
      * 获取视频列表
+     * @param int $num 数量
+     * @param string $order 排序方式
+     * @param int|null $typeId 分类ID
+     * @param bool $includeChildren 是否包含子分类（一级分类时使用 vod_type_id_1 查询）
      */
-    public function getList(int $num = 10, string $order = 'time', ?int $typeId = null): array
+    public function getList(int $num = 10, string $order = 'time', ?int $typeId = null, bool $includeChildren = true): array
     {
         // 授权校验
         if (!$this->xpk_init()) {
@@ -32,7 +36,22 @@ class XpkVod extends XpkModel
         $params = [];
 
         if ($typeId) {
-            $sql .= " AND vod_type_id = ?";
+            if ($includeChildren) {
+                // 检查是否为一级分类（type_pid = 0）
+                $typeModel = new XpkType();
+                $type = $typeModel->getById($typeId);
+                
+                if ($type && $type['type_pid'] == 0) {
+                    // 一级分类：使用 vod_type_id_1 查询，包含所有子分类的视频
+                    $sql .= " AND vod_type_id_1 = ?";
+                } else {
+                    // 子分类：精确匹配 vod_type_id
+                    $sql .= " AND vod_type_id = ?";
+                }
+            } else {
+                // 不包含子分类，精确匹配
+                $sql .= " AND vod_type_id = ?";
+            }
             $params[] = $typeId;
         }
 
@@ -344,24 +363,39 @@ class XpkVod extends XpkModel
      */
     public function getByType(int $typeId, int $page = 1, int $pageSize = 20): array
     {
-        // 获取该分类及其所有子分类的ID
         $typeModel = new XpkType();
-        $typeIds = $typeModel->getChildIds($typeId);
-        // 确保数组键连续（array_unique 可能导致键不连续）
-        $typeIds = array_values($typeIds);
+        $type = $typeModel->getById($typeId);
         
         $offset = ($page - 1) * $pageSize;
-        $placeholders = implode(',', array_fill(0, count($typeIds), '?'));
         
-        $sql = "SELECT * FROM {$this->table} 
-                WHERE vod_status = 1 AND vod_type_id IN ({$placeholders})
-                ORDER BY vod_time DESC LIMIT {$pageSize} OFFSET {$offset}";
-        
-        $countSql = "SELECT COUNT(*) as total FROM {$this->table} 
-                     WHERE vod_status = 1 AND vod_type_id IN ({$placeholders})";
-        
-        $list = $this->db->query($sql, $typeIds);
-        $total = $this->db->queryOne($countSql, $typeIds)['total'] ?? 0;
+        // 如果是一级分类（type_pid = 0），使用 vod_type_id_1 查询更高效
+        if ($type && $type['type_pid'] == 0) {
+            $sql = "SELECT * FROM {$this->table} 
+                    WHERE vod_status = 1 AND vod_type_id_1 = ?
+                    ORDER BY vod_time DESC LIMIT {$pageSize} OFFSET {$offset}";
+            
+            $countSql = "SELECT COUNT(*) as total FROM {$this->table} 
+                         WHERE vod_status = 1 AND vod_type_id_1 = ?";
+            
+            $list = $this->db->query($sql, [$typeId]);
+            $total = $this->db->queryOne($countSql, [$typeId])['total'] ?? 0;
+        } else {
+            // 子分类：获取该分类及其所有子分类的ID
+            $typeIds = $typeModel->getChildIds($typeId);
+            $typeIds = array_values($typeIds);
+            
+            $placeholders = implode(',', array_fill(0, count($typeIds), '?'));
+            
+            $sql = "SELECT * FROM {$this->table} 
+                    WHERE vod_status = 1 AND vod_type_id IN ({$placeholders})
+                    ORDER BY vod_time DESC LIMIT {$pageSize} OFFSET {$offset}";
+            
+            $countSql = "SELECT COUNT(*) as total FROM {$this->table} 
+                         WHERE vod_status = 1 AND vod_type_id IN ({$placeholders})";
+            
+            $list = $this->db->query($sql, $typeIds);
+            $total = $this->db->queryOne($countSql, $typeIds)['total'] ?? 0;
+        }
         
         return [
             'list' => $list,

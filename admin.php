@@ -128,6 +128,7 @@ $router->get($adminEntry . '.php/type/edit/{id}', fn($id) => (new AdminTypeContr
 $router->post($adminEntry . '.php/type/edit/{id}', fn($id) => (new AdminTypeController())->edit((int)$id));
 $router->post($adminEntry . '.php/type/delete', fn() => (new AdminTypeController())->delete());
 $router->post($adminEntry . '.php/type/batchDelete', fn() => (new AdminTypeController())->batchDelete());
+$router->post($adminEntry . '.php/type/fixVodTypeId1', fn() => (new AdminTypeController())->fixVodTypeId1());
 
 // 演员管理
 $router->get($adminEntry . '.php/actor', fn() => (new AdminActorController())->index());

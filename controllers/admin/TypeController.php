@@ -125,10 +125,55 @@ class AdminTypeController extends AdminBaseController
             $this->error('不能将自己设为父级分类');
         }
 
+        // 检查父分类是否变更，需要同步更新视频的一级分类ID
+        $oldPid = (int)$type['type_pid'];
+        $newPid = $data['type_pid'];
+        
         $this->typeModel->update($id, $data);
+        
+        // 如果父分类变更，同步更新该分类及其子分类下所有视频的 vod_type_id_1
+        if ($oldPid !== $newPid) {
+            $this->syncVodTopLevelType($id, $newPid);
+        }
+        
         $this->log('编辑', '分类', "ID:{$id} {$data['type_name']}");
 
         $this->success('保存成功');
+    }
+    
+    /**
+     * 同步更新视频的一级分类ID
+     * 当分类的父级变更时，需要更新该分类及其子分类下所有视频的 vod_type_id_1
+     */
+    private function syncVodTopLevelType(int $typeId, int $newPid): void
+    {
+        $db = XpkDatabase::getInstance();
+        
+        // 计算新的一级分类ID
+        // 如果 newPid = 0，说明该分类变成了一级分类，vod_type_id_1 = typeId
+        // 如果 newPid > 0，说明该分类变成了子分类，vod_type_id_1 = newPid
+        $newTopLevelId = $newPid > 0 ? $newPid : $typeId;
+        
+        // 获取该分类及其所有子分类的ID
+        // 注意：此时数据库中的 type_pid 已经更新，所以 getChildIds 会返回正确的子分类
+        $typeIds = $this->typeModel->getChildIds($typeId);
+        
+        if (empty($typeIds)) {
+            return;
+        }
+        
+        // 批量更新视频的一级分类ID
+        $placeholders = implode(',', array_fill(0, count($typeIds), '?'));
+        $params = array_merge([$newTopLevelId], $typeIds);
+        
+        $affected = $db->execute(
+            "UPDATE " . DB_PREFIX . "vod SET vod_type_id_1 = ? WHERE vod_type_id IN ({$placeholders})",
+            $params
+        );
+        
+        if ($affected > 0) {
+            $this->log('同步', '分类', "更新 {$affected} 个视频的一级分类为 ID:{$newTopLevelId}");
+        }
     }
 
     /**
@@ -240,5 +285,50 @@ class AdminTypeController extends AdminBaseController
         } else {
             $this->success("成功删除 {$success} 个分类");
         }
+    }
+    
+    /**
+     * 修复视频一级分类数据（AJAX）
+     * 根据当前分类的父子关系，批量更新所有视频的 vod_type_id_1
+     */
+    public function fixVodTypeId1(): void
+    {
+        if (!$this->verifyCsrf()) {
+            $this->error('非法请求');
+        }
+        
+        $db = XpkDatabase::getInstance();
+        
+        // 获取所有分类
+        $types = $this->typeModel->getAll();
+        
+        // 构建分类ID到一级分类ID的映射
+        $typeMap = [];
+        foreach ($types as $type) {
+            $typeId = (int)$type['type_id'];
+            $typePid = (int)$type['type_pid'];
+            
+            // 如果是一级分类（pid=0），一级分类ID就是自己
+            // 如果是子分类，一级分类ID就是父分类ID
+            $typeMap[$typeId] = $typePid > 0 ? $typePid : $typeId;
+        }
+        
+        if (empty($typeMap)) {
+            $this->error('没有分类数据');
+        }
+        
+        // 批量更新视频的 vod_type_id_1
+        $totalUpdated = 0;
+        
+        foreach ($typeMap as $typeId => $topLevelId) {
+            $affected = $db->execute(
+                "UPDATE " . DB_PREFIX . "vod SET vod_type_id_1 = ? WHERE vod_type_id = ? AND (vod_type_id_1 != ? OR vod_type_id_1 IS NULL OR vod_type_id_1 = 0)",
+                [$topLevelId, $typeId, $topLevelId]
+            );
+            $totalUpdated += $affected;
+        }
+        
+        $this->log('修复数据', '分类', "更新 {$totalUpdated} 个视频的一级分类ID");
+        $this->success("修复完成，更新了 {$totalUpdated} 个视频的一级分类");
     }
 }

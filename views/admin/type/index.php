@@ -7,6 +7,10 @@
 <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold">分类管理</h1>
     <div class="flex gap-2">
+        <button onclick="fixVodTypeId1()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded flex items-center gap-1" title="修复已有视频的一级分类关联数据">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            修复数据
+        </button>
         <button id="batchDeleteBtn" onclick="batchDelete()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded hidden">
             批量删除 (<span id="selectedCount">0</span>)
         </button>
@@ -249,6 +253,27 @@ function batchDelete() {
                 setTimeout(() => location.reload(), 1000);
             } else {
                 xpkToast(data.msg || '删除失败', 'error');
+            }
+        })
+        .catch(() => xpkToast('请求失败', 'error'));
+    });
+}
+
+// 修复视频一级分类数据
+function fixVodTypeId1() {
+    xpkConfirm('此操作将根据当前分类的父子关系，批量更新所有视频的一级分类ID。\n\n适用于：\n1. 修改了分类的父级关系后\n2. 采集的视频一级分类显示不正确\n\n确定执行？', function() {
+        const formData = new FormData();
+        formData.append('_token', '<?= $csrfToken ?>');
+        fetch(adminUrl('/type/fixVodTypeId1'), {
+            method: 'POST',
+            body: formData
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.code === 0) {
+                xpkToast(data.msg, 'success');
+            } else {
+                xpkToast(data.msg || '修复失败', 'error');
             }
         })
         .catch(() => xpkToast('请求失败', 'error'));
