@@ -56,6 +56,7 @@ class VodController extends BaseController
         $result = $this->vodModel->getHotPaged($page, PAGE_SIZE);
         
         $this->assign('vodList', $result['list']);
+        $this->assign('hotList', $result['list']); // 兼容 bilibili 模板
         $this->assign('page', $result['page']);
         $this->assign('totalPages', $result['totalPages']);
         $this->assign('total', $result['total']);

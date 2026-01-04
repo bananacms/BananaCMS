@@ -76,7 +76,7 @@ class TypeController extends BaseController
         $this->assign('title', $this->seoTitle('type', $seoVars));
         $this->assign('keywords', $this->seoKeywords('type', $seoVars));
         
-        $this->render('type/index');
+        $this->render('vod/type');
     }
 
     /**
