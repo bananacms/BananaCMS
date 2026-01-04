@@ -151,9 +151,22 @@
                 重置全部状态
             </button>
         </div>
-        <p class="text-xs text-gray-500 mt-3">
-            提示：建议配置定时任务自动执行，命令：<code class="bg-gray-100 px-1 rounded">php cron.php ai_rewrite</code>
-        </p>
+        <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm">
+            <p class="font-medium text-yellow-800 mb-2 flex items-center">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                定时任务配置（宝塔/服务器）
+            </p>
+            <p class="text-yellow-700 mb-1">命令必须使用<span class="font-bold">绝对路径</span>，否则会报错 "Could not open input file"</p>
+            <code class="block bg-yellow-100 px-2 py-1 rounded text-yellow-900 mt-2 select-all"><?= PHP_BINARY ?> <?= ROOT_PATH ?>cron.php ai_rewrite</code>
+            <p class="text-yellow-600 mt-2 text-xs flex items-center">
+                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                可直接复制上方命令到宝塔定时任务
+            </p>
+        </div>
     </div>
 </div>
 

@@ -93,10 +93,16 @@
         <div class="bg-white rounded-lg shadow p-6">
             <h3 class="font-bold mb-4">定时任务设置</h3>
             
-            <div class="bg-gray-900 rounded p-4 font-mono text-sm text-green-400 overflow-x-auto">
-                <p class="text-gray-500"># 每小时执行一次自动采集</p>
-                <p>0 * * * * php <?= ROOT_PATH ?>cron.php auto >> <?= ROOT_PATH ?>runtime/cron.log 2>&1</p>
+            <div class="bg-gray-900 rounded p-4 font-mono text-sm text-green-400 overflow-x-auto select-all">
+                <p class="text-gray-500"># 每小时执行一次自动采集（宝塔面板添加定时任务）</p>
+                <p><?= PHP_BINARY ?> <?= ROOT_PATH ?>cron.php auto</p>
             </div>
+            <p class="text-xs text-gray-500 mt-2 flex items-center">
+                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                可直接复制上方命令到宝塔定时任务
+            </p>
             
             <div class="mt-4 text-sm text-gray-600 space-y-2">
                 <p class="flex items-center">
@@ -149,13 +155,12 @@
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                命令行用法
+                其他命令参考
             </h4>
             <div class="text-sm text-blue-700 space-y-1">
-                <p><code>php cron.php collect</code> - 采集所有启用的采集站</p>
-                <p><code>php cron.php collect --hours=24</code> - 只采24小时内更新</p>
-                <p><code>php cron.php collect --id=1</code> - 只采集指定采集站</p>
-                <p><code>php cron.php auto</code> - 按后台配置执行</p>
+                <p><code class="select-all"><?= PHP_BINARY ?> <?= ROOT_PATH ?>cron.php collect</code> - 采集所有启用的采集站</p>
+                <p><code class="select-all"><?= PHP_BINARY ?> <?= ROOT_PATH ?>cron.php collect --hours=24</code> - 只采24小时内更新</p>
+                <p><code class="select-all"><?= PHP_BINARY ?> <?= ROOT_PATH ?>cron.php collect --id=1</code> - 只采集指定采集站</p>
             </div>
         </div>
     </div>

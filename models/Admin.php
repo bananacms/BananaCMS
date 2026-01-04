@@ -55,4 +55,16 @@ class XpkAdmin extends XpkModel
         $admin = $this->find($id);
         return $admin && $admin['admin_id'] == 1;
     }
+
+    /**
+     * 更新密码
+     */
+    public function updatePassword(int $id, string $newPassword): void
+    {
+        $hash = $this->hashPassword($newPassword);
+        $this->db->execute(
+            "UPDATE {$this->table} SET admin_pwd = ? WHERE admin_id = ?",
+            [$hash, $id]
+        );
+    }
 }

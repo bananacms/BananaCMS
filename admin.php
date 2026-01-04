@@ -95,6 +95,10 @@ $router->get($adminEntry . '.php/login', fn() => (new AdminAuthController())->lo
 $router->post($adminEntry . '.php/login', fn() => (new AdminAuthController())->doLogin());
 $router->get($adminEntry . '.php/logout', fn() => (new AdminAuthController())->logout());
 
+// 修改密码
+$router->get($adminEntry . '.php/password', fn() => (new AdminAuthController())->password());
+$router->post($adminEntry . '.php/password', fn() => (new AdminAuthController())->doPassword());
+
 // 仪表盘
 $router->get($adminEntry . '.php/dashboard', fn() => (new AdminDashboardController())->index());
 

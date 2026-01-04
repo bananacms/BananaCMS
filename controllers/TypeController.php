@@ -21,19 +21,19 @@ class TypeController extends BaseController
      */
     public function all(): void
     {
-        // 获取所有一级分类
+        // 优先获取一级分类（type_pid = 0）
         $typeList = $this->typeModel->getList(0);
         
-        // 如果没有一级分类，获取所有分类
+        // 如果没有一级分类，使用与导航相同的逻辑获取所有分类
         if (empty($typeList)) {
-            $typeList = $this->typeModel->getAll(['type_status' => 1]);
+            $typeList = $this->typeModel->getNav(0); // 0表示不限制数量
         }
         
         $this->assign('typeList', $typeList);
         $this->assign('types', $typeList); // 兼容 netflix 模板
-        $this->assign('title', '全部分类 - ' . SITE_NAME);
-        $this->assign('keywords', '分类,视频分类,' . SITE_KEYWORDS);
-        $this->assign('description', '浏览全部视频分类 - ' . SITE_DESCRIPTION);
+        $this->assign('title', '全部分类 - ' . $this->data['siteName']);
+        $this->assign('keywords', '分类,视频分类,' . $this->data['siteKeywords']);
+        $this->assign('description', '浏览全部视频分类 - ' . $this->data['siteDescription']);
         
         $this->render('type/all');
     }

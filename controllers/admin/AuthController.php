@@ -103,4 +103,93 @@ class AdminAuthController
         header('Location: /' . $this->getAdminEntry() . '/login');
         exit;
     }
+
+    /**
+     * 修改密码页面
+     */
+    public function password(): void
+    {
+        if (!isset($_SESSION['admin'])) {
+            header('Location: /' . $this->getAdminEntry() . '/login');
+            exit;
+        }
+
+        // 生成 CSRF Token
+        if (empty($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
+
+        $error = $_SESSION['password_error'] ?? '';
+        $success = $_SESSION['password_success'] ?? '';
+        unset($_SESSION['password_error'], $_SESSION['password_success']);
+        
+        $csrfToken = $_SESSION['csrf_token'];
+        $admin = $_SESSION['admin'];
+        $adminEntry = $this->getAdminEntry();
+
+        require VIEW_PATH . 'admin/password.php';
+    }
+
+    /**
+     * 处理修改密码
+     */
+    public function doPassword(): void
+    {
+        if (!isset($_SESSION['admin'])) {
+            header('Location: /' . $this->getAdminEntry() . '/login');
+            exit;
+        }
+
+        // CSRF 验证
+        $token = $_POST['_token'] ?? '';
+        if (empty($token) || !hash_equals($_SESSION['csrf_token'] ?? '', $token)) {
+            $_SESSION['password_error'] = '安全验证失败，请刷新页面重试';
+            header('Location: /' . $this->getAdminEntry() . '/password');
+            exit;
+        }
+
+        $oldPassword = $_POST['old_password'] ?? '';
+        $newPassword = $_POST['new_password'] ?? '';
+        $confirmPassword = $_POST['confirm_password'] ?? '';
+
+        if (empty($oldPassword)) {
+            $_SESSION['password_error'] = '请输入原密码';
+            header('Location: /' . $this->getAdminEntry() . '/password');
+            exit;
+        }
+
+        if (empty($newPassword) || strlen($newPassword) < 6) {
+            $_SESSION['password_error'] = '新密码至少6个字符';
+            header('Location: /' . $this->getAdminEntry() . '/password');
+            exit;
+        }
+
+        if ($newPassword !== $confirmPassword) {
+            $_SESSION['password_error'] = '两次输入的新密码不一致';
+            header('Location: /' . $this->getAdminEntry() . '/password');
+            exit;
+        }
+
+        $adminModel = new XpkAdmin();
+        $admin = $adminModel->find($_SESSION['admin']['id']);
+
+        if (!$admin) {
+            $_SESSION['password_error'] = '管理员不存在';
+            header('Location: /' . $this->getAdminEntry() . '/password');
+            exit;
+        }
+
+        if (!$adminModel->verifyPassword($oldPassword, $admin['admin_pwd'])) {
+            $_SESSION['password_error'] = '原密码错误';
+            header('Location: /' . $this->getAdminEntry() . '/password');
+            exit;
+        }
+
+        // 更新密码
+        $adminModel->updatePassword($admin['admin_id'], $newPassword);
+
+        $_SESSION['password_success'] = '密码修改成功';
+        header('Location: /' . $this->getAdminEntry() . '/password');
+        exit;
+    }
 }
