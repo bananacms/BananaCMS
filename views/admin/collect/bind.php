@@ -60,10 +60,10 @@
 <?php if (!empty($globalBinds)): ?>
 <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
     <p class="text-gray-700 text-sm flex items-center">
-        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-4 h-4 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
         </svg>
-        已有 <span class="font-bold"><?= count($globalBinds) ?></span> 条全局绑定，未设置专属绑定的分类将使用全局绑定
+        已有 <span class="font-bold mx-1"><?= count($globalBinds) ?></span> 条全局绑定。未单独设置的分类将自动使用全局绑定（表格中显示"全局"标签）。
     </p>
 </div>
 <?php endif; ?>
@@ -73,9 +73,18 @@
 
     <div class="mb-4 flex items-center justify-between">
         <span class="text-sm text-gray-600">将远程分类绑定到本地分类，选择"不采集"的分类将被跳过。</span>
-        <label class="flex items-center gap-2 cursor-pointer">
+        <label class="flex items-center gap-2 cursor-pointer group relative">
             <input type="checkbox" name="save_as_global" value="1" class="w-4 h-4 rounded">
             <span class="text-sm text-gray-700">同时保存为全局绑定</span>
+            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div class="absolute bottom-full right-0 mb-2 w-64 p-3 bg-gray-800 text-white text-xs rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+                <p class="font-medium mb-1">什么是全局绑定？</p>
+                <p>勾选后，此绑定配置将作为默认配置，新添加的采集站会自动使用。</p>
+                <p class="mt-1">适合多个采集站分类ID相同的情况，避免重复配置。</p>
+                <div class="absolute bottom-0 right-4 translate-y-1/2 rotate-45 w-2 h-2 bg-gray-800"></div>
+            </div>
         </label>
     </div>
 
