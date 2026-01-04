@@ -55,6 +55,13 @@ class XpkRouter
             }
             // URL解码（支持中文等特殊字符）
             $uri = urldecode($uri);
+            
+            // 如果 URI 为空或只是脚本名，尝试使用 PATH_INFO
+            $scriptName = trim($_SERVER['SCRIPT_NAME'] ?? '', '/');
+            if (($uri === $scriptName || empty($uri)) && !empty($_SERVER['PATH_INFO'])) {
+                $uri = $scriptName . $_SERVER['PATH_INFO'];
+                $uri = trim($uri, '/');
+            }
         }
 
         foreach ($this->routes as $route) {
@@ -93,6 +100,16 @@ class XpkRouter
      */
     private function convertPattern(string $pattern): string
     {
+        // 先转义正则特殊字符（保留花括号占位符）
+        $pattern = preg_replace_callback('/\{(\w+)\}/', function($m) {
+            return '___PLACEHOLDER_' . $m[1] . '___';
+        }, $pattern);
+        $pattern = preg_quote($pattern, '#');
+        $pattern = preg_replace_callback('/___PLACEHOLDER_(\w+)___/', function($m) {
+            return '{' . $m[1] . '}';
+        }, $pattern);
+        
+        // 替换占位符为正则表达式
         $pattern = str_replace(
             ['{id}', '{slug}', '{page}', '{sid}', '{nid}', '{type}', '{keyword}', '{ep}', '{key}'],
             [
