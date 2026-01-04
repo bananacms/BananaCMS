@@ -10,7 +10,8 @@ if (strpos($phpBinary, 'php-fpm') !== false || strpos($phpBinary, 'fpm') !== fal
         '/usr/local/bin/php',
     ];
     foreach ($possiblePaths as $path) {
-        if (file_exists($path) && is_executable($path)) {
+        // 使用安全的文件检查函数
+        if (xpk_file_exists($path) && xpk_is_executable($path)) {
             $phpBinary = $path;
             break;
         }

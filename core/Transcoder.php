@@ -34,7 +34,7 @@ class XpkTranscoder
         // 检查 shell_exec 是否可用
         if (!function_exists('shell_exec') || $this->isShellExecDisabled()) {
             // 如果是完整路径且文件存在，认为命令存在
-            if (file_exists($cmd) && is_executable($cmd)) {
+            if (xpk_file_exists($cmd) && xpk_is_executable($cmd)) {
                 return true;
             }
             return false;

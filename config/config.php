@@ -43,6 +43,27 @@ define('RUNTIME_PATH', ROOT_PATH . 'runtime/');
 // 时区
 date_default_timezone_set('Asia/Shanghai');
 
+// 安全的文件检查函数，避免 open_basedir 限制错误
+if (!function_exists('xpk_file_exists')) {
+    function xpk_file_exists(string $path): bool {
+        try {
+            return @file_exists($path);
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+}
+
+if (!function_exists('xpk_is_executable')) {
+    function xpk_is_executable(string $path): bool {
+        try {
+            return @is_executable($path);
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+}
+
 // 分页配置
 define('PAGE_SIZE', 24);
 
