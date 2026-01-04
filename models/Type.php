@@ -150,7 +150,9 @@ class XpkType extends XpkModel
             return $ids;
         }
         
-        // 没有子分类也没有视频，尝试根据分类名称匹配相关分类
+        // 没有子分类也没有视频时，直接返回当前分类ID
+        // 注释掉自动映射功能，避免分类跳转错误
+        /*
         $type = $this->getById($pid);
         if ($type) {
             $relatedIds = $this->getRelatedTypeIds($type['type_name']);
@@ -158,6 +160,7 @@ class XpkType extends XpkModel
                 $ids = array_merge($ids, $relatedIds);
             }
         }
+        */
         
         return array_values(array_unique($ids));
     }
