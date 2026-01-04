@@ -93,16 +93,15 @@
         <div class="bg-white rounded-lg shadow p-6">
             <h3 class="font-bold mb-4">定时任务设置</h3>
             
-            <div class="bg-gray-900 rounded p-4 font-mono text-sm text-green-400 overflow-x-auto select-all">
-                <p class="text-gray-500"># 每小时执行一次自动采集（宝塔面板添加定时任务）</p>
-                <p><?= PHP_BINARY ?> <?= ROOT_PATH ?>cron.php auto</p>
+            <div class="relative">
+                <div id="cronCmd" class="bg-gray-900 rounded p-4 pr-12 font-mono text-sm text-green-400 overflow-x-auto"><?= PHP_BINARY ?> <?= ROOT_PATH ?>cron.php auto</div>
+                <button onclick="copyCommand('cronCmd')" class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-white rounded hover:bg-gray-700" title="复制命令">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                </button>
             </div>
-            <p class="text-xs text-gray-500 mt-2 flex items-center">
-                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                可直接复制上方命令到宝塔定时任务
-            </p>
+            <p class="text-xs text-gray-500 mt-2">宝塔面板添加定时任务，执行周期建议设为每小时</p>
             
             <div class="mt-4 text-sm text-gray-600 space-y-2">
                 <p class="flex items-center">
@@ -157,16 +156,58 @@
                 </svg>
                 其他命令参考
             </h4>
-            <div class="text-sm text-blue-700 space-y-1">
-                <p><code class="select-all"><?= PHP_BINARY ?> <?= ROOT_PATH ?>cron.php collect</code> - 采集所有启用的采集站</p>
-                <p><code class="select-all"><?= PHP_BINARY ?> <?= ROOT_PATH ?>cron.php collect --hours=24</code> - 只采24小时内更新</p>
-                <p><code class="select-all"><?= PHP_BINARY ?> <?= ROOT_PATH ?>cron.php collect --id=1</code> - 只采集指定采集站</p>
+            <div class="text-sm text-blue-700 space-y-2">
+                <div class="flex items-center justify-between bg-blue-100 rounded px-2 py-1">
+                    <code id="cmd1"><?= PHP_BINARY ?> <?= ROOT_PATH ?>cron.php collect</code>
+                    <button onclick="copyCommand('cmd1')" class="ml-2 text-blue-600 hover:text-blue-800" title="复制">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                    </button>
+                </div>
+                <p class="text-xs pl-2">采集所有启用的采集站</p>
+                
+                <div class="flex items-center justify-between bg-blue-100 rounded px-2 py-1">
+                    <code id="cmd2"><?= PHP_BINARY ?> <?= ROOT_PATH ?>cron.php collect --hours=24</code>
+                    <button onclick="copyCommand('cmd2')" class="ml-2 text-blue-600 hover:text-blue-800" title="复制">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                    </button>
+                </div>
+                <p class="text-xs pl-2">只采24小时内更新</p>
+                
+                <div class="flex items-center justify-between bg-blue-100 rounded px-2 py-1">
+                    <code id="cmd3"><?= PHP_BINARY ?> <?= ROOT_PATH ?>cron.php collect --id=1</code>
+                    <button onclick="copyCommand('cmd3')" class="ml-2 text-blue-600 hover:text-blue-800" title="复制">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                    </button>
+                </div>
+                <p class="text-xs pl-2">只采集指定采集站</p>
             </div>
         </div>
     </div>
 </div>
 
 <script>
+function copyCommand(elementId) {
+    const text = document.getElementById(elementId).textContent;
+    navigator.clipboard.writeText(text).then(() => {
+        xpkToast('已复制到剪贴板', 'success');
+    }).catch(() => {
+        // 降级方案
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        xpkToast('已复制到剪贴板', 'success');
+    });
+}
+
 document.getElementById('selectAllCollects').addEventListener('change', function() {
     document.querySelectorAll('.collect-check').forEach(cb => {
         cb.checked = false;

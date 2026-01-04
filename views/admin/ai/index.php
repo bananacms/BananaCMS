@@ -158,14 +158,15 @@
                 </svg>
                 定时任务配置（宝塔/服务器）
             </p>
-            <p class="text-yellow-700 mb-1">命令必须使用<span class="font-bold">绝对路径</span>，否则会报错 "Could not open input file"</p>
-            <code class="block bg-yellow-100 px-2 py-1 rounded text-yellow-900 mt-2 select-all"><?= PHP_BINARY ?> <?= ROOT_PATH ?>cron.php ai_rewrite</code>
-            <p class="text-yellow-600 mt-2 text-xs flex items-center">
-                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                可直接复制上方命令到宝塔定时任务
-            </p>
+            <p class="text-yellow-700 mb-2">命令必须使用<span class="font-bold">绝对路径</span>，否则会报错 "Could not open input file"</p>
+            <div class="relative">
+                <code id="aiCronCmd" class="block bg-yellow-100 px-3 py-2 pr-10 rounded text-yellow-900"><?= PHP_BINARY ?> <?= ROOT_PATH ?>cron.php ai_rewrite</code>
+                <button onclick="copyAiCmd()" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-yellow-700 hover:text-yellow-900 rounded hover:bg-yellow-200" title="复制命令">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -185,6 +186,21 @@
 
 <script>
 const adminEntry = '<?= $adminEntry ?>';
+
+function copyAiCmd() {
+    const text = document.getElementById('aiCronCmd').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+        showToast('已复制到剪贴板', 'success');
+    }).catch(() => {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showToast('已复制到剪贴板', 'success');
+    });
+}
 
 function getFormData() {
     return {
