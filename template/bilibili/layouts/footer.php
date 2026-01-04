@@ -38,8 +38,8 @@
                     <h4 class="text-gray-700 text-sm font-medium mb-3">分类</h4>
                     <div class="space-y-2">
                         <?php if (!empty($navTypes)): ?>
-                            <?php foreach (array_slice($navTypes, 0, 4) as $type): ?>
-                                <a href="<?php echo xpk_page_url('type', ['id' => $type['type_id'], 'slug' => $type['type_en']]); ?>" class="block text-gray-500 hover:text-pink-500 text-sm"><?php echo htmlspecialchars($type['type_name']); ?></a>
+                            <?php foreach (array_slice($navTypes, 0, 4) as $navItem): ?>
+                                <a href="<?php echo xpk_page_url('type', ['id' => $navItem['type_id'], 'slug' => $navItem['type_en']]); ?>" class="block text-gray-500 hover:text-pink-500 text-sm"><?php echo htmlspecialchars($navItem['type_name']); ?></a>
                             <?php endforeach; ?>
                         <?php endif; ?>
                     </div>

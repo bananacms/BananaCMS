@@ -98,8 +98,8 @@
                 <div class="border-t border-gray-700 pt-4 mt-4">
                     <p class="text-sm text-gray-500 mb-3">分类</p>
                     <?php if (!empty($navTypes)): ?>
-                        <?php foreach ($navTypes as $type): ?>
-                            <a href="<?php echo xpk_page_url('type', ['id' => $type['type_id'], 'slug' => $type['type_en']]); ?>" class="block text-xl text-gray-400 py-2 hover:text-white"><?php echo htmlspecialchars($type['type_name']); ?></a>
+                        <?php foreach ($navTypes as $navItem): ?>
+                            <a href="<?php echo xpk_page_url('type', ['id' => $navItem['type_id'], 'slug' => $navItem['type_en']]); ?>" class="block text-xl text-gray-400 py-2 hover:text-white"><?php echo htmlspecialchars($navItem['type_name']); ?></a>
                         <?php endforeach; ?>
                     <?php endif; ?>
                     <a href="/type/all" class="block text-xl text-red-500 py-2 mt-2 hover:text-red-400">查看全部分类 →</a>
