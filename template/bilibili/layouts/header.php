@@ -7,6 +7,7 @@
     <meta name="keywords" content="<?php echo htmlspecialchars($keywords ?? $siteKeywords ?? SITE_KEYWORDS); ?>">
     <meta name="description" content="<?php echo htmlspecialchars($description ?? $siteDescription ?? SITE_DESCRIPTION); ?>">
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/static/css/xpk.css">
     <?php if (!empty($noindex)): ?><meta name="robots" content="noindex, nofollow"><?php endif; ?>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -40,11 +41,14 @@
                         <?php endif; ?>
                     </a>
                     <div class="hidden md:flex space-x-4 text-sm">
-                        <a href="/" class="text-pink-500 border-b-2 border-pink-500 pb-4 pt-4 nav-link" data-page="home">首页</a>
+                        <a href="/" class="<?php echo empty($type) ? 'text-pink-500 border-b-2 border-pink-500' : 'hover:text-pink-500'; ?> pb-4 pt-4 nav-link" data-page="home">首页</a>
                         <a href="/hot" class="hover:text-pink-500 pb-4 pt-4 nav-link" data-page="hot">热门</a>
                         <?php if (!empty($navTypes)): ?>
-                            <?php foreach (array_slice($navTypes, 0, 5) as $type): ?>
-                                <a href="<?php echo xpk_page_url('type', ['id' => $type['type_id'], 'slug' => $type['type_en']]); ?>" class="hover:text-pink-500 pb-4 pt-4"><?php echo htmlspecialchars($type['type_name']); ?></a>
+                            <?php 
+                            $currentTopId = isset($type) ? (($type['type_pid'] == 0) ? $type['type_id'] : $type['type_pid']) : 0;
+                            ?>
+                            <?php foreach (array_slice($navTypes, 0, 5) as $navType): ?>
+                                <a href="<?php echo xpk_page_url('type', ['id' => $navType['type_id'], 'slug' => $navType['type_en']]); ?>" class="<?php echo ($navType['type_id'] == $currentTopId) ? 'text-pink-500 border-b-2 border-pink-500' : 'hover:text-pink-500'; ?> pb-4 pt-4"><?php echo htmlspecialchars($navType['type_name']); ?></a>
                             <?php endforeach; ?>
                         <?php endif; ?>
                     </div>

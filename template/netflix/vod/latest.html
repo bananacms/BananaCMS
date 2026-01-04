@@ -21,9 +21,9 @@ include $netflixLayoutPath . 'header.php';
             </div>
             <div class="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
                 <p class="text-xs md:text-sm truncate"><?php echo htmlspecialchars($vod['vod_name']); ?></p>
-                <p class="text-xs text-gray-400"><?php echo number_format($vod['vod_hits']); ?>次播放</p>
+                <p class="text-xs text-gray-400"><?php echo number_format($vod['vod_hits'] ?? 0); ?>次播放</p>
             </div>
-            <?php if ($vod['vod_remarks']): ?>
+            <?php if (!empty($vod['vod_remarks'])): ?>
             <span class="absolute top-1 right-1 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded"><?php echo $vod['vod_remarks']; ?></span>
             <?php endif; ?>
         </a>

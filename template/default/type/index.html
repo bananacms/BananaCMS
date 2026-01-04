@@ -41,10 +41,10 @@
                  alt="<?= htmlspecialchars($vod['vod_name']) ?>" 
                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                  loading="lazy">
-            <?php if ($vod['vod_remarks']): ?>
+            <?php if (!empty($vod['vod_remarks'])): ?>
             <span class="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded"><?= htmlspecialchars($vod['vod_remarks']) ?></span>
             <?php endif; ?>
-            <?php if ($vod['vod_score'] > 0): ?>
+            <?php if (!empty($vod['vod_score']) && $vod['vod_score'] > 0): ?>
             <span class="absolute bottom-2 right-2 bg-black/70 text-yellow-400 text-xs px-2 py-0.5 rounded"><?= $vod['vod_score'] ?>分</span>
             <?php endif; ?>
         </div>

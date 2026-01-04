@@ -4,7 +4,8 @@
     <!-- 页面标题 -->
     <div class="mb-6">
         <h1 class="text-xl font-bold text-gray-800 flex items-center">
-            <span class="text-pink-500 mr-2">🔗</span>友情链接
+            <svg class="w-5 h-5 text-pink-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+            友情链接
         </h1>
     </div>
 
@@ -57,8 +58,9 @@
                 <div class="bg-gray-50 p-3 rounded mb-4">
                     <p class="text-sm font-medium text-gray-700 mb-2">本站链接代码：</p>
                     <div class="bg-white border rounded p-2 text-xs text-gray-600 font-mono break-all">&lt;a href="<?= htmlspecialchars($siteUrl) ?>" target="_blank"&gt;<?= htmlspecialchars($siteName) ?>&lt;/a&gt;</div>
-                    <button type="button" onclick="copyLinkCode()" class="mt-2 w-full py-1.5 bg-pink-100 text-pink-600 rounded text-sm hover:bg-pink-200 transition">
-                        📋 复制代码
+                    <button type="button" onclick="copyLinkCode()" class="mt-2 w-full py-1.5 bg-pink-100 text-pink-600 rounded text-sm hover:bg-pink-200 transition flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                        复制代码
                     </button>
                 </div>
 
@@ -98,10 +100,23 @@
 </div>
 
 <script>
+// 简单的toast函数（确保在xpk.js加载前也能使用）
+function showToast(msg, type = 'success') {
+    if (typeof xpk !== 'undefined' && xpk.toast) {
+        xpk.toast(msg, type);
+    } else {
+        const toast = document.createElement('div');
+        toast.className = 'xpk-toast ' + type;
+        toast.textContent = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+}
+
 function copyLinkCode() {
     const code = '<a href="<?= htmlspecialchars($siteUrl) ?>" target="_blank"><?= htmlspecialchars($siteName) ?></a>';
     navigator.clipboard.writeText(code).then(() => {
-        xpk.toast('代码已复制到剪贴板', 'success');
+        showToast('代码已复制到剪贴板', 'success');
     }).catch(() => {
         const input = document.createElement('textarea');
         input.value = code;
@@ -109,7 +124,7 @@ function copyLinkCode() {
         input.select();
         document.execCommand('copy');
         document.body.removeChild(input);
-        xpk.toast('代码已复制到剪贴板', 'success');
+        showToast('代码已复制到剪贴板', 'success');
     });
 }
 
@@ -127,14 +142,14 @@ document.getElementById('linkForm').addEventListener('submit', function(e) {
     .then(r => r.json())
     .then(data => {
         if (data.code === 0) {
-            xpk.toast(data.msg, 'success');
+            showToast(data.msg, 'success');
             this.reset();
             setTimeout(() => location.reload(), 1500);
         } else {
-            xpk.toast(data.msg || '提交失败', 'error');
+            showToast(data.msg || '提交失败', 'error');
         }
     })
-    .catch(() => xpk.toast('提交失败，请稍后重试', 'error'))
+    .catch(() => showToast('提交失败，请稍后重试', 'error'))
     .finally(() => {
         btn.disabled = false;
         btn.textContent = '提交申请';

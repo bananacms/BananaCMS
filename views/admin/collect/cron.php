@@ -1,5 +1,25 @@
 <h1 class="text-2xl font-bold mb-6">定时采集配置</h1>
 
+<?php
+// 获取 PHP CLI 路径
+$phpBinary = PHP_BINARY;
+// 如果是 php-fpm，尝试找到对应的 php cli
+if (strpos($phpBinary, 'php-fpm') !== false || strpos($phpBinary, 'fpm') !== false) {
+    // 宝塔面板常见路径
+    $possiblePaths = [
+        dirname(dirname($phpBinary)) . '/bin/php',  // /www/server/php/82/bin/php
+        '/usr/bin/php',
+        '/usr/local/bin/php',
+    ];
+    foreach ($possiblePaths as $path) {
+        if (file_exists($path) && is_executable($path)) {
+            $phpBinary = $path;
+            break;
+        }
+    }
+}
+?>
+
 <?php if (!empty($flash)): ?>
 <div class="mb-4 px-4 py-3 rounded <?= $flash['type'] === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' ?>">
     <?= htmlspecialchars($flash['msg']) ?>
@@ -94,7 +114,7 @@
             <h3 class="font-bold mb-4">定时任务设置</h3>
             
             <div class="relative">
-                <div id="cronCmd" class="bg-gray-900 rounded p-4 pr-12 font-mono text-sm text-green-400 overflow-x-auto"><?= PHP_BINARY ?> <?= ROOT_PATH ?>cron.php auto</div>
+                <div id="cronCmd" class="bg-gray-900 rounded p-4 pr-12 font-mono text-sm text-green-400 overflow-x-auto"><?= $phpBinary ?> <?= ROOT_PATH ?>cron.php auto</div>
                 <button onclick="copyCommand('cronCmd')" class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-white rounded hover:bg-gray-700" title="复制命令">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
@@ -158,7 +178,7 @@
             </h4>
             <div class="text-sm text-blue-700 space-y-2">
                 <div class="flex items-center justify-between bg-blue-100 rounded px-2 py-1">
-                    <code id="cmd1"><?= PHP_BINARY ?> <?= ROOT_PATH ?>cron.php collect</code>
+                    <code id="cmd1"><?= $phpBinary ?> <?= ROOT_PATH ?>cron.php collect</code>
                     <button onclick="copyCommand('cmd1')" class="ml-2 text-blue-600 hover:text-blue-800" title="复制">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
@@ -168,7 +188,7 @@
                 <p class="text-xs pl-2">采集所有启用的采集站</p>
                 
                 <div class="flex items-center justify-between bg-blue-100 rounded px-2 py-1">
-                    <code id="cmd2"><?= PHP_BINARY ?> <?= ROOT_PATH ?>cron.php collect --hours=24</code>
+                    <code id="cmd2"><?= $phpBinary ?> <?= ROOT_PATH ?>cron.php collect --hours=24</code>
                     <button onclick="copyCommand('cmd2')" class="ml-2 text-blue-600 hover:text-blue-800" title="复制">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
@@ -178,7 +198,7 @@
                 <p class="text-xs pl-2">只采24小时内更新</p>
                 
                 <div class="flex items-center justify-between bg-blue-100 rounded px-2 py-1">
-                    <code id="cmd3"><?= PHP_BINARY ?> <?= ROOT_PATH ?>cron.php collect --id=1</code>
+                    <code id="cmd3"><?= $phpBinary ?> <?= ROOT_PATH ?>cron.php collect --id=1</code>
                     <button onclick="copyCommand('cmd3')" class="ml-2 text-blue-600 hover:text-blue-800" title="复制">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>

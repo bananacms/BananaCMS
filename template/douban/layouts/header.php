@@ -7,6 +7,7 @@
     <meta name="keywords" content="<?php echo htmlspecialchars($keywords ?? $siteKeywords ?? SITE_KEYWORDS); ?>">
     <meta name="description" content="<?php echo htmlspecialchars($description ?? $siteDescription ?? SITE_DESCRIPTION); ?>">
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/static/css/xpk.css">
     <?php if (!empty($noindex)): ?><meta name="robots" content="noindex, nofollow"><?php endif; ?>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -38,11 +39,14 @@
                         <?php endif; ?>
                     </a>
                     <div class="hidden md:flex space-x-6 text-sm text-gray-600">
-                        <a href="/" class="text-green-700">影视</a>
+                        <a href="/" class="<?php echo empty($type) ? 'text-green-700' : 'hover:text-green-700'; ?>">影视</a>
                         <a href="/hot" class="hover:text-green-700">热门</a>
                         <?php if (!empty($navTypes)): ?>
-                            <?php foreach (array_slice($navTypes, 0, 4) as $type): ?>
-                                <a href="<?php echo xpk_page_url('type', ['id' => $type['type_id'], 'slug' => $type['type_en']]); ?>" class="hover:text-green-700"><?php echo htmlspecialchars($type['type_name']); ?></a>
+                            <?php 
+                            $currentTopId = isset($type) ? (($type['type_pid'] == 0) ? $type['type_id'] : $type['type_pid']) : 0;
+                            ?>
+                            <?php foreach (array_slice($navTypes, 0, 4) as $navType): ?>
+                                <a href="<?php echo xpk_page_url('type', ['id' => $navType['type_id'], 'slug' => $navType['type_en']]); ?>" class="<?php echo ($navType['type_id'] == $currentTopId) ? 'text-green-700' : 'hover:text-green-700'; ?>"><?php echo htmlspecialchars($navType['type_name']); ?></a>
                             <?php endforeach; ?>
                         <?php endif; ?>
                     </div>

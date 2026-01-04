@@ -1,3 +1,23 @@
+<?php
+// 获取 PHP CLI 路径
+$phpBinary = PHP_BINARY;
+// 如果是 php-fpm，尝试找到对应的 php cli
+if (strpos($phpBinary, 'php-fpm') !== false || strpos($phpBinary, 'fpm') !== false) {
+    // 宝塔面板常见路径
+    $possiblePaths = [
+        dirname(dirname($phpBinary)) . '/bin/php',  // /www/server/php/82/bin/php
+        '/usr/bin/php',
+        '/usr/local/bin/php',
+    ];
+    foreach ($possiblePaths as $path) {
+        if (file_exists($path) && is_executable($path)) {
+            $phpBinary = $path;
+            break;
+        }
+    }
+}
+?>
+
 <?php if (!empty($flash)): ?>
 <div class="mb-4 px-4 py-3 rounded <?= $flash['type'] === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' ?>">
     <?= htmlspecialchars($flash['msg']) ?>
@@ -160,7 +180,7 @@
             </p>
             <p class="text-yellow-700 mb-2">命令必须使用<span class="font-bold">绝对路径</span>，否则会报错 "Could not open input file"</p>
             <div class="relative">
-                <code id="aiCronCmd" class="block bg-yellow-100 px-3 py-2 pr-10 rounded text-yellow-900"><?= PHP_BINARY ?> <?= ROOT_PATH ?>cron.php ai_rewrite</code>
+                <code id="aiCronCmd" class="block bg-yellow-100 px-3 py-2 pr-10 rounded text-yellow-900"><?= $phpBinary ?> <?= ROOT_PATH ?>cron.php ai_rewrite</code>
                 <button onclick="copyAiCmd()" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-yellow-700 hover:text-yellow-900 rounded hover:bg-yellow-200" title="复制命令">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>

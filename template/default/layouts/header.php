@@ -159,11 +159,14 @@
                         <?php endif; ?>
                     </a>
                     <div class="hidden md:flex space-x-6 text-sm">
-                        <a href="/" class="text-blue-600 border-b-2 border-blue-600 pb-4 pt-4 nav-link" data-page="home">首页</a>
+                        <a href="/" class="<?php echo empty($type) ? 'text-blue-600 border-b-2 border-blue-600' : 'hover:text-blue-600'; ?> pb-4 pt-4 nav-link" data-page="home">首页</a>
                         <a href="/hot" class="hover:text-blue-600 pb-4 pt-4 nav-link" data-page="hot">热门</a>
                         <?php if (!empty($navTypes)): ?>
-                            <?php foreach (array_slice($navTypes, 0, 5) as $type): ?>
-                                <a href="<?php echo xpk_page_url('type', ['id' => $type['type_id'], 'slug' => $type['type_en']]); ?>" class="hover:text-blue-600 pb-4 pt-4"><?php echo htmlspecialchars($type['type_name']); ?></a>
+                            <?php 
+                            $currentTopId = isset($type) ? (($type['type_pid'] == 0) ? $type['type_id'] : $type['type_pid']) : 0;
+                            ?>
+                            <?php foreach (array_slice($navTypes, 0, 5) as $navType): ?>
+                                <a href="<?php echo xpk_page_url('type', ['id' => $navType['type_id'], 'slug' => $navType['type_en']]); ?>" class="<?php echo ($navType['type_id'] == $currentTopId) ? 'text-blue-600 border-b-2 border-blue-600' : 'hover:text-blue-600'; ?> pb-4 pt-4"><?php echo htmlspecialchars($navType['type_name']); ?></a>
                             <?php endforeach; ?>
                         <?php endif; ?>
                     </div>

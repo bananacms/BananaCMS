@@ -4,10 +4,14 @@
 <div class="bg-white border-b">
     <div class="max-w-7xl mx-auto px-4 py-3">
         <div class="flex space-x-3 overflow-x-auto scroll-hide">
-            <a href="/" class="bg-gray-200 px-4 py-1 rounded-full text-sm whitespace-nowrap hover:bg-pink-100 hover:text-pink-500">全部</a>
+            <a href="/type/all" class="bg-gray-200 px-4 py-1 rounded-full text-sm whitespace-nowrap hover:bg-pink-100 hover:text-pink-500">全部</a>
             <?php if (!empty($navTypes)): ?>
+                <?php 
+                // 获取当前分类的顶级分类ID（用于高亮导航）
+                $currentTopId = ($type['type_pid'] == 0) ? $type['type_id'] : $type['type_pid'];
+                ?>
                 <?php foreach ($navTypes as $navType): ?>
-                    <?php $isActive = ($navType['type_id'] == $type['type_id']); ?>
+                    <?php $isActive = ($navType['type_id'] == $currentTopId); ?>
                     <a href="<?php echo xpk_page_url('type', ['id' => $navType['type_id'], 'slug' => $navType['type_en']]); ?>" class="<?php echo $isActive ? 'bg-pink-500 text-white' : 'bg-gray-200 hover:bg-pink-100 hover:text-pink-500'; ?> px-4 py-1 rounded-full text-sm whitespace-nowrap"><?php echo htmlspecialchars($navType['type_name']); ?></a>
                 <?php endforeach; ?>
             <?php endif; ?>
@@ -19,7 +23,8 @@
     <!-- 页面标题 -->
     <div class="mb-6">
         <h1 class="text-xl font-bold text-gray-800 flex items-center">
-            <span class="text-pink-500 mr-2">📁</span><?php echo htmlspecialchars($type['type_name']); ?>
+            <svg class="w-5 h-5 text-pink-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+            <?php echo htmlspecialchars($type['type_name']); ?>
         </h1>
     </div>
 
