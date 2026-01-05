@@ -40,7 +40,7 @@ class AdminAiController extends AdminBaseController
             'ai_system_prompt' => trim($this->post('ai_system_prompt', '')),
             'ai_user_prompt' => trim($this->post('ai_user_prompt', '')),
             'ai_temperature' => (float)$this->post('ai_temperature', 0.8),
-            'ai_max_tokens' => (int)$this->post('ai_max_tokens', 500),
+            'ai_max_tokens' => (int)$this->post('ai_max_tokens', 2000),
             'ai_timeout' => (int)$this->post('ai_timeout', 30),
             'ai_batch_size' => (int)$this->post('ai_batch_size', 10),
         ];
@@ -86,7 +86,7 @@ class AdminAiController extends AdminBaseController
             'system_prompt' => trim($this->post('ai_system_prompt', '')),
             'user_prompt' => trim($this->post('ai_user_prompt', '')),
             'temperature' => (float)$this->post('ai_temperature', 0.8),
-            'max_tokens' => (int)$this->post('ai_max_tokens', 500),
+            'max_tokens' => (int)$this->post('ai_max_tokens', 2000),
             'timeout' => (int)$this->post('ai_timeout', 30),
         ];
 
@@ -113,6 +113,9 @@ class AdminAiController extends AdminBaseController
      */
     public function run(): void
     {
+        // 延长执行时间限制（批量处理可能需要较长时间）
+        set_time_limit(300);
+        
         if (!$this->verifyCsrf()) {
             $this->error('非法请求');
         }
@@ -223,7 +226,7 @@ class AdminAiController extends AdminBaseController
             'ai_system_prompt' => XpkAiRewrite::getDefaultSystemPrompt(),
             'ai_user_prompt' => XpkAiRewrite::getDefaultUserPrompt(),
             'ai_temperature' => '0.8',
-            'ai_max_tokens' => '500',
+            'ai_max_tokens' => '2000',
             'ai_timeout' => '30',
             'ai_batch_size' => '10',
         ];

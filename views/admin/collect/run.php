@@ -137,7 +137,7 @@ $canResume = $lastProgress && !empty($lastProgress['page']) && $lastProgress['pa
 
             <button onclick="startCollect()" id="startBtn" class="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded font-bold flex items-center justify-center <?= $bindCount == 0 ? 'opacity-50 cursor-not-allowed' : '' ?>" <?= $bindCount == 0 ? 'disabled' : '' ?>>
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                 </svg>
                 从头开始采集
             </button>

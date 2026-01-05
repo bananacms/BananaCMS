@@ -66,7 +66,7 @@ if (strpos($phpBinary, 'php-fpm') !== false || strpos($phpBinary, 'fpm') !== fal
                 <label class="block text-sm font-medium text-gray-700 mb-1">API 地址</label>
                 <input type="text" id="ai_api_url" value="<?= htmlspecialchars($config['ai_api_url'] ?? '') ?>"
                     class="w-full border rounded px-3 py-2" placeholder="https://api.openai.com/v1">
-                <p class="text-xs text-gray-500 mt-1">支持 OpenAI 兼容格式的 API</p>
+                <p class="text-xs text-gray-500 mt-1">需包含 /v1 路径，如：https://api.openai.com/v1</p>
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
@@ -77,7 +77,7 @@ if (strpos($phpBinary, 'php-fpm') !== false || strpos($phpBinary, 'fpm') !== fal
                 <label class="block text-sm font-medium text-gray-700 mb-1">模型名称</label>
                 <input type="text" id="ai_model" value="<?= htmlspecialchars($config['ai_model'] ?? 'gpt-4o-mini') ?>"
                     class="w-full border rounded px-3 py-2" placeholder="gpt-4o-mini">
-                <p class="text-xs text-gray-500 mt-1">如：gpt-4o-mini、deepseek-chat、qwen-turbo</p>
+                <p class="text-xs text-gray-500 mt-1">支持带厂商前缀，如：gpt-4o-mini、deepseek-chat、zai-org/GLM-4.7</p>
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">每批处理数量</label>
@@ -116,9 +116,9 @@ if (strpos($phpBinary, 'php-fpm') !== false || strpos($phpBinary, 'fpm') !== fal
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Max Tokens</label>
-                    <input type="number" id="ai_max_tokens" value="<?= htmlspecialchars($config['ai_max_tokens'] ?? '500') ?>"
+                    <input type="number" id="ai_max_tokens" value="<?= htmlspecialchars($config['ai_max_tokens'] ?? '2000') ?>"
                         class="w-full border rounded px-3 py-2" min="100" max="4000">
-                    <p class="text-xs text-gray-500 mt-1">最大输出长度</p>
+                    <p class="text-xs text-gray-500 mt-1">最大输出长度，建议 1000-2000</p>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">超时时间（秒）</label>
@@ -177,11 +177,16 @@ if (strpos($phpBinary, 'php-fpm') !== false || strpos($phpBinary, 'fpm') !== fal
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
-                定时任务配置（宝塔/服务器）
+                定时任务配置（宝塔面板）
             </p>
-            <p class="text-yellow-700 mb-2">命令必须使用<span class="font-bold">绝对路径</span>，否则会报错 "Could not open input file"</p>
+            <div class="text-yellow-700 mb-3 space-y-1">
+                <p>1. 进入宝塔面板 → 计划任务 → 添加任务</p>
+                <p>2. 任务类型选择：<span class="font-bold">Shell脚本</span></p>
+                <p>3. 执行周期：建议每 5-10 分钟</p>
+                <p>4. 脚本内容粘贴下方命令：</p>
+            </div>
             <div class="relative">
-                <code id="aiCronCmd" class="block bg-yellow-100 px-3 py-2 pr-10 rounded text-yellow-900"><?= $phpBinary ?> <?= ROOT_PATH ?>cron.php ai_rewrite</code>
+                <code id="aiCronCmd" class="block bg-yellow-100 px-3 py-2 pr-10 rounded text-yellow-900 font-mono text-xs"><?= $phpBinary ?> <?= ROOT_PATH ?>cron.php ai_rewrite</code>
                 <button onclick="copyAiCmd()" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-yellow-700 hover:text-yellow-900 rounded hover:bg-yellow-200" title="复制命令">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
@@ -327,24 +332,44 @@ function closeTestModal() {
 }
 
 function runRewrite() {
-    xpkConfirm('确定要执行一批改写任务吗？', function() {
-        showToast('正在执行...', 'info');
+    xpkConfirm('确定要执行一批改写任务吗？（处理时间较长，请耐心等待）', function() {
+        const btn = document.querySelector('button[onclick="runRewrite()"]');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<svg class="animate-spin w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>执行中...';
+        }
+        showToast('正在执行改写任务，请稍候...', 'info');
         
         fetch(adminUrl('ai/run'), {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
             body: '_token=' + document.getElementById('csrfToken').value
         })
-        .then(r => r.json())
+        .then(r => {
+            if (!r.ok) {
+                throw new Error('HTTP ' + r.status);
+            }
+            return r.json();
+        })
         .then(res => {
             if (res.code === 0) {
                 showToast(res.msg, 'success');
                 setTimeout(() => location.reload(), 1500);
             } else {
                 showToast(res.msg, 'error');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '执行一批改写';
+                }
             }
         })
-        .catch(() => showToast('请求失败', 'error'));
+        .catch((err) => {
+            showToast('请求失败：' + err.message, 'error');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '执行一批改写';
+            }
+        });
     });
 }
 

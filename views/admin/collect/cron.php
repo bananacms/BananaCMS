@@ -85,18 +85,20 @@ if (strpos($phpBinary, 'php-fpm') !== false || strpos($phpBinary, 'fpm') !== fal
                             <span class="text-sm font-medium">全部采集站</span>
                         </label>
                         <hr class="my-2">
+                        <div id="collectList">
                         <?php foreach ($collects as $c): ?>
-                        <label class="flex items-center gap-2 cursor-pointer">
+                        <label class="flex items-center gap-2 cursor-pointer <?= empty($selectedIds) ? 'opacity-50' : '' ?>">
                             <input type="checkbox" name="collect_ids[]" value="<?= $c['collect_id'] ?>" class="collect-check w-4 h-4 rounded"
-                                <?= in_array($c['collect_id'], $selectedIds) ? 'checked' : '' ?>>
+                                <?= empty($selectedIds) ? 'checked disabled' : (in_array($c['collect_id'], $selectedIds) ? 'checked' : '') ?>>
                             <span class="text-sm"><?= htmlspecialchars($c['collect_name']) ?></span>
                             <?php if (!$c['collect_status']): ?>
                             <span class="text-xs text-gray-400">(已禁用)</span>
                             <?php endif; ?>
                         </label>
                         <?php endforeach; ?>
+                        </div>
                     </div>
-                    <p class="text-xs text-gray-500 mt-1">不选择则采集所有启用的采集站</p>
+                    <p class="text-xs text-gray-500 mt-1">选择"全部"则采集所有启用的采集站</p>
                 </div>
 
                 <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-bold flex items-center justify-center">
@@ -112,7 +114,14 @@ if (strpos($phpBinary, 'php-fpm') !== false || strpos($phpBinary, 'fpm') !== fal
     <!-- 使用说明 -->
     <div class="space-y-6">
         <div class="bg-white rounded-lg shadow p-6">
-            <h3 class="font-bold mb-4">定时任务设置</h3>
+            <h3 class="font-bold mb-4">定时任务设置（宝塔面板）</h3>
+            
+            <div class="text-sm text-gray-600 mb-4 space-y-1">
+                <p>1. 进入宝塔面板 → 计划任务 → 添加任务</p>
+                <p>2. 任务类型选择：<span class="font-bold text-gray-800">Shell脚本</span></p>
+                <p>3. 执行周期：建议每小时</p>
+                <p>4. 脚本内容粘贴下方命令：</p>
+            </div>
             
             <div class="relative">
                 <div id="cronCmd" class="bg-gray-900 rounded p-4 pr-12 font-mono text-sm text-green-400 overflow-x-auto"><?= $phpBinary ?> <?= ROOT_PATH ?>cron.php auto</div>
@@ -122,28 +131,7 @@ if (strpos($phpBinary, 'php-fpm') !== false || strpos($phpBinary, 'fpm') !== fal
                     </svg>
                 </button>
             </div>
-            <p class="text-xs text-gray-500 mt-2">宝塔面板添加定时任务，执行周期建议设为每小时</p>
-            
-            <div class="mt-4 text-sm text-gray-600 space-y-2">
-                <p class="flex items-center">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
-                    </svg>
-                    将上面的命令添加到服务器的 crontab 中
-                </p>
-                <p class="flex items-center">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
-                    </svg>
-                    执行 <code class="bg-gray-100 px-1 rounded">crontab -e</code> 编辑定时任务
-                </p>
-                <p class="flex items-center">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
-                    </svg>
-                    建议设置每小时执行，实际采集间隔由上方配置控制
-                </p>
-            </div>
+            <p class="text-xs text-gray-500 mt-2">实际采集间隔由上方配置控制，定时任务只是触发检查</p>
         </div>
 
         <div class="bg-white rounded-lg shadow p-6">
@@ -230,15 +218,32 @@ function copyCommand(elementId) {
 }
 
 document.getElementById('selectAllCollects').addEventListener('change', function() {
-    document.querySelectorAll('.collect-check').forEach(cb => {
-        cb.checked = false;
-    });
+    const collectList = document.getElementById('collectList');
+    const checkboxes = document.querySelectorAll('.collect-check');
+    if (this.checked) {
+        // 全选：禁用并勾选所有
+        collectList.classList.add('opacity-50');
+        checkboxes.forEach(cb => {
+            cb.checked = true;
+            cb.disabled = true;
+        });
+    } else {
+        // 取消全选：启用并取消勾选
+        collectList.classList.remove('opacity-50');
+        checkboxes.forEach(cb => {
+            cb.checked = false;
+            cb.disabled = false;
+        });
+    }
 });
 
 document.querySelectorAll('.collect-check').forEach(cb => {
     cb.addEventListener('change', function() {
+        // 如果有任何一个被手动选中，取消"全部"
         const anyChecked = document.querySelectorAll('.collect-check:checked').length > 0;
-        document.getElementById('selectAllCollects').checked = !anyChecked;
+        if (anyChecked) {
+            document.getElementById('selectAllCollects').checked = false;
+        }
     });
 });
 
