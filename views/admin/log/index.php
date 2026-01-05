@@ -74,7 +74,7 @@
     <?php if ($totalPages > 1): ?>
     <div class="flex justify-center gap-2">
         <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-        <a href="?page=<?= $i ?>&module=<?= urlencode($filters['module'] ?? '') ?>" 
+        <a href="?s=log&page=<?= $i ?>&module=<?= urlencode($filters['module'] ?? '') ?>" 
            class="px-3 py-1 rounded <?= $i === $page ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300' ?>">
             <?= $i ?>
         </a>

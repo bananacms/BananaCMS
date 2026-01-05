@@ -79,13 +79,13 @@
             <div class="flex items-center justify-between">
                 <div class="flex-1 flex justify-between sm:hidden">
                     <?php if ($logs['page'] > 1): ?>
-                    <a href="?page=<?= $logs['page'] - 1 ?><?= !empty($keyword) ? '&keyword=' . urlencode($keyword) : '' ?>" 
+                    <a href="?s=search/log&page=<?= $logs['page'] - 1 ?><?= !empty($keyword) ? '&keyword=' . urlencode($keyword) : '' ?>" 
                        class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
                         上一页
                     </a>
                     <?php endif; ?>
                     <?php if ($logs['page'] < $logs['totalPages']): ?>
-                    <a href="?page=<?= $logs['page'] + 1 ?><?= !empty($keyword) ? '&keyword=' . urlencode($keyword) : '' ?>" 
+                    <a href="?s=search/log&page=<?= $logs['page'] + 1 ?><?= !empty($keyword) ? '&keyword=' . urlencode($keyword) : '' ?>" 
                        class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
                         下一页
                     </a>
@@ -102,7 +102,7 @@
                     <div>
                         <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
                             <?php for ($i = max(1, $logs['page'] - 2); $i <= min($logs['totalPages'], $logs['page'] + 2); $i++): ?>
-                            <a href="?page=<?= $i ?><?= !empty($keyword) ? '&keyword=' . urlencode($keyword) : '' ?>" 
+                            <a href="?s=search/log&page=<?= $i ?><?= !empty($keyword) ? '&keyword=' . urlencode($keyword) : '' ?>" 
                                class="relative inline-flex items-center px-4 py-2 border text-sm font-medium <?= $i == $logs['page'] ? 'z-10 bg-blue-50 border-blue-500 text-blue-600' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50' ?>">
                                 <?= $i ?>
                             </a>

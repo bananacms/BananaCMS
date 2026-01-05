@@ -258,7 +258,7 @@ function toggleHelp() {
     <div class="px-4 py-3 border-t flex justify-center">
         <div class="flex gap-1">
             <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-            <a href="?page=<?= $i ?>&status=<?= $status ?>" class="px-3 py-1 rounded <?= $i == $page ? 'bg-blue-500 text-white' : 'bg-gray-100 hover:bg-gray-200' ?>"><?= $i ?></a>
+            <a href="?s=transcode&page=<?= $i ?>&status=<?= $status ?>" class="px-3 py-1 rounded <?= $i == $page ? 'bg-blue-500 text-white' : 'bg-gray-100 hover:bg-gray-200' ?>"><?= $i ?></a>
             <?php endfor; ?>
         </div>
     </div>
