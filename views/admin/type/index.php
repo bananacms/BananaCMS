@@ -30,7 +30,16 @@
                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">ID</th>
                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">分类名称</th>
                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">英文名</th>
-                <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">资源数</th>
+                <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">
+                    <a href="?s=type&sort=vod_count&order=<?= ($sort === 'vod_count' && $order === 'desc') ? 'asc' : 'desc' ?>" class="flex items-center gap-1 hover:text-blue-500">
+                        资源数
+                        <?php if ($sort === 'vod_count'): ?>
+                        <svg class="w-4 h-4 <?= $order === 'desc' ? '' : 'rotate-180' ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                        <?php endif; ?>
+                    </a>
+                </th>
                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">排序</th>
                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">状态</th>
                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">操作</th>

@@ -19,6 +19,9 @@ class AdminTypeController extends AdminBaseController
      */
     public function index(): void
     {
+        $sort = $this->get('sort', 'vod_count'); // 默认按资源数排序
+        $order = $this->get('order', 'desc');
+        
         $types = $this->typeModel->getTree();
         $parentTypes = $this->typeModel->getAll(['type_pid' => 0]);
         
@@ -37,9 +40,21 @@ class AdminTypeController extends AdminBaseController
             $type['vod_count'] = $countMap[$type['type_id']] ?? 0;
         }
         unset($type);
+        
+        // 按资源数排序
+        if ($sort === 'vod_count') {
+            usort($types, function($a, $b) use ($order) {
+                if ($order === 'asc') {
+                    return $a['vod_count'] - $b['vod_count'];
+                }
+                return $b['vod_count'] - $a['vod_count'];
+            });
+        }
 
         $this->assign('types', $types);
         $this->assign('parentTypes', $parentTypes);
+        $this->assign('sort', $sort);
+        $this->assign('order', $order);
         $this->assign('csrfToken', $this->csrfToken());
         $this->assign('flash', $this->getFlash());
         $this->render('type/index', '分类管理');
