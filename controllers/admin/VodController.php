@@ -127,8 +127,7 @@ class AdminVodController extends AdminBaseController
 
         if ($id) {
             $this->log('添加', '视频', "ID:{$id} {$data['vod_name']}");
-            $this->flash('success', '添加成功');
-            $this->redirect('/' . $this->adminEntry . '?s=vod');
+            $this->success('添加成功');
         } else {
             $this->error('添加失败');
         }
@@ -179,8 +178,7 @@ class AdminVodController extends AdminBaseController
         $this->vodModel->update($id, $data);
         $this->log('编辑', '视频', "ID:{$id} {$data['vod_name']}");
 
-        $this->flash('success', '保存成功');
-        $this->redirect('/' . $this->adminEntry . '?s=vod');
+        $this->success('保存成功');
     }
 
     /**
