@@ -108,7 +108,7 @@ if (strpos($phpBinary, 'php-fpm') !== false || strpos($phpBinary, 'fpm') !== fal
             <div class="text-sm text-gray-600 mb-4 space-y-1">
                 <p>1. 进入宝塔面板 → 计划任务 → 添加任务</p>
                 <p>2. 任务类型选择：<span class="font-bold text-gray-800">Shell脚本</span></p>
-                <p>3. 执行周期：建议每小时</p>
+                <p>3. 执行周期：<span class="font-bold text-gray-800">与左侧"执行间隔"保持一致</span></p>
                 <p>4. 脚本内容粘贴下方命令：</p>
             </div>
             
@@ -120,7 +120,13 @@ if (strpos($phpBinary, 'php-fpm') !== false || strpos($phpBinary, 'fpm') !== fal
                     </svg>
                 </button>
             </div>
-            <p class="text-xs text-gray-500 mt-2">实际采集间隔由上方配置控制，定时任务只是触发检查</p>
+            
+            <div class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+                <p class="font-medium">💡 说明：</p>
+                <p>左侧"执行间隔"用于防止重复执行。宝塔执行周期应与之一致，例如：</p>
+                <p class="mt-1">• 执行间隔选1小时 → 宝塔设置每1小时执行</p>
+                <p>• 执行间隔选6小时 → 宝塔设置每6小时执行</p>
+            </div>
         </div>
 
         <div class="bg-white rounded-lg shadow p-6">
