@@ -72,7 +72,7 @@
     <div class="bg-white rounded-lg shadow h-fit">
         <div class="px-6 py-4 border-b flex justify-between items-center">
             <h2 class="font-bold">最新视频</h2>
-            <a href="/<?= $adminEntry ?>/vod" class="text-sm text-blue-500 hover:underline">查看全部</a>
+            <a href="/<?= $adminEntry ?>?s=vod" class="text-sm text-blue-500 hover:underline">查看全部</a>
         </div>
         <div class="p-6">
             <?php if (empty($latestVods)): ?>
@@ -82,7 +82,7 @@
                 <?php foreach ($latestVods as $vod): ?>
                 <div class="flex items-center py-2 border-b last:border-0">
                     <div class="flex-1 min-w-0">
-                        <a href="/<?= $adminEntry ?>/vod/edit/<?= $vod['vod_id'] ?>" class="text-sm font-medium truncate hover:text-blue-600 hover:underline block">
+                        <a href="/<?= $adminEntry ?>?s=vod/edit/<?= $vod['vod_id'] ?>" class="text-sm font-medium truncate hover:text-blue-600 hover:underline block">
                             <?= htmlspecialchars($vod['vod_name']) ?>
                         </a>
                         <p class="text-xs text-gray-400"><?= htmlspecialchars($vod['type_name'] ?? '未分类') ?></p>
@@ -111,7 +111,7 @@
                         <?= $i + 1 ?>
                     </span>
                     <div class="flex-1 ml-3 min-w-0">
-                        <a href="/<?= $adminEntry ?>/vod/edit/<?= $vod['vod_id'] ?>" class="text-sm truncate hover:text-blue-600 hover:underline block">
+                        <a href="/<?= $adminEntry ?>?s=vod/edit/<?= $vod['vod_id'] ?>" class="text-sm truncate hover:text-blue-600 hover:underline block">
                             <?= htmlspecialchars($vod['vod_name']) ?>
                         </a>
                         <p class="text-xs text-gray-400">点击量: <?= number_format($vod['vod_hits']) ?> 次</p>

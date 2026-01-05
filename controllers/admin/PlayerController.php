@@ -88,7 +88,7 @@ class AdminPlayerController extends AdminBaseController
         $player = $this->playerModel->find($id);
         if (!$player) {
             $this->flash('error', '播放器不存在');
-            $this->redirect('/' . $this->adminEntry . '/player');
+            $this->redirect('/' . $this->adminEntry . '?s=player');
             return;
         }
 

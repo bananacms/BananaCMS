@@ -198,6 +198,6 @@ class AdminCommentController extends AdminBaseController
         xpk_cache()->set('site_config', $config);
         
         $this->log('修改', '评论设置', '');
-        $this->success('设置已保存', ['url' => '/' . $this->adminEntry . '/comment']);
+        $this->success('设置已保存', ['url' => '/' . $this->adminEntry . '?s=comment']);
     }
 }

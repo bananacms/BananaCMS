@@ -40,7 +40,7 @@
                 </td>
                 <td class="px-4 py-3 text-sm space-x-2">
                     <button onclick="openArtTypeModal(<?= $type['type_id'] ?>)" class="text-blue-500 hover:underline">编辑</button>
-                    <button onclick="deleteItem('/<?= $adminEntry ?>/art_type/delete', <?= $type['type_id'] ?>)" class="text-red-500 hover:underline">删除</button>
+                    <button onclick="deleteItem('/<?= $adminEntry ?>?s=art_type/delete', <?= $type['type_id'] ?>)" class="text-red-500 hover:underline">删除</button>
                 </td>
             </tr>
             <?php endforeach; ?>

@@ -34,10 +34,10 @@
     <div class="bg-white rounded-lg shadow p-4">
         <div class="flex flex-wrap items-center justify-between gap-4">
             <div class="flex gap-2">
-                <a href="/<?= $adminEntry ?>/link" class="px-3 py-1.5 rounded <?= $status === '' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' ?>">全部</a>
-                <a href="/<?= $adminEntry ?>/link?status=0" class="px-3 py-1.5 rounded <?= $status === '0' ? 'bg-yellow-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' ?>">待审核</a>
-                <a href="/<?= $adminEntry ?>/link?status=1" class="px-3 py-1.5 rounded <?= $status === '1' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' ?>">已通过</a>
-                <a href="/<?= $adminEntry ?>/link?status=2" class="px-3 py-1.5 rounded <?= $status === '2' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' ?>">已拒绝</a>
+                <a href="/<?= $adminEntry ?>?s=link" class="px-3 py-1.5 rounded <?= $status === '' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' ?>">全部</a>
+                <a href="/<?= $adminEntry ?>?s=link&status=0" class="px-3 py-1.5 rounded <?= $status === '0' ? 'bg-yellow-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' ?>">待审核</a>
+                <a href="/<?= $adminEntry ?>?s=link&status=1" class="px-3 py-1.5 rounded <?= $status === '1' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' ?>">已通过</a>
+                <a href="/<?= $adminEntry ?>?s=link&status=2" class="px-3 py-1.5 rounded <?= $status === '2' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' ?>">已拒绝</a>
             </div>
             <button onclick="openLinkModal()" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">添加友链</button>
         </div>
@@ -125,7 +125,7 @@
 
     <!-- 分页 -->
     <?php 
-    $baseUrl = "/{$adminEntry}/link?status={$status}";
+    $baseUrl = "/{$adminEntry}?s=link&status={$status}";
     include __DIR__ . '/../components/pagination.php'; 
     ?>
 </div>

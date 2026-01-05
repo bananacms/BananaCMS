@@ -1,6 +1,6 @@
 <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold">广告安全配置</h1>
-    <a href="/<?= $adminEntry ?>/ad" class="text-gray-500 hover:text-gray-700">← 返回广告管理</a>
+    <a href="/<?= $adminEntry ?>?s=ad" class="text-gray-500 hover:text-gray-700">← 返回广告管理</a>
 </div>
 
 <div class="bg-white rounded-lg shadow p-6">
@@ -69,7 +69,7 @@
             <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded">
                 保存配置
             </button>
-            <a href="/<?= $adminEntry ?>/ad" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded">
+            <a href="/<?= $adminEntry ?>?s=ad" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded">
                 取消
             </a>
         </div>

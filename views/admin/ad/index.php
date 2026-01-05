@@ -50,7 +50,7 @@
                 <?php endforeach; ?>
             </select>
             <button type="submit" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">筛选</button>
-            <a href="/<?= $adminEntry ?>/ad" class="text-gray-500 hover:text-gray-700">重置</a>
+            <a href="/<?= $adminEntry ?>?s=ad" class="text-gray-500 hover:text-gray-700">重置</a>
         </form>
     </div>
 </div>
@@ -138,7 +138,7 @@
 
 <!-- 分页 -->
 <?php 
-$baseUrl = "/{$adminEntry}/ad?position=" . urlencode($position);
+$baseUrl = "/{$adminEntry}?s=ad&position=" . urlencode($position);
 include __DIR__ . '/../components/pagination.php'; 
 ?>
 

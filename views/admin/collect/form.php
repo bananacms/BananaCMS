@@ -136,7 +136,7 @@
 
     <div class="mt-6 flex space-x-4 border-t pt-6">
         <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded">保存</button>
-        <a href="/<?= $adminEntry ?>/collect" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded">返回</a>
+        <a href="/<?= $adminEntry ?>?s=collect" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded">返回</a>
     </div>
 </form>
 

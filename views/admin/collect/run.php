@@ -22,7 +22,7 @@ $canResume = $lastProgress && !empty($lastProgress['page']) && $lastProgress['pa
         </svg>
         尚未绑定任何分类，采集将无法进行！
     </p>
-    <p class="text-red-600 text-sm mt-1">请先 <a href="/<?= $adminEntry ?>/collect/bind/<?= $collect['collect_id'] ?>" class="underline">绑定分类</a> 后再执行采集</p>
+    <p class="text-red-600 text-sm mt-1">请先 <a href="/<?= $adminEntry ?>?s=collect/bind/<?= $collect['collect_id'] ?>" class="underline">绑定分类</a> 后再执行采集</p>
 </div>
 <?php else: ?>
 <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
@@ -44,7 +44,7 @@ $canResume = $lastProgress && !empty($lastProgress['page']) && $lastProgress['pa
         采集中断/403错误？
     </p>
     <p class="text-blue-700 text-sm mt-1">如果采集过程中出现403错误或频繁中断，可能是服务器防火墙（宝塔WAF/CC防护）拦截了请求。</p>
-    <p class="text-blue-600 text-sm mt-1">解决方法：在宝塔面板 → 安全 → 防火墙 中，将 <code class="bg-blue-100 px-1 rounded">/<?= $adminEntry ?>/collect/docollect</code> 加入URL白名单，或临时关闭CC防护。</p>
+    <p class="text-blue-600 text-sm mt-1">解决方法：在宝塔面板 → 安全 → 防火墙 中，将 <code class="bg-blue-100 px-1 rounded">/<?= $adminEntry ?>?s=collect/docollect</code> 加入URL白名单，或临时关闭CC防护。</p>
 </div>
 
 <?php if ($canResume): ?>

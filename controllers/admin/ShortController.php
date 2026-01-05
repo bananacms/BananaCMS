@@ -74,9 +74,9 @@ class AdminShortController extends AdminBaseController
             
             // 如果是短剧，跳转到剧集管理
             if ($data['short_type'] === 'drama') {
-                $this->success('添加成功', ['url' => '/' . $this->adminEntry . '/short/episodes/' . $id]);
+                $this->success('添加成功', ['url' => '/' . $this->adminEntry . '?s=short/episodes/' . $id]);
             } else {
-                $this->success('添加成功', ['url' => '/' . $this->adminEntry . '/short']);
+                $this->success('添加成功', ['url' => '/' . $this->adminEntry . '?s=short']);
             }
         } else {
             $this->error('添加失败');
@@ -91,7 +91,7 @@ class AdminShortController extends AdminBaseController
         $short = $this->shortModel->find($id);
         if (!$short) {
             $this->flash('error', '记录不存在');
-            $this->redirect('/' . $this->adminEntry . '/short');
+            $this->redirect('/' . $this->adminEntry . '?s=short');
         }
 
         $this->assign('short', $short);
@@ -123,7 +123,7 @@ class AdminShortController extends AdminBaseController
         $this->shortModel->update($id, $data);
         $this->log('编辑', '短视频', "ID:{$id} {$data['short_name']}");
 
-        $this->success('保存成功', ['url' => '/' . $this->adminEntry . '/short']);
+        $this->success('保存成功', ['url' => '/' . $this->adminEntry . '?s=short']);
     }
 
     /**
@@ -175,7 +175,7 @@ class AdminShortController extends AdminBaseController
         $short = $this->shortModel->find($id);
         if (!$short || $short['short_type'] !== 'drama') {
             $this->flash('error', '短剧不存在');
-            $this->redirect('/' . $this->adminEntry . '/short');
+            $this->redirect('/' . $this->adminEntry . '?s=short');
         }
 
         $episodes = $this->shortModel->getEpisodes($id);
@@ -228,7 +228,7 @@ class AdminShortController extends AdminBaseController
         $id = $this->shortModel->addEpisode($data);
         $this->log('添加', '短剧剧集', "ID:{$id}");
 
-        $this->success('添加成功', ['url' => '/' . $this->adminEntry . '/short/episodes/' . $shortId]);
+        $this->success('添加成功', ['url' => '/' . $this->adminEntry . '?s=short/episodes/' . $shortId]);
     }
 
     /**
@@ -275,7 +275,7 @@ class AdminShortController extends AdminBaseController
         $this->shortModel->updateEpisode($id, $data);
         $this->log('编辑', '短剧剧集', "ID:{$id}");
 
-        $this->success('保存成功', ['url' => '/' . $this->adminEntry . '/short/episodes/' . $episode['short_id']]);
+        $this->success('保存成功', ['url' => '/' . $this->adminEntry . '?s=short/episodes/' . $episode['short_id']]);
     }
 
     /**

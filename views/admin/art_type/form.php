@@ -1,7 +1,7 @@
 <div class="max-w-2xl">
     <h1 class="text-2xl font-bold mb-6"><?= isset($type) ? '编辑' : '添加' ?>文章分类</h1>
 
-    <form method="POST" action="/<?= $adminEntry ?>/art_type/<?= isset($type) ? 'edit/' . $type['type_id'] : 'add' ?>" class="bg-white rounded-lg shadow p-6">
+    <form method="POST" action="/<?= $adminEntry ?>?s=art_type/<?= isset($type) ? 'edit/' . $type['type_id'] : 'add' ?>" class="bg-white rounded-lg shadow p-6">
         <input type="hidden" name="_token" value="<?= htmlspecialchars($csrfToken) ?>">
 
         <div class="mb-4">
@@ -29,7 +29,7 @@
 
         <div class="flex space-x-4">
             <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded">保存</button>
-            <a href="/<?= $adminEntry ?>/art_type" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded">取消</a>
+            <a href="/<?= $adminEntry ?>?s=art_type" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded">取消</a>
         </div>
     </form>
 </div>

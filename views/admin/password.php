@@ -15,7 +15,7 @@
                 <p class="text-xs text-gray-400 mt-1">轻量级影视CMS</p>
             </div>
             <nav class="flex-1 p-4">
-                <a href="/<?= $adminEntry ?>/dashboard" class="block px-4 py-2 rounded hover:bg-gray-800 mb-1">
+                <a href="/<?= $adminEntry ?>?s=dashboard" class="block px-4 py-2 rounded hover:bg-gray-800 mb-1">
                     ← 返回后台
                 </a>
             </nav>
@@ -23,7 +23,7 @@
                 <div class="text-sm text-gray-400 mb-2">
                     👤 <?= htmlspecialchars($admin['name'] ?? 'Admin') ?>
                 </div>
-                <a href="/<?= $adminEntry ?>/logout" class="block text-center px-4 py-2 bg-red-600 rounded hover:bg-red-700 text-sm">
+                <a href="/<?= $adminEntry ?>?s=logout" class="block text-center px-4 py-2 bg-red-600 rounded hover:bg-red-700 text-sm">
                     退出登录
                 </a>
             </div>
@@ -47,7 +47,7 @@
                     </div>
                     <?php endif; ?>
                     
-                    <form method="POST" action="/<?= $adminEntry ?>/password" class="space-y-4">
+                    <form method="POST" action="/<?= $adminEntry ?>?s=password" class="space-y-4">
                         <input type="hidden" name="_token" value="<?= htmlspecialchars($csrfToken) ?>">
                         
                         <div>
@@ -83,7 +83,7 @@
                     </form>
                     
                     <div class="mt-6 text-center">
-                        <a href="/<?= $adminEntry ?>/dashboard" class="text-gray-500 hover:text-gray-700 text-sm">
+                        <a href="/<?= $adminEntry ?>?s=dashboard" class="text-gray-500 hover:text-gray-700 text-sm">
                             ← 返回仪表盘
                         </a>
                     </div>

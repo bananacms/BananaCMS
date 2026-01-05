@@ -61,7 +61,7 @@ class AdminTranscodeController extends AdminBaseController
         
         if (!$transcoder->isAvailable()) {
             $this->flash('error', 'FFmpeg 未安装或不可用，请先安装 FFmpeg');
-            $this->redirect('/' . $this->adminEntry . '/transcode');
+            $this->redirect('/' . $this->adminEntry . '?s=transcode');
             return;
         }
 

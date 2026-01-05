@@ -10,7 +10,7 @@
         <button onclick="initPages()" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
             <i class="fas fa-magic mr-1"></i>初始化默认
         </button>
-        <a href="/<?= $adminEntry ?>/page/add" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+        <a href="/<?= $adminEntry ?>?s=page/add" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
             <i class="fas fa-plus mr-1"></i>添加页面
         </a>
     </div>
@@ -76,7 +76,7 @@
                     </a>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                    <a href="/<?= $adminEntry ?>/page/edit/<?= $page['page_id'] ?>" class="text-blue-600 hover:text-blue-800 mr-3">编辑</a>
+                    <a href="/<?= $adminEntry ?>?s=page/edit/<?= $page['page_id'] ?>" class="text-blue-600 hover:text-blue-800 mr-3">编辑</a>
                     <button onclick="deletePage(<?= $page['page_id'] ?>, '<?= htmlspecialchars($page['page_title'], ENT_QUOTES) ?>')" class="text-red-600 hover:text-red-800">删除</button>
                 </td>
             </tr>

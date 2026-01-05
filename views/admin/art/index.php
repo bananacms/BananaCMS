@@ -7,10 +7,10 @@
 <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold">文章管理</h1>
     <div class="space-x-2">
-        <a href="/<?= $adminEntry ?>/art_type" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+        <a href="/<?= $adminEntry ?>?s=art_type" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
             分类管理
         </a>
-        <a href="/<?= $adminEntry ?>/art/add" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+        <a href="/<?= $adminEntry ?>?s=art/add" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
             + 添加文章
         </a>
     </div>
@@ -34,7 +34,7 @@
                 class="border rounded px-3 py-2" placeholder="文章标题">
         </div>
         <button type="submit" class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700">搜索</button>
-        <a href="/<?= $adminEntry ?>/art" class="text-gray-500 hover:text-gray-700 py-2">重置</a>
+        <a href="/<?= $adminEntry ?>?s=art" class="text-gray-500 hover:text-gray-700 py-2">重置</a>
     </form>
 </div>
 
@@ -72,8 +72,8 @@
                 </td>
                 <td class="px-4 py-3 text-sm text-gray-500"><?= date('Y-m-d H:i', $art['art_time']) ?></td>
                 <td class="px-4 py-3 text-sm space-x-2">
-                    <a href="/<?= $adminEntry ?>/art/edit/<?= $art['art_id'] ?>" class="text-blue-500 hover:underline">编辑</a>
-                    <button onclick="deleteItem('/<?= $adminEntry ?>/art/delete', <?= $art['art_id'] ?>)" class="text-red-500 hover:underline">删除</button>
+                    <a href="/<?= $adminEntry ?>?s=art/edit/<?= $art['art_id'] ?>" class="text-blue-500 hover:underline">编辑</a>
+                    <button onclick="deleteItem('/<?= $adminEntry ?>?s=art/delete', <?= $art['art_id'] ?>)" class="text-red-500 hover:underline">删除</button>
                 </td>
             </tr>
             <?php endforeach; ?>
@@ -84,6 +84,6 @@
 
 <!-- 分页 -->
 <?php 
-$baseUrl = "/{$adminEntry}/art?type_id={$typeId}&keyword=" . urlencode($keyword);
+$baseUrl = "/{$adminEntry}?s=art&type_id={$typeId}&keyword=" . urlencode($keyword);
 include __DIR__ . '/../components/pagination.php'; 
 ?>

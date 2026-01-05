@@ -115,13 +115,13 @@ function toggleHelp() {
         <?php else: ?>
             <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm">FFmpeg 未安装</span>
         <?php endif; ?>
-        <a href="/<?= $adminEntry ?>/transcode/ad" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded flex items-center">
+        <a href="/<?= $adminEntry ?>?s=transcode/ad" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded flex items-center">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
             </svg>
             广告管理
         </a>
-        <a href="/<?= $adminEntry ?>/transcode/upload" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded <?= $ffmpegAvailable ? '' : 'opacity-50 pointer-events-none' ?>">
+        <a href="/<?= $adminEntry ?>?s=transcode/upload" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded <?= $ffmpegAvailable ? '' : 'opacity-50 pointer-events-none' ?>">
             + 上传视频
         </a>
     </div>
@@ -158,7 +158,7 @@ function toggleHelp() {
             <option value="3" <?= $status === '3' ? 'selected' : '' ?>>失败</option>
         </select>
         <button type="submit" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">筛选</button>
-        <a href="/<?= $adminEntry ?>/transcode" class="text-gray-500 hover:text-gray-700">重置</a>
+        <a href="/<?= $adminEntry ?>?s=transcode" class="text-gray-500 hover:text-gray-700">重置</a>
     </form>
 </div>
 

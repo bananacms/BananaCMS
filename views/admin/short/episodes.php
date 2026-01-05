@@ -1,6 +1,6 @@
 <div class="mb-6">
     <div class="flex items-center gap-4 mb-4">
-        <a href="/<?= $adminEntry ?>/short" class="text-gray-500 hover:text-gray-700">← 返回列表</a>
+        <a href="/<?= $adminEntry ?>?s=short" class="text-gray-500 hover:text-gray-700">← 返回列表</a>
         <h2 class="text-2xl font-bold flex items-center">
             <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
@@ -80,7 +80,7 @@
 </div>
 
 <div class="mt-4">
-    <a href="/<?= $adminEntry ?>/short/edit/<?= $short['short_id'] ?>" class="text-gray-500 hover:text-gray-700">
+    <a href="/<?= $adminEntry ?>?s=short/edit/<?= $short['short_id'] ?>" class="text-gray-500 hover:text-gray-700">
         ← 编辑短剧信息
     </a>
 </div>

@@ -61,7 +61,7 @@ class AdminCollectController extends AdminBaseController
 
         $this->collectModel->insert($data);
         $this->log('添加', '采集', $data['collect_name']);
-        $this->success('添加成功', ['url' => '/' . $this->adminEntry . '/collect']);
+        $this->success('添加成功', ['url' => '/' . $this->adminEntry . '?s=collect']);
     }
 
     /**
@@ -100,7 +100,7 @@ class AdminCollectController extends AdminBaseController
         $collect = $this->collectModel->find($id);
         if (!$collect) {
             $this->flash('error', '采集站不存在');
-            $this->redirect('/' . $this->adminEntry . '/collect');
+            $this->redirect('/' . $this->adminEntry . '?s=collect');
         }
 
         $this->assign('collect', $collect);
@@ -121,7 +121,7 @@ class AdminCollectController extends AdminBaseController
 
         $this->collectModel->update($id, $data);
         $this->log('编辑', '采集', "ID:{$id} {$data['collect_name']}");
-        $this->success('保存成功', ['url' => '/' . $this->adminEntry . '/collect']);
+        $this->success('保存成功', ['url' => '/' . $this->adminEntry . '?s=collect']);
     }
 
     /**
@@ -198,14 +198,14 @@ class AdminCollectController extends AdminBaseController
         $collect = $this->collectModel->find($id);
         if (!$collect) {
             $this->flash('error', '采集站不存在');
-            $this->redirect('/' . $this->adminEntry . '/collect');
+            $this->redirect('/' . $this->adminEntry . '?s=collect');
         }
 
         // 获取远程分类
         $remoteCategories = $this->collectModel->getCategories($collect);
         if ($remoteCategories === null) {
             $this->flash('error', '获取远程分类失败，请检查API地址');
-            $this->redirect('/' . $this->adminEntry . '/collect');
+            $this->redirect('/' . $this->adminEntry . '?s=collect');
         }
 
         // 获取本地分类
@@ -422,7 +422,7 @@ class AdminCollectController extends AdminBaseController
             $bindModel->saveGlobalBinds($bindData, $nameData);
         }
 
-        $this->success('绑定保存成功', ['url' => '/' . $this->adminEntry . '/collect']);
+        $this->success('绑定保存成功', ['url' => '/' . $this->adminEntry . '?s=collect']);
     }
 
     /**
@@ -456,7 +456,7 @@ class AdminCollectController extends AdminBaseController
         $collect = $this->collectModel->find($id);
         if (!$collect) {
             $this->flash('error', '采集站不存在');
-            $this->redirect('/' . $this->adminEntry . '/collect');
+            $this->redirect('/' . $this->adminEntry . '?s=collect');
         }
 
         // 获取远程分类

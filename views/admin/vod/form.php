@@ -247,7 +247,7 @@
         <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded">
             保存
         </button>
-        <a href="/<?= $adminEntry ?>/vod" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded">
+        <a href="/<?= $adminEntry ?>?s=vod" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded">
             返回
         </a>
     </div>

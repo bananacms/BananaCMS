@@ -11,7 +11,16 @@ class AdminAuthController
      */
     private function getAdminEntry(): string
     {
-        return basename($_SERVER['SCRIPT_NAME'], '.php') . '.php';
+        return basename($_SERVER['SCRIPT_NAME']);
+    }
+    
+    /**
+     * 生成后台URL
+     */
+    private function adminUrl(string $path = ''): string
+    {
+        $entry = $this->getAdminEntry();
+        return '/' . $entry . ($path ? '?s=' . ltrim($path, '/') : '');
     }
 
     /**
@@ -20,7 +29,7 @@ class AdminAuthController
     public function login(): void
     {
         if (isset($_SESSION['admin'])) {
-            header('Location: /' . $this->getAdminEntry() . '/dashboard');
+            header('Location: ' . $this->adminUrl('dashboard'));
             exit;
         }
 
@@ -46,7 +55,7 @@ class AdminAuthController
         $token = $_POST['_token'] ?? '';
         if (empty($token) || !hash_equals($_SESSION['csrf_token'] ?? '', $token)) {
             $_SESSION['login_error'] = '安全验证失败，请刷新页面重试';
-            header('Location: /' . $this->getAdminEntry() . '/login');
+            header('Location: ' . $this->adminUrl('login'));
             exit;
         }
 
@@ -55,7 +64,7 @@ class AdminAuthController
 
         if (empty($username) || empty($password)) {
             $_SESSION['login_error'] = '请输入用户名和密码';
-            header('Location: /' . $this->getAdminEntry() . '/login');
+            header('Location: ' . $this->adminUrl('login'));
             exit;
         }
 
@@ -64,19 +73,19 @@ class AdminAuthController
 
         if (!$admin) {
             $_SESSION['login_error'] = '用户名或密码错误';
-            header('Location: /' . $this->getAdminEntry() . '/login');
+            header('Location: ' . $this->adminUrl('login'));
             exit;
         }
 
         if ($admin['admin_status'] != 1) {
             $_SESSION['login_error'] = '账号已被禁用';
-            header('Location: /' . $this->getAdminEntry() . '/login');
+            header('Location: ' . $this->adminUrl('login'));
             exit;
         }
 
         if (!$adminModel->verifyPassword($password, $admin['admin_pwd'])) {
             $_SESSION['login_error'] = '用户名或密码错误';
-            header('Location: /' . $this->getAdminEntry() . '/login');
+            header('Location: ' . $this->adminUrl('login'));
             exit;
         }
 
@@ -90,7 +99,7 @@ class AdminAuthController
             'login_time' => time()
         ];
 
-        header('Location: /' . $this->getAdminEntry() . '/dashboard');
+        header('Location: ' . $this->adminUrl('dashboard'));
         exit;
     }
 
@@ -100,7 +109,7 @@ class AdminAuthController
     public function logout(): void
     {
         unset($_SESSION['admin']);
-        header('Location: /' . $this->getAdminEntry() . '/login');
+        header('Location: ' . $this->adminUrl('login'));
         exit;
     }
 
@@ -110,7 +119,7 @@ class AdminAuthController
     public function password(): void
     {
         if (!isset($_SESSION['admin'])) {
-            header('Location: /' . $this->getAdminEntry() . '/login');
+            header('Location: ' . $this->adminUrl('login'));
             exit;
         }
 
@@ -136,7 +145,7 @@ class AdminAuthController
     public function doPassword(): void
     {
         if (!isset($_SESSION['admin'])) {
-            header('Location: /' . $this->getAdminEntry() . '/login');
+            header('Location: ' . $this->adminUrl('login'));
             exit;
         }
 
@@ -144,7 +153,7 @@ class AdminAuthController
         $token = $_POST['_token'] ?? '';
         if (empty($token) || !hash_equals($_SESSION['csrf_token'] ?? '', $token)) {
             $_SESSION['password_error'] = '安全验证失败，请刷新页面重试';
-            header('Location: /' . $this->getAdminEntry() . '/password');
+            header('Location: ' . $this->adminUrl('password'));
             exit;
         }
 
@@ -154,19 +163,19 @@ class AdminAuthController
 
         if (empty($oldPassword)) {
             $_SESSION['password_error'] = '请输入原密码';
-            header('Location: /' . $this->getAdminEntry() . '/password');
+            header('Location: ' . $this->adminUrl('password'));
             exit;
         }
 
         if (empty($newPassword) || strlen($newPassword) < 6) {
             $_SESSION['password_error'] = '新密码至少6个字符';
-            header('Location: /' . $this->getAdminEntry() . '/password');
+            header('Location: ' . $this->adminUrl('password'));
             exit;
         }
 
         if ($newPassword !== $confirmPassword) {
             $_SESSION['password_error'] = '两次输入的新密码不一致';
-            header('Location: /' . $this->getAdminEntry() . '/password');
+            header('Location: ' . $this->adminUrl('password'));
             exit;
         }
 
@@ -175,13 +184,13 @@ class AdminAuthController
 
         if (!$admin) {
             $_SESSION['password_error'] = '管理员不存在';
-            header('Location: /' . $this->getAdminEntry() . '/password');
+            header('Location: ' . $this->adminUrl('password'));
             exit;
         }
 
         if (!$adminModel->verifyPassword($oldPassword, $admin['admin_pwd'])) {
             $_SESSION['password_error'] = '原密码错误';
-            header('Location: /' . $this->getAdminEntry() . '/password');
+            header('Location: ' . $this->adminUrl('password'));
             exit;
         }
 
@@ -189,7 +198,7 @@ class AdminAuthController
         $adminModel->updatePassword($admin['admin_id'], $newPassword);
 
         $_SESSION['password_success'] = '密码修改成功';
-        header('Location: /' . $this->getAdminEntry() . '/password');
+        header('Location: ' . $this->adminUrl('password'));
         exit;
     }
 }

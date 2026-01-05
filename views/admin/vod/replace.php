@@ -7,13 +7,13 @@
 <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold">播放地址替换</h1>
     <div class="flex gap-2">
-        <a href="/<?= $adminEntry ?>/vod/sources" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded flex items-center">
+        <a href="/<?= $adminEntry ?>?s=vod/sources" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded flex items-center">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
             </svg>
             播放源管理
         </a>
-        <a href="/<?= $adminEntry ?>/vod" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+        <a href="/<?= $adminEntry ?>?s=vod" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
             ← 返回视频列表
         </a>
     </div>

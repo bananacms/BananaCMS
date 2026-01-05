@@ -7,10 +7,10 @@
             短视频管理
         </h2>
         <div class="flex gap-2">
-            <a href="/<?= $adminEntry ?>/short/add?type=video" class="bg-primary text-white px-4 py-2 rounded hover:bg-red-600">
+            <a href="/<?= $adminEntry ?>?s=short/add&type=video" class="bg-primary text-white px-4 py-2 rounded hover:bg-red-600">
                 + 添加短视频
             </a>
-            <a href="/<?= $adminEntry ?>/short/add?type=drama" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
+            <a href="/<?= $adminEntry ?>?s=short/add&type=drama" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
                 + 添加短剧
             </a>
         </div>
@@ -50,7 +50,7 @@
                 <option value="0" <?= $status === '0' ? 'selected' : '' ?>>已下架</option>
             </select>
             <button type="submit" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">筛选</button>
-            <a href="/<?= $adminEntry ?>/short" class="text-gray-500 hover:text-gray-700">重置</a>
+            <a href="/<?= $adminEntry ?>?s=short" class="text-gray-500 hover:text-gray-700">重置</a>
         </form>
     </div>
 
@@ -108,7 +108,7 @@
                 </td>
                 <td class="px-4 py-3 text-sm">
                     <?php if ($item['short_type'] === 'drama'): ?>
-                    <a href="/<?= $adminEntry ?>/short/episodes/<?= $item['short_id'] ?>" class="text-blue-600 hover:underline">
+                    <a href="/<?= $adminEntry ?>?s=short/episodes/<?= $item['short_id'] ?>" class="text-blue-600 hover:underline">
                         <?= $item['episode_count'] ?? 0 ?> 集
                     </a>
                     <?php else: ?>
@@ -140,9 +140,9 @@
                     <?= date('m-d H:i', $item['short_time']) ?>
                 </td>
                 <td class="px-4 py-3 text-sm space-x-2">
-                    <a href="/<?= $adminEntry ?>/short/edit/<?= $item['short_id'] ?>" class="text-blue-600 hover:underline">编辑</a>
+                    <a href="/<?= $adminEntry ?>?s=short/edit/<?= $item['short_id'] ?>" class="text-blue-600 hover:underline">编辑</a>
                     <?php if ($item['short_type'] === 'drama'): ?>
-                    <a href="/<?= $adminEntry ?>/short/episodes/<?= $item['short_id'] ?>" class="text-purple-600 hover:underline">剧集</a>
+                    <a href="/<?= $adminEntry ?>?s=short/episodes/<?= $item['short_id'] ?>" class="text-purple-600 hover:underline">剧集</a>
                     <?php endif; ?>
                     <button onclick="toggleStatus(<?= $item['short_id'] ?>)" class="text-yellow-600 hover:underline">
                         <?= $item['short_status'] ? '下架' : '上架' ?>
@@ -158,7 +158,7 @@
 
 <!-- 分页 -->
 <?php 
-$baseUrl = "/{$adminEntry}/short?type=" . urlencode($type) . "&status=" . urlencode($status);
+$baseUrl = "/{$adminEntry}?s=short&type=" . urlencode($type) . "&status=" . urlencode($status);
 include __DIR__ . '/../components/pagination.php'; 
 ?>
 

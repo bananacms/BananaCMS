@@ -25,7 +25,7 @@
             </select>
         </div>
         <button type="submit" class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700">搜索</button>
-        <a href="/<?= $adminEntry ?>/user" class="text-gray-500 hover:text-gray-700 py-2">重置</a>
+        <a href="/<?= $adminEntry ?>?s=user" class="text-gray-500 hover:text-gray-700 py-2">重置</a>
     </form>
 </div>
 
@@ -73,7 +73,7 @@
 
 <!-- 分页 -->
 <?php 
-$baseUrl = "/{$adminEntry}/user?keyword=" . urlencode($keyword) . "&status={$status}";
+$baseUrl = "/{$adminEntry}?s=user&keyword=" . urlencode($keyword) . "&status={$status}";
 include __DIR__ . '/../components/pagination.php'; 
 ?>
 

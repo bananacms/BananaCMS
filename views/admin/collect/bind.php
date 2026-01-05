@@ -68,7 +68,7 @@
 </div>
 <?php endif; ?>
 
-<form method="POST" action="/<?= $adminEntry ?>/collect/savebind/<?= $collect['collect_id'] ?>" id="bindForm" class="bg-white rounded-lg shadow p-6">
+<form method="POST" action="/<?= $adminEntry ?>?s=collect/savebind/<?= $collect['collect_id'] ?>" id="bindForm" class="bg-white rounded-lg shadow p-6">
     <input type="hidden" name="_token" value="<?= $csrfToken ?>">
 
     <div class="mb-4 flex items-center justify-between">
@@ -139,19 +139,19 @@
             </svg>
             保存绑定
         </button>
-        <a href="/<?= $adminEntry ?>/collect" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded">返回</a>
+        <a href="/<?= $adminEntry ?>?s=collect" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded">返回</a>
     </div>
 </form>
 
 <script>
 // 一键同步分类
 function syncCategories() {
+    const btn = event.target.closest('button');
     xpkConfirm('将从资源站同步分类到本地，已存在的同名分类会跳过，确定继续？', function() {
-        const btn = event.target;
         btn.disabled = true;
         btn.textContent = '同步中...';
         
-        fetch(adminUrl('/collect/syncCategories'), {
+        fetch(adminUrl('collect/syncCategories'), {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
             body: 'id=<?= $collect['collect_id'] ?>&_token=<?= $csrfToken ?>'
@@ -167,7 +167,8 @@ function syncCategories() {
                 btn.textContent = '一键同步分类';
             }
         })
-        .catch(() => {
+        .catch(err => {
+            console.error('同步分类失败:', err);
             xpkToast('请求失败', 'error');
             btn.disabled = false;
             btn.textContent = '一键同步分类';

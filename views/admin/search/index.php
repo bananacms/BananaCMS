@@ -101,7 +101,7 @@
 
 <!-- 操作按钮 -->
 <div class="mt-8 flex space-x-4">
-    <a href="/<?= $adminEntry ?>/search/log" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded">
+    <a href="/<?= $adminEntry ?>?s=search/log" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded">
         查看搜索日志
     </a>
     <button onclick="cleanLog()" class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded">

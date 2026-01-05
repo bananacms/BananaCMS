@@ -74,7 +74,7 @@ class AdminUserController extends AdminBaseController
         $user = $this->userModel->find($id);
         if (!$user) {
             $this->flash('error', '用户不存在');
-            $this->redirect('/' . $this->adminEntry . '/user');
+            $this->redirect('/' . $this->adminEntry . '?s=user');
         }
 
         $this->assign('user', $user);

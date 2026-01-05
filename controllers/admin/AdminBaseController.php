@@ -28,7 +28,7 @@ class AdminBaseController
     protected function checkAuth(): void
     {
         if (!isset($_SESSION['admin'])) {
-            $this->redirect('/' . $this->getAdminEntry() . '/login');
+            $this->redirect('/' . $this->getAdminEntry() . '?s=login');
         }
     }
 

@@ -1,6 +1,6 @@
 <div class="mb-6">
     <div class="flex items-center gap-4 mb-4">
-        <a href="/<?= $adminEntry ?>/short" class="text-gray-500 hover:text-gray-700">← 返回列表</a>
+        <a href="/<?= $adminEntry ?>?s=short" class="text-gray-500 hover:text-gray-700">← 返回列表</a>
         <h2 class="text-2xl font-bold"><?= isset($short) ? '编辑' : ($type === 'drama' ? '添加短剧' : '添加短视频') ?></h2>
     </div>
 </div>
@@ -8,7 +8,7 @@
 <!-- Quill 编辑器样式 -->
 <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
 
-<form method="post" action="/<?= $adminEntry ?>/short/<?= isset($short) ? 'doEdit/' . $short['short_id'] : 'doAdd' ?>" class="bg-white rounded shadow p-6 max-w-3xl" data-no-ajax="true">
+<form method="post" action="/<?= $adminEntry ?>?s=short/<?= isset($short) ? 'doEdit/' . $short['short_id'] : 'doAdd' ?>" class="bg-white rounded shadow p-6 max-w-3xl" data-no-ajax="true">
     <input type="hidden" name="_token" value="<?= $csrfToken ?>">
     <input type="hidden" name="short_type" value="<?= $type ?>">
 
@@ -76,7 +76,7 @@
         <button type="submit" class="bg-primary text-white px-6 py-2 rounded hover:bg-red-600">
             保存
         </button>
-        <a href="/<?= $adminEntry ?>/short" class="bg-gray-200 text-gray-700 px-6 py-2 rounded hover:bg-gray-300">
+        <a href="/<?= $adminEntry ?>?s=short" class="bg-gray-200 text-gray-700 px-6 py-2 rounded hover:bg-gray-300">
             取消
         </a>
     </div>

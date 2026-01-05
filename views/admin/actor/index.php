@@ -20,7 +20,7 @@
                 class="border rounded px-3 py-2" placeholder="演员姓名">
         </div>
         <button type="submit" class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700">搜索</button>
-        <a href="/<?= $adminEntry ?>/actor" class="text-gray-500 hover:text-gray-700 py-2">重置</a>
+        <a href="/<?= $adminEntry ?>?s=actor" class="text-gray-500 hover:text-gray-700 py-2">重置</a>
     </form>
 </div>
 
@@ -69,7 +69,7 @@
                 </td>
                 <td class="px-4 py-3 text-sm space-x-2">
                     <button onclick="openActorModal(<?= $actor['actor_id'] ?>)" class="text-blue-500 hover:underline">编辑</button>
-                    <button onclick="deleteItem('/<?= $adminEntry ?>/actor/delete', <?= $actor['actor_id'] ?>)" class="text-red-500 hover:underline">删除</button>
+                    <button onclick="deleteItem('/<?= $adminEntry ?>?s=actor/delete', <?= $actor['actor_id'] ?>)" class="text-red-500 hover:underline">删除</button>
                 </td>
             </tr>
             <?php endforeach; ?>
@@ -80,7 +80,7 @@
 
 <!-- 分页 -->
 <?php 
-$baseUrl = "/{$adminEntry}/actor?keyword=" . urlencode($keyword);
+$baseUrl = "/{$adminEntry}?s=actor&keyword=" . urlencode($keyword);
 include __DIR__ . '/../components/pagination.php'; 
 ?>
 

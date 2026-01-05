@@ -150,7 +150,7 @@ class AdminConfigController extends AdminBaseController
 
         $this->log('修改', '配置', '更新站点配置');
         $this->flash('success', '保存成功');
-        $this->redirect('/' . $this->adminEntry . '/config');
+        $this->redirect('/' . $this->adminEntry . '?s=config');
     }
 
     /**

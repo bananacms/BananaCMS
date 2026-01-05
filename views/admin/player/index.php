@@ -6,7 +6,7 @@
 
 <div class="flex items-center justify-between mb-6">
     <h1 class="text-2xl font-bold">播放器管理</h1>
-    <a href="/<?= $adminEntry ?>/player/add" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+    <a href="/<?= $adminEntry ?>?s=player/add" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
         <i class="fas fa-plus mr-1"></i>添加播放器
     </a>
 </div>
@@ -76,7 +76,7 @@
                     </button>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                    <a href="/<?= $adminEntry ?>/player/edit/<?= $player['player_id'] ?>" class="text-blue-600 hover:text-blue-800 mr-3">编辑</a>
+                    <a href="/<?= $adminEntry ?>?s=player/edit/<?= $player['player_id'] ?>" class="text-blue-600 hover:text-blue-800 mr-3">编辑</a>
                     <button onclick="deletePlayer(<?= $player['player_id'] ?>, '<?= htmlspecialchars($player['player_name'], ENT_QUOTES) ?>')" class="text-red-600 hover:text-red-800">删除</button>
                 </td>
             </tr>

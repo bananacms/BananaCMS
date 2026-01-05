@@ -6,12 +6,12 @@
 
 <h1 class="text-2xl font-bold mb-6 flex justify-between items-center">
     系统配置
-    <a href="/<?= ADMIN_ENTRY ?>/config/security" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 text-sm">
+    <a href="/<?= ADMIN_ENTRY ?>?s=config/security" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 text-sm">
         🔒 安全配置
     </a>
 </h1>
 
-<form method="POST" action="/<?= $adminEntry ?>/config/save" class="bg-white rounded-lg shadow p-6">
+<form method="POST" action="/<?= $adminEntry ?>?s=config/save" class="bg-white rounded-lg shadow p-6">
     <input type="hidden" name="_token" value="<?= $csrfToken ?>">
 
     <!-- 顶部固定保存按钮 -->

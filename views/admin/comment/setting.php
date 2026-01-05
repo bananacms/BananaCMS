@@ -1,6 +1,6 @@
 <div class="mb-6">
     <div class="flex items-center gap-4 mb-4">
-        <a href="/<?= $adminEntry ?>/comment" class="text-gray-500 hover:text-gray-700">← 返回列表</a>
+        <a href="/<?= $adminEntry ?>?s=comment" class="text-gray-500 hover:text-gray-700">← 返回列表</a>
         <h2 class="text-2xl font-bold flex items-center">
             <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
@@ -17,7 +17,7 @@
     <?php endif; ?>
 </div>
 
-<form method="post" action="/<?= $adminEntry ?>/comment/saveSetting" class="bg-white rounded shadow p-6 max-w-2xl">
+<form method="post" action="/<?= $adminEntry ?>?s=comment/saveSetting" class="bg-white rounded shadow p-6 max-w-2xl">
     <input type="hidden" name="_token" value="<?= $csrfToken ?>">
 
     <div class="space-y-6">

@@ -6,8 +6,8 @@
         转码广告管理
     </h1>
     <div class="flex gap-2">
-        <a href="/<?= $adminEntry ?>/transcode" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">← 返回转码</a>
-        <a href="/<?= $adminEntry ?>/transcode/ad/add" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">+ 添加广告</a>
+        <a href="/<?= $adminEntry ?>?s=transcode" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">← 返回转码</a>
+        <a href="/<?= $adminEntry ?>?s=transcode/ad/add" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">+ 添加广告</a>
     </div>
 </div>
 
@@ -104,7 +104,7 @@
                     <?php if (!empty($ad['ad_file'])): ?>
                     <button onclick="previewAd('<?= htmlspecialchars($ad['ad_file']) ?>')" class="text-green-500 hover:underline">预览</button>
                     <?php endif; ?>
-                    <a href="/<?= $adminEntry ?>/transcode/ad/edit/<?= $ad['ad_id'] ?>" class="text-blue-500 hover:underline">编辑</a>
+                    <a href="/<?= $adminEntry ?>?s=transcode/ad/edit/<?= $ad['ad_id'] ?>" class="text-blue-500 hover:underline">编辑</a>
                     <button onclick="deleteAd(<?= $ad['ad_id'] ?>)" class="text-red-500 hover:underline">删除</button>
                 </td>
             </tr>

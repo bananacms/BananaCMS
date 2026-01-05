@@ -1,12 +1,12 @@
 <div class="mb-6">
     <div class="flex items-center gap-4 mb-4">
-        <a href="/<?= $adminEntry ?>/short/episodes/<?= $short['short_id'] ?>" class="text-gray-500 hover:text-gray-700">← 返回剧集列表</a>
+        <a href="/<?= $adminEntry ?>?s=short/episodes/<?= $short['short_id'] ?>" class="text-gray-500 hover:text-gray-700">← 返回剧集列表</a>
         <h2 class="text-2xl font-bold"><?= isset($episode) ? '编辑剧集' : '添加剧集' ?></h2>
     </div>
     <p class="text-gray-500">短剧：<?= htmlspecialchars($short['short_name']) ?></p>
 </div>
 
-<form method="post" action="/<?= $adminEntry ?>/short/<?= isset($episode) ? 'doEditEpisode/' . $episode['episode_id'] : 'doAddEpisode/' . $short['short_id'] ?>" class="bg-white rounded shadow p-6 max-w-2xl">
+<form method="post" action="/<?= $adminEntry ?>?s=short/<?= isset($episode) ? 'doEditEpisode/' . $episode['episode_id'] : 'doAddEpisode/' . $short['short_id'] ?>" class="bg-white rounded shadow p-6 max-w-2xl">
     <input type="hidden" name="_token" value="<?= $csrfToken ?>">
 
     <div class="space-y-4">
@@ -56,7 +56,7 @@
         <button type="submit" class="bg-primary text-white px-6 py-2 rounded hover:bg-red-600">
             保存
         </button>
-        <a href="/<?= $adminEntry ?>/short/episodes/<?= $short['short_id'] ?>" class="bg-gray-200 text-gray-700 px-6 py-2 rounded hover:bg-gray-300">
+        <a href="/<?= $adminEntry ?>?s=short/episodes/<?= $short['short_id'] ?>" class="bg-gray-200 text-gray-700 px-6 py-2 rounded hover:bg-gray-300">
             取消
         </a>
     </div>

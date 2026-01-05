@@ -8,11 +8,25 @@
     # Sitemap（支持分片参数）
     RewriteRule ^sitemap\.xml$ sitemap.php [QSA,L]
 
+    # 后台入口伪静态（支持去掉.php后缀）
+    # 例如: /admin -> /admin.php, /console -> /console.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{DOCUMENT_ROOT}/$1.php -f
+    RewriteRule ^([a-zA-Z0-9_-]+)$ $1.php [QSA,L]
+
     # 前台路由
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^(.*)$ index.php?s=$1 [QSA,L]
 </IfModule>
+
+# 启用 PATH_INFO 支持
+<IfModule mod_negotiation.c>
+    Options -MultiViews
+</IfModule>
+
+AcceptPathInfo On
 
 # 禁止访问敏感目录
 <FilesMatch "^(config|core|models|controllers|views|runtime)">

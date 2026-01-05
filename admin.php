@@ -1,13 +1,14 @@
 <?php
 /**
  * 香蕉CMS 后台入口
+ * 使用查询参数路由模式: admin.php?s=xxx
  * Powered by https://xpornkit.com
  */
 
 // 加载配置
 require_once __DIR__ . '/config/config.php';
 
-// 初始调试模式（使用常量配置）
+// 初始调试模式
 if (APP_DEBUG) {
     error_reporting(E_ALL);
     ini_set('display_errors', 1);
@@ -31,7 +32,7 @@ XpkErrorHandler::register();
 // 设置安全响应头
 XpkSecurity::setSecurityHeaders('admin');
 
-// 从数据库读取调试模式配置并应用
+// 从数据库读取调试模式配置
 $dbDebug = xpk_config('app_debug', null);
 if ($dbDebug !== null) {
     if ($dbDebug) {
@@ -67,12 +68,21 @@ require_once CTRL_PATH . 'admin/UserController.php';
 require_once CTRL_PATH . 'admin/ConfigController.php';
 require_once CTRL_PATH . 'admin/CollectController.php';
 require_once CTRL_PATH . 'admin/LogController.php';
+require_once CTRL_PATH . 'admin/AiController.php';
+require_once CTRL_PATH . 'admin/TranscodeController.php';
+require_once CTRL_PATH . 'admin/TranscodeAdController.php';
+require_once CTRL_PATH . 'admin/SearchController.php';
+require_once CTRL_PATH . 'admin/PlayerController.php';
+require_once CTRL_PATH . 'admin/PageController.php';
+require_once CTRL_PATH . 'admin/LinkController.php';
+require_once CTRL_PATH . 'admin/AdController.php';
+require_once CTRL_PATH . 'admin/CommentController.php';
+require_once CTRL_PATH . 'admin/StatsController.php';
+require_once CTRL_PATH . 'admin/ShortController.php';
 
 // Session
 if (session_status() === PHP_SESSION_NONE) {
-    // 初始化Redis Session（如果配置）
     xpk_init_redis_session();
-    
     session_set_cookie_params([
         'lifetime' => 0,
         'path' => '/',
@@ -83,243 +93,264 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// 初始化路由
-$router = new XpkRouter();
+// 获取当前后台入口文件名和路由（不含.php后缀，支持伪静态）
+$adminEntry = pathinfo($_SERVER['SCRIPT_NAME'], PATHINFO_FILENAME);
+$adminRoute = trim($_GET['s'] ?? '', '/');
+$method = $_SERVER['REQUEST_METHOD'];
 
-// 获取当前后台入口文件名（不含.php）
-$adminEntry = basename($_SERVER['SCRIPT_NAME'], '.php');
+// 路由表 - 静态路由
+$routes = [
+    // 登录/退出
+    'GET:'           => fn() => (new AdminAuthController())->login(),
+    'GET:login'      => fn() => (new AdminAuthController())->login(),
+    'POST:login'     => fn() => (new AdminAuthController())->doLogin(),
+    'GET:logout'     => fn() => (new AdminAuthController())->logout(),
+    
+    // 修改密码
+    'GET:password'   => fn() => (new AdminAuthController())->password(),
+    'POST:password'  => fn() => (new AdminAuthController())->doPassword(),
+    
+    // 仪表盘
+    'GET:dashboard'  => fn() => (new AdminDashboardController())->index(),
 
-// 登录/退出
-$router->get($adminEntry . '.php', fn() => (new AdminAuthController())->login());
-$router->get($adminEntry . '.php/login', fn() => (new AdminAuthController())->login());
-$router->post($adminEntry . '.php/login', fn() => (new AdminAuthController())->doLogin());
-$router->get($adminEntry . '.php/logout', fn() => (new AdminAuthController())->logout());
+    // 视频管理
+    'GET:vod'              => fn() => (new AdminVodController())->index(),
+    'GET:vod/add'          => fn() => (new AdminVodController())->add(),
+    'POST:vod/add'         => fn() => (new AdminVodController())->doAdd(),
+    'POST:vod/delete'      => fn() => (new AdminVodController())->delete(),
+    'POST:vod/status'      => fn() => (new AdminVodController())->status(),
+    'POST:vod/lock'        => fn() => (new AdminVodController())->lock(),
+    'POST:vod/batchLock'   => fn() => (new AdminVodController())->batchLock(),
+    'GET:vod/replace'      => fn() => (new AdminVodController())->replace(),
+    'POST:vod/replace'     => fn() => (new AdminVodController())->doReplace(),
+    'GET:vod/sources'      => fn() => (new AdminVodController())->sources(),
+    'POST:vod/deleteSource'=> fn() => (new AdminVodController())->deleteSource(),
+    'POST:vod/renameSource'=> fn() => (new AdminVodController())->renameSource(),
+    
+    // 分类管理
+    'GET:type'             => fn() => (new AdminTypeController())->index(),
+    'GET:type/get'         => fn() => (new AdminTypeController())->get(),
+    'GET:type/getOne'      => fn() => (new AdminTypeController())->getOne(),
+    'GET:type/add'         => fn() => (new AdminTypeController())->add(),
+    'POST:type/add'        => fn() => (new AdminTypeController())->add(),
+    'POST:type/delete'     => fn() => (new AdminTypeController())->delete(),
+    'POST:type/batchDelete'=> fn() => (new AdminTypeController())->batchDelete(),
+    'POST:type/fixVodTypeId1' => fn() => (new AdminTypeController())->fixVodTypeId1(),
+    
+    // 演员管理
+    'GET:actor'            => fn() => (new AdminActorController())->index(),
+    'GET:actor/get'        => fn() => (new AdminActorController())->get(),
+    'GET:actor/add'        => fn() => (new AdminActorController())->add(),
+    'POST:actor/add'       => fn() => (new AdminActorController())->add(),
+    'POST:actor/delete'    => fn() => (new AdminActorController())->delete(),
+    
+    // 文章管理
+    'GET:art'              => fn() => (new AdminArtController())->index(),
+    'GET:art/get'          => fn() => (new AdminArtController())->get(),
+    'GET:art/add'          => fn() => (new AdminArtController())->add(),
+    'POST:art/add'         => fn() => (new AdminArtController())->add(),
+    'POST:art/delete'      => fn() => (new AdminArtController())->delete(),
+    
+    // 文章分类管理
+    'GET:art_type'         => fn() => (new AdminArtTypeController())->index(),
+    'GET:art_type/get'     => fn() => (new AdminArtTypeController())->get(),
+    'GET:art_type/add'     => fn() => (new AdminArtTypeController())->add(),
+    'POST:art_type/add'    => fn() => (new AdminArtTypeController())->add(),
+    'POST:art_type/delete' => fn() => (new AdminArtTypeController())->delete(),
+    
+    // 用户管理
+    'GET:user'             => fn() => (new AdminUserController())->index(),
+    'POST:user/delete'     => fn() => (new AdminUserController())->delete(),
+    
+    // 系统配置
+    'GET:config'           => fn() => (new AdminConfigController())->index(),
+    'POST:config'          => fn() => (new AdminConfigController())->save(),
+    'POST:config/save'     => fn() => (new AdminConfigController())->save(),
+    'POST:config/upload'   => fn() => (new AdminConfigController())->upload(),
+    'POST:config/uploadTemplate' => fn() => (new AdminConfigController())->uploadTemplate(),
+    'POST:config/deleteTemplate' => fn() => (new AdminConfigController())->deleteTemplate(),
+    'GET:config/security'  => fn() => (new AdminConfigController())->security(),
+    'POST:config/security' => fn() => (new AdminConfigController())->security(),
+    'POST:config/testRedis'=> fn() => (new AdminConfigController())->testRedis(),
+    
+    // 采集管理
+    'GET:collect'          => fn() => (new AdminCollectController())->index(),
+    'GET:collect/add'      => fn() => (new AdminCollectController())->add(),
+    'POST:collect/add'     => fn() => (new AdminCollectController())->doAdd(),
+    'POST:collect/delete'  => fn() => (new AdminCollectController())->delete(),
+    'POST:collect/deleteVods' => fn() => (new AdminCollectController())->deleteVods(),
+    'POST:collect/copyBind'=> fn() => (new AdminCollectController())->copyBind(),
+    'POST:collect/syncCategories' => fn() => (new AdminCollectController())->syncCategories(),
+    'POST:collect/docollect' => fn() => (new AdminCollectController())->doCollect(),
+    'POST:collect/test'    => fn() => (new AdminCollectController())->test(),
+    'POST:collect/clearProgress' => fn() => (new AdminCollectController())->clearProgress(),
+    'GET:collect/cron'     => fn() => (new AdminCollectController())->cron(),
+    'POST:collect/saveCron'=> fn() => (new AdminCollectController())->saveCron(),
+    'POST:collect/runCron' => fn() => (new AdminCollectController())->runCron(),
+    'GET:collect/log'      => fn() => (new AdminCollectController())->logList(),
+    'POST:collect/cleanLog'=> fn() => (new AdminCollectController())->cleanLog(),
 
-// 修改密码
-$router->get($adminEntry . '.php/password', fn() => (new AdminAuthController())->password());
-$router->post($adminEntry . '.php/password', fn() => (new AdminAuthController())->doPassword());
+    // AI 内容改写
+    'GET:ai'               => fn() => (new AdminAiController())->index(),
+    'POST:ai/save'         => fn() => (new AdminAiController())->save(),
+    'POST:ai/test'         => fn() => (new AdminAiController())->test(),
+    'POST:ai/run'          => fn() => (new AdminAiController())->run(),
+    'POST:ai/reset'        => fn() => (new AdminAiController())->reset(),
+    
+    // 云转码
+    'GET:transcode'        => fn() => (new AdminTranscodeController())->index(),
+    'GET:transcode/upload' => fn() => (new AdminTranscodeController())->upload(),
+    'GET:transcode/doUpload' => fn() => (new AdminTranscodeController())->doUpload(),
+    'POST:transcode/doUpload' => fn() => (new AdminTranscodeController())->doUpload(),
+    'GET:transcode/status' => fn() => (new AdminTranscodeController())->status(),
+    'POST:transcode/retry' => fn() => (new AdminTranscodeController())->retry(),
+    'POST:transcode/delete'=> fn() => (new AdminTranscodeController())->delete(),
+    'POST:transcode/batchDelete' => fn() => (new AdminTranscodeController())->batchDelete(),
+    'POST:transcode/process' => fn() => (new AdminTranscodeController())->process(),
+    'GET:transcode/play'   => fn() => (new AdminTranscodeController())->play(),
+    
+    // 转码广告管理
+    'GET:transcode/ad'     => fn() => (new AdminTranscodeAdController())->index(),
+    'GET:transcode/ad/add' => fn() => (new AdminTranscodeAdController())->add(),
+    'POST:transcode/ad/add'=> fn() => (new AdminTranscodeAdController())->add(),
+    'POST:transcode/ad/delete' => fn() => (new AdminTranscodeAdController())->delete(),
+    'POST:transcode/ad/toggle' => fn() => (new AdminTranscodeAdController())->toggle(),
+    'POST:transcode/ad/saveConfig' => fn() => (new AdminTranscodeAdController())->saveConfig(),
+    'POST:transcode/ad/upload' => fn() => (new AdminTranscodeAdController())->upload(),
+    
+    // 操作日志
+    'GET:log'              => fn() => (new AdminLogController())->index(),
+    'POST:log/clean'       => fn() => (new AdminLogController())->clean(),
+    
+    // 搜索管理
+    'GET:search'           => fn() => (new AdminSearchController())->index(),
+    'GET:search/log'       => fn() => (new AdminSearchController())->logList(),
+    'POST:search/cleanLog' => fn() => (new AdminSearchController())->cleanLog(),
+    
+    // 播放器管理
+    'GET:player'           => fn() => (new AdminPlayerController())->index(),
+    'GET:player/add'       => fn() => (new AdminPlayerController())->add(),
+    'POST:player/add'      => fn() => (new AdminPlayerController())->doAdd(),
+    'POST:player/delete'   => fn() => (new AdminPlayerController())->delete(),
+    'POST:player/toggle'   => fn() => (new AdminPlayerController())->toggle(),
+    
+    // 单页管理
+    'GET:page'             => fn() => (new AdminPageController())->index(),
+    'GET:page/add'         => fn() => (new AdminPageController())->add(),
+    'POST:page/add'        => fn() => (new AdminPageController())->doAdd(),
+    'POST:page/delete'     => fn() => (new AdminPageController())->delete(),
+    'POST:page/init'       => fn() => (new AdminPageController())->init(),
+    
+    // 友链管理
+    'GET:link'             => fn() => (new AdminLinkController())->index(),
+    'GET:link/get'         => fn() => (new AdminLinkController())->get(),
+    'GET:link/add'         => fn() => (new AdminLinkController())->add(),
+    'POST:link/add'        => fn() => (new AdminLinkController())->add(),
+    'POST:link/delete'     => fn() => (new AdminLinkController())->delete(),
+    'POST:link/audit'      => fn() => (new AdminLinkController())->audit(),
+    'POST:link/check'      => fn() => (new AdminLinkController())->check(),
+    'POST:link/saveSetting'=> fn() => (new AdminLinkController())->saveSetting(),
+    
+    // 广告管理
+    'GET:ad'               => fn() => (new AdminAdController())->index(),
+    'GET:ad/get'           => fn() => (new AdminAdController())->getOne(),
+    'GET:ad/getOne'        => fn() => (new AdminAdController())->getOne(),
+    'GET:ad/add'           => fn() => (new AdminAdController())->add(),
+    'POST:ad/add'          => fn() => (new AdminAdController())->add(),
+    'POST:ad/delete'       => fn() => (new AdminAdController())->delete(),
+    'POST:ad/toggle'       => fn() => (new AdminAdController())->toggle(),
+    'POST:ad/click'        => fn() => (new AdminAdController())->click(),
+    'GET:ad/securityConfig'=> fn() => (new AdminAdController())->securityConfig(),
+    'POST:ad/securityConfig' => fn() => (new AdminAdController())->securityConfig(),
+    
+    // 评论管理
+    'GET:comment'          => fn() => (new AdminCommentController())->index(),
+    'POST:comment/approve' => fn() => (new AdminCommentController())->approve(),
+    'POST:comment/reject'  => fn() => (new AdminCommentController())->reject(),
+    'POST:comment/delete'  => fn() => (new AdminCommentController())->delete(),
+    'POST:comment/batchAudit' => fn() => (new AdminCommentController())->batchAudit(),
+    'GET:comment/setting'  => fn() => (new AdminCommentController())->setting(),
+    'POST:comment/saveSetting' => fn() => (new AdminCommentController())->saveSetting(),
+    
+    // 数据统计
+    'GET:stats'            => fn() => (new AdminStatsController())->index(),
+    'GET:stats/trend'      => fn() => (new AdminStatsController())->trend(),
+    'GET:stats/hot'        => fn() => (new AdminStatsController())->hot(),
+    'POST:stats/clean'     => fn() => (new AdminStatsController())->clean(),
+    'POST:stats/cleanAll'  => fn() => (new AdminStatsController())->cleanAll(),
+    
+    // 短视频管理
+    'GET:short'            => fn() => (new AdminShortController())->index(),
+    'GET:short/add'        => fn() => (new AdminShortController())->add(),
+    'POST:short/doAdd'     => fn() => (new AdminShortController())->doAdd(),
+    'POST:short/delete'    => fn() => (new AdminShortController())->delete(),
+    'POST:short/toggle'    => fn() => (new AdminShortController())->toggle(),
+    'POST:short/deleteEpisode' => fn() => (new AdminShortController())->deleteEpisode(),
+];
 
-// 仪表盘
-$router->get($adminEntry . '.php/dashboard', fn() => (new AdminDashboardController())->index());
+// 带 ID 参数的路由
+$idRoutes = [
+    'GET:vod/edit'     => fn($id) => (new AdminVodController())->edit($id),
+    'POST:vod/edit'    => fn($id) => (new AdminVodController())->doEdit($id),
+    'GET:type/edit'    => fn($id) => (new AdminTypeController())->edit($id),
+    'POST:type/edit'   => fn($id) => (new AdminTypeController())->edit($id),
+    'GET:actor/edit'   => fn($id) => (new AdminActorController())->edit($id),
+    'POST:actor/edit'  => fn($id) => (new AdminActorController())->edit($id),
+    'GET:art/edit'     => fn($id) => (new AdminArtController())->edit($id),
+    'POST:art/edit'    => fn($id) => (new AdminArtController())->edit($id),
+    'GET:art_type/edit'=> fn($id) => (new AdminArtTypeController())->edit($id),
+    'POST:art_type/edit' => fn($id) => (new AdminArtTypeController())->edit($id),
+    'GET:user/edit'    => fn($id) => (new AdminUserController())->edit($id),
+    'POST:user/edit'   => fn($id) => (new AdminUserController())->doEdit($id),
+    'GET:collect/edit' => fn($id) => (new AdminCollectController())->edit($id),
+    'POST:collect/edit'=> fn($id) => (new AdminCollectController())->doEdit($id),
+    'GET:collect/bind' => fn($id) => (new AdminCollectController())->bind($id),
+    'POST:collect/savebind' => fn($id) => (new AdminCollectController())->saveBind($id),
+    'GET:collect/run'  => fn($id) => (new AdminCollectController())->run($id),
+    'GET:transcode/ad/edit' => fn($id) => (new AdminTranscodeAdController())->edit($id),
+    'POST:transcode/ad/edit' => fn($id) => (new AdminTranscodeAdController())->edit($id),
+    'GET:player/edit'  => fn($id) => (new AdminPlayerController())->edit($id),
+    'POST:player/edit' => fn($id) => (new AdminPlayerController())->doEdit($id),
+    'GET:page/edit'    => fn($id) => (new AdminPageController())->edit($id),
+    'POST:page/edit'   => fn($id) => (new AdminPageController())->doEdit($id),
+    'GET:link/edit'    => fn($id) => (new AdminLinkController())->edit($id),
+    'POST:link/edit'   => fn($id) => (new AdminLinkController())->edit($id),
+    'GET:ad/edit'      => fn($id) => (new AdminAdController())->edit($id),
+    'POST:ad/edit'     => fn($id) => (new AdminAdController())->edit($id),
+    'GET:short/edit'   => fn($id) => (new AdminShortController())->edit($id),
+    'POST:short/doEdit'=> fn($id) => (new AdminShortController())->doEdit($id),
+    'GET:short/episodes' => fn($id) => (new AdminShortController())->episodes($id),
+    'GET:short/addEpisode' => fn($id) => (new AdminShortController())->addEpisode($id),
+    'POST:short/doAddEpisode' => fn($id) => (new AdminShortController())->doAddEpisode($id),
+    'GET:short/editEpisode' => fn($id) => (new AdminShortController())->editEpisode($id),
+    'POST:short/doEditEpisode' => fn($id) => (new AdminShortController())->doEditEpisode($id),
+];
 
-// 视频管理
-$router->get($adminEntry . '.php/vod', fn() => (new AdminVodController())->index());
-$router->get($adminEntry . '.php/vod/add', fn() => (new AdminVodController())->add());
-$router->post($adminEntry . '.php/vod/add', fn() => (new AdminVodController())->doAdd());
-$router->get($adminEntry . '.php/vod/edit/{id}', fn($id) => (new AdminVodController())->edit((int)$id));
-$router->post($adminEntry . '.php/vod/edit/{id}', fn($id) => (new AdminVodController())->doEdit((int)$id));
-$router->post($adminEntry . '.php/vod/delete', fn() => (new AdminVodController())->delete());
-$router->post($adminEntry . '.php/vod/status', fn() => (new AdminVodController())->status());
-$router->post($adminEntry . '.php/vod/lock', fn() => (new AdminVodController())->lock());
-$router->post($adminEntry . '.php/vod/batchLock', fn() => (new AdminVodController())->batchLock());
-$router->get($adminEntry . '.php/vod/replace', fn() => (new AdminVodController())->replace());
-$router->post($adminEntry . '.php/vod/replace', fn() => (new AdminVodController())->doReplace());
-$router->get($adminEntry . '.php/vod/sources', fn() => (new AdminVodController())->sources());
-$router->post($adminEntry . '.php/vod/deleteSource', fn() => (new AdminVodController())->deleteSource());
-$router->post($adminEntry . '.php/vod/renameSource', fn() => (new AdminVodController())->renameSource());
+// 路由分发
+$routeKey = $method . ':' . $adminRoute;
 
-// 分类管理
-$router->get($adminEntry . '.php/type', fn() => (new AdminTypeController())->index());
-$router->get($adminEntry . '.php/type/get', fn() => (new AdminTypeController())->get());
-$router->get($adminEntry . '.php/type/getOne', fn() => (new AdminTypeController())->getOne());
-$router->get($adminEntry . '.php/type/add', fn() => (new AdminTypeController())->add());
-$router->post($adminEntry . '.php/type/add', fn() => (new AdminTypeController())->add());
-$router->get($adminEntry . '.php/type/edit/{id}', fn($id) => (new AdminTypeController())->edit((int)$id));
-$router->post($adminEntry . '.php/type/edit/{id}', fn($id) => (new AdminTypeController())->edit((int)$id));
-$router->post($adminEntry . '.php/type/delete', fn() => (new AdminTypeController())->delete());
-$router->post($adminEntry . '.php/type/batchDelete', fn() => (new AdminTypeController())->batchDelete());
-$router->post($adminEntry . '.php/type/fixVodTypeId1', fn() => (new AdminTypeController())->fixVodTypeId1());
+// 1. 先尝试精确匹配
+if (isset($routes[$routeKey])) {
+    $routes[$routeKey]();
+    exit;
+}
 
-// 演员管理
-$router->get($adminEntry . '.php/actor', fn() => (new AdminActorController())->index());
-$router->get($adminEntry . '.php/actor/get', fn() => (new AdminActorController())->get());
-$router->get($adminEntry . '.php/actor/add', fn() => (new AdminActorController())->add());
-$router->post($adminEntry . '.php/actor/add', fn() => (new AdminActorController())->add());
-$router->get($adminEntry . '.php/actor/edit/{id}', fn($id) => (new AdminActorController())->edit((int)$id));
-$router->post($adminEntry . '.php/actor/edit/{id}', fn($id) => (new AdminActorController())->edit((int)$id));
-$router->post($adminEntry . '.php/actor/delete', fn() => (new AdminActorController())->delete());
+// 2. 尝试匹配带 ID 参数的路由 (如 vod/edit/123)
+if (preg_match('#^(.+)/(\d+)$#', $adminRoute, $matches)) {
+    $baseRoute = $matches[1];
+    $id = (int)$matches[2];
+    $routeKey = $method . ':' . $baseRoute;
+    
+    if (isset($idRoutes[$routeKey])) {
+        $idRoutes[$routeKey]($id);
+        exit;
+    }
+}
 
-// 文章管理
-$router->get($adminEntry . '.php/art', fn() => (new AdminArtController())->index());
-$router->get($adminEntry . '.php/art/get', fn() => (new AdminArtController())->get());
-$router->get($adminEntry . '.php/art/add', fn() => (new AdminArtController())->add());
-$router->post($adminEntry . '.php/art/add', fn() => (new AdminArtController())->add());
-$router->get($adminEntry . '.php/art/edit/{id}', fn($id) => (new AdminArtController())->edit((int)$id));
-$router->post($adminEntry . '.php/art/edit/{id}', fn($id) => (new AdminArtController())->edit((int)$id));
-$router->post($adminEntry . '.php/art/delete', fn() => (new AdminArtController())->delete());
-
-// 文章分类管理
-$router->get($adminEntry . '.php/art_type', fn() => (new AdminArtTypeController())->index());
-$router->get($adminEntry . '.php/art_type/get', fn() => (new AdminArtTypeController())->get());
-$router->get($adminEntry . '.php/art_type/add', fn() => (new AdminArtTypeController())->add());
-$router->post($adminEntry . '.php/art_type/add', fn() => (new AdminArtTypeController())->add());
-$router->get($adminEntry . '.php/art_type/edit/{id}', fn($id) => (new AdminArtTypeController())->edit((int)$id));
-$router->post($adminEntry . '.php/art_type/edit/{id}', fn($id) => (new AdminArtTypeController())->edit((int)$id));
-$router->post($adminEntry . '.php/art_type/delete', fn() => (new AdminArtTypeController())->delete());
-
-// 用户管理
-$router->get($adminEntry . '.php/user', fn() => (new AdminUserController())->index());
-$router->get($adminEntry . '.php/user/edit/{id}', fn($id) => (new AdminUserController())->edit((int)$id));
-$router->post($adminEntry . '.php/user/edit/{id}', fn($id) => (new AdminUserController())->doEdit((int)$id));
-$router->post($adminEntry . '.php/user/delete', fn() => (new AdminUserController())->delete());
-
-// 系统配置
-$router->get($adminEntry . '.php/config', fn() => (new AdminConfigController())->index());
-$router->post($adminEntry . '.php/config', fn() => (new AdminConfigController())->save());
-$router->post($adminEntry . '.php/config/save', fn() => (new AdminConfigController())->save());
-$router->post($adminEntry . '.php/config/upload', fn() => (new AdminConfigController())->upload());
-$router->post($adminEntry . '.php/config/uploadTemplate', fn() => (new AdminConfigController())->uploadTemplate());
-$router->post($adminEntry . '.php/config/deleteTemplate', fn() => (new AdminConfigController())->deleteTemplate());
-$router->get($adminEntry . '.php/config/security', fn() => (new AdminConfigController())->security());
-$router->post($adminEntry . '.php/config/security', fn() => (new AdminConfigController())->security());
-$router->post($adminEntry . '.php/config/testRedis', fn() => (new AdminConfigController())->testRedis());
-
-// 采集管理
-$router->get($adminEntry . '.php/collect', fn() => (new AdminCollectController())->index());
-$router->get($adminEntry . '.php/collect/add', fn() => (new AdminCollectController())->add());
-$router->post($adminEntry . '.php/collect/add', fn() => (new AdminCollectController())->doAdd());
-$router->get($adminEntry . '.php/collect/edit/{id}', fn($id) => (new AdminCollectController())->edit((int)$id));
-$router->post($adminEntry . '.php/collect/edit/{id}', fn($id) => (new AdminCollectController())->doEdit((int)$id));
-$router->post($adminEntry . '.php/collect/delete', fn() => (new AdminCollectController())->delete());
-$router->post($adminEntry . '.php/collect/deleteVods', fn() => (new AdminCollectController())->deleteVods());
-$router->get($adminEntry . '.php/collect/bind/{id}', fn($id) => (new AdminCollectController())->bind((int)$id));
-$router->post($adminEntry . '.php/collect/savebind/{id}', fn($id) => (new AdminCollectController())->saveBind((int)$id));
-$router->post($adminEntry . '.php/collect/copyBind', fn() => (new AdminCollectController())->copyBind());
-$router->post($adminEntry . '.php/collect/syncCategories', fn() => (new AdminCollectController())->syncCategories());
-$router->get($adminEntry . '.php/collect/run/{id}', fn($id) => (new AdminCollectController())->run((int)$id));
-$router->post($adminEntry . '.php/collect/docollect', fn() => (new AdminCollectController())->doCollect());
-$router->post($adminEntry . '.php/collect/test', fn() => (new AdminCollectController())->test());
-$router->post($adminEntry . '.php/collect/clearProgress', fn() => (new AdminCollectController())->clearProgress());
-$router->get($adminEntry . '.php/collect/cron', fn() => (new AdminCollectController())->cron());
-$router->post($adminEntry . '.php/collect/saveCron', fn() => (new AdminCollectController())->saveCron());
-$router->post($adminEntry . '.php/collect/runCron', fn() => (new AdminCollectController())->runCron());
-$router->get($adminEntry . '.php/collect/log', fn() => (new AdminCollectController())->logList());
-$router->post($adminEntry . '.php/collect/cleanLog', fn() => (new AdminCollectController())->cleanLog());
-
-// AI 内容改写
-require_once CTRL_PATH . 'admin/AiController.php';
-$router->get($adminEntry . '.php/ai', fn() => (new AdminAiController())->index());
-$router->post($adminEntry . '.php/ai/save', fn() => (new AdminAiController())->save());
-$router->post($adminEntry . '.php/ai/test', fn() => (new AdminAiController())->test());
-$router->post($adminEntry . '.php/ai/run', fn() => (new AdminAiController())->run());
-$router->post($adminEntry . '.php/ai/reset', fn() => (new AdminAiController())->reset());
-
-// 云转码
-require_once CTRL_PATH . 'admin/TranscodeController.php';
-$router->get($adminEntry . '.php/transcode', fn() => (new AdminTranscodeController())->index());
-$router->get($adminEntry . '.php/transcode/upload', fn() => (new AdminTranscodeController())->upload());
-$router->get($adminEntry . '.php/transcode/doUpload', fn() => (new AdminTranscodeController())->doUpload());
-$router->post($adminEntry . '.php/transcode/doUpload', fn() => (new AdminTranscodeController())->doUpload());
-$router->get($adminEntry . '.php/transcode/status', fn() => (new AdminTranscodeController())->status());
-$router->post($adminEntry . '.php/transcode/retry', fn() => (new AdminTranscodeController())->retry());
-$router->post($adminEntry . '.php/transcode/delete', fn() => (new AdminTranscodeController())->delete());
-$router->post($adminEntry . '.php/transcode/batchDelete', fn() => (new AdminTranscodeController())->batchDelete());
-$router->post($adminEntry . '.php/transcode/process', fn() => (new AdminTranscodeController())->process());
-$router->get($adminEntry . '.php/transcode/play', fn() => (new AdminTranscodeController())->play());
-
-// 转码广告管理
-require_once CTRL_PATH . 'admin/TranscodeAdController.php';
-$router->get($adminEntry . '.php/transcode/ad', fn() => (new AdminTranscodeAdController())->index());
-$router->get($adminEntry . '.php/transcode/ad/add', fn() => (new AdminTranscodeAdController())->add());
-$router->post($adminEntry . '.php/transcode/ad/add', fn() => (new AdminTranscodeAdController())->add());
-$router->get($adminEntry . '.php/transcode/ad/edit/{id}', fn($id) => (new AdminTranscodeAdController())->edit((int)$id));
-$router->post($adminEntry . '.php/transcode/ad/edit/{id}', fn($id) => (new AdminTranscodeAdController())->edit((int)$id));
-$router->post($adminEntry . '.php/transcode/ad/delete', fn() => (new AdminTranscodeAdController())->delete());
-$router->post($adminEntry . '.php/transcode/ad/toggle', fn() => (new AdminTranscodeAdController())->toggle());
-$router->post($adminEntry . '.php/transcode/ad/saveConfig', fn() => (new AdminTranscodeAdController())->saveConfig());
-$router->post($adminEntry . '.php/transcode/ad/upload', fn() => (new AdminTranscodeAdController())->upload());
-
-// 操作日志
-$router->get($adminEntry . '.php/log', fn() => (new AdminLogController())->index());
-$router->post($adminEntry . '.php/log/clean', fn() => (new AdminLogController())->clean());
-
-// 搜索管理
-require_once CTRL_PATH . 'admin/SearchController.php';
-$router->get($adminEntry . '.php/search', fn() => (new AdminSearchController())->index());
-$router->get($adminEntry . '.php/search/log', fn() => (new AdminSearchController())->logList());
-$router->post($adminEntry . '.php/search/cleanLog', fn() => (new AdminSearchController())->cleanLog());
-
-// 播放器管理
-require_once CTRL_PATH . 'admin/PlayerController.php';
-$router->get($adminEntry . '.php/player', fn() => (new AdminPlayerController())->index());
-$router->get($adminEntry . '.php/player/add', fn() => (new AdminPlayerController())->add());
-$router->post($adminEntry . '.php/player/add', fn() => (new AdminPlayerController())->doAdd());
-$router->get($adminEntry . '.php/player/edit/{id}', fn($id) => (new AdminPlayerController())->edit((int)$id));
-$router->post($adminEntry . '.php/player/edit/{id}', fn($id) => (new AdminPlayerController())->doEdit((int)$id));
-$router->post($adminEntry . '.php/player/delete', fn() => (new AdminPlayerController())->delete());
-$router->post($adminEntry . '.php/player/toggle', fn() => (new AdminPlayerController())->toggle());
-
-// 单页管理
-require_once CTRL_PATH . 'admin/PageController.php';
-$router->get($adminEntry . '.php/page', fn() => (new AdminPageController())->index());
-$router->get($adminEntry . '.php/page/add', fn() => (new AdminPageController())->add());
-$router->post($adminEntry . '.php/page/add', fn() => (new AdminPageController())->doAdd());
-$router->get($adminEntry . '.php/page/edit/{id}', fn($id) => (new AdminPageController())->edit((int)$id));
-$router->post($adminEntry . '.php/page/edit/{id}', fn($id) => (new AdminPageController())->doEdit((int)$id));
-$router->post($adminEntry . '.php/page/delete', fn() => (new AdminPageController())->delete());
-$router->post($adminEntry . '.php/page/init', fn() => (new AdminPageController())->init());
-
-// 友链管理
-require_once CTRL_PATH . 'admin/LinkController.php';
-$router->get($adminEntry . '.php/link', fn() => (new AdminLinkController())->index());
-$router->get($adminEntry . '.php/link/get', fn() => (new AdminLinkController())->get());
-$router->get($adminEntry . '.php/link/add', fn() => (new AdminLinkController())->add());
-$router->post($adminEntry . '.php/link/add', fn() => (new AdminLinkController())->add());
-$router->get($adminEntry . '.php/link/edit/{id}', fn($id) => (new AdminLinkController())->edit((int)$id));
-$router->post($adminEntry . '.php/link/edit/{id}', fn($id) => (new AdminLinkController())->edit((int)$id));
-$router->post($adminEntry . '.php/link/delete', fn() => (new AdminLinkController())->delete());
-$router->post($adminEntry . '.php/link/audit', fn() => (new AdminLinkController())->audit());
-$router->post($adminEntry . '.php/link/check', fn() => (new AdminLinkController())->check());
-$router->post($adminEntry . '.php/link/saveSetting', fn() => (new AdminLinkController())->saveSetting());
-
-// 广告管理
-require_once CTRL_PATH . 'admin/AdController.php';
-$router->get($adminEntry . '.php/ad', fn() => (new AdminAdController())->index());
-$router->get($adminEntry . '.php/ad/get', fn() => (new AdminAdController())->getOne());
-$router->get($adminEntry . '.php/ad/getOne', fn() => (new AdminAdController())->getOne());
-$router->get($adminEntry . '.php/ad/add', fn() => (new AdminAdController())->add());
-$router->post($adminEntry . '.php/ad/add', fn() => (new AdminAdController())->add());
-$router->get($adminEntry . '.php/ad/edit/{id}', fn($id) => (new AdminAdController())->edit((int)$id));
-$router->post($adminEntry . '.php/ad/edit/{id}', fn($id) => (new AdminAdController())->edit((int)$id));
-$router->post($adminEntry . '.php/ad/delete', fn() => (new AdminAdController())->delete());
-$router->post($adminEntry . '.php/ad/toggle', fn() => (new AdminAdController())->toggle());
-$router->post($adminEntry . '.php/ad/click', fn() => (new AdminAdController())->click());
-$router->get($adminEntry . '.php/ad/securityConfig', fn() => (new AdminAdController())->securityConfig());
-$router->post($adminEntry . '.php/ad/securityConfig', fn() => (new AdminAdController())->securityConfig());
-
-// 评论管理
-require_once CTRL_PATH . 'admin/CommentController.php';
-$router->get($adminEntry . '.php/comment', fn() => (new AdminCommentController())->index());
-$router->post($adminEntry . '.php/comment/approve', fn() => (new AdminCommentController())->approve());
-$router->post($adminEntry . '.php/comment/reject', fn() => (new AdminCommentController())->reject());
-$router->post($adminEntry . '.php/comment/delete', fn() => (new AdminCommentController())->delete());
-$router->post($adminEntry . '.php/comment/batchAudit', fn() => (new AdminCommentController())->batchAudit());
-$router->get($adminEntry . '.php/comment/setting', fn() => (new AdminCommentController())->setting());
-$router->post($adminEntry . '.php/comment/saveSetting', fn() => (new AdminCommentController())->saveSetting());
-
-// 数据统计
-require_once CTRL_PATH . 'admin/StatsController.php';
-$router->get($adminEntry . '.php/stats', fn() => (new AdminStatsController())->index());
-$router->get($adminEntry . '.php/stats/trend', fn() => (new AdminStatsController())->trend());
-$router->get($adminEntry . '.php/stats/hot', fn() => (new AdminStatsController())->hot());
-$router->post($adminEntry . '.php/stats/clean', fn() => (new AdminStatsController())->clean());
-$router->post($adminEntry . '.php/stats/cleanAll', fn() => (new AdminStatsController())->cleanAll());
-
-// 短视频管理
-require_once CTRL_PATH . 'admin/ShortController.php';
-$router->get($adminEntry . '.php/short', fn() => (new AdminShortController())->index());
-$router->get($adminEntry . '.php/short/add', fn() => (new AdminShortController())->add());
-$router->post($adminEntry . '.php/short/doAdd', fn() => (new AdminShortController())->doAdd());
-$router->get($adminEntry . '.php/short/edit/{id}', fn($id) => (new AdminShortController())->edit((int)$id));
-$router->post($adminEntry . '.php/short/doEdit/{id}', fn($id) => (new AdminShortController())->doEdit((int)$id));
-$router->post($adminEntry . '.php/short/delete', fn() => (new AdminShortController())->delete());
-$router->post($adminEntry . '.php/short/toggle', fn() => (new AdminShortController())->toggle());
-$router->get($adminEntry . '.php/short/episodes/{id}', fn($id) => (new AdminShortController())->episodes((int)$id));
-$router->get($adminEntry . '.php/short/addEpisode/{id}', fn($id) => (new AdminShortController())->addEpisode((int)$id));
-$router->post($adminEntry . '.php/short/doAddEpisode/{id}', fn($id) => (new AdminShortController())->doAddEpisode((int)$id));
-$router->get($adminEntry . '.php/short/editEpisode/{id}', fn($id) => (new AdminShortController())->editEpisode((int)$id));
-$router->post($adminEntry . '.php/short/doEditEpisode/{id}', fn($id) => (new AdminShortController())->doEditEpisode((int)$id));
-$router->post($adminEntry . '.php/short/deleteEpisode', fn() => (new AdminShortController())->deleteEpisode());
-
-// 分发路由
-$router->dispatch();
+// 404
+http_response_code(404);
+echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>404</title></head>';
+echo '<body style="text-align:center;padding:50px;font-family:sans-serif;">';
+echo '<h1>404</h1><p>页面不存在</p>';
+echo '<a href="/' . htmlspecialchars($adminEntry) . '?s=dashboard">返回后台</a>';
+echo '</body></html>';

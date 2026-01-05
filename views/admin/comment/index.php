@@ -6,7 +6,7 @@
             </svg>
             评论管理
         </h2>
-        <a href="/<?= $adminEntry ?>/comment/setting" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 flex items-center">
+        <a href="/<?= $adminEntry ?>?s=comment/setting" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 flex items-center">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -50,7 +50,7 @@
                 <option value="art" <?= $type === 'art' ? 'selected' : '' ?>>文章评论</option>
             </select>
             <button type="submit" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">筛选</button>
-            <a href="/<?= $adminEntry ?>/comment" class="text-gray-500 hover:text-gray-700">重置</a>
+            <a href="/<?= $adminEntry ?>?s=comment" class="text-gray-500 hover:text-gray-700">重置</a>
         </form>
     </div>
 
@@ -178,7 +178,7 @@
 
 <!-- 分页 -->
 <?php 
-$baseUrl = "/{$adminEntry}/comment?status=" . urlencode($status) . "&type=" . urlencode($type);
+$baseUrl = "/{$adminEntry}?s=comment&status=" . urlencode($status) . "&type=" . urlencode($type);
 include __DIR__ . '/../components/pagination.php'; 
 ?>
 

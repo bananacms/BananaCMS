@@ -62,7 +62,7 @@
             </select>
         </div>
         <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">筛选</button>
-        <a href="/<?= $adminEntry ?>/log" class="text-gray-500 hover:text-gray-700 px-4 py-2">重置</a>
+        <a href="/<?= $adminEntry ?>?s=log" class="text-gray-500 hover:text-gray-700 px-4 py-2">重置</a>
     </form>
 
     <!-- 列表 -->
