@@ -21,6 +21,22 @@ class AdminTypeController extends AdminBaseController
     {
         $types = $this->typeModel->getTree();
         $parentTypes = $this->typeModel->getAll(['type_pid' => 0]);
+        
+        // 统计每个分类下的视频数量
+        $db = XpkDatabase::getInstance();
+        $vodCounts = $db->query(
+            "SELECT vod_type_id, COUNT(*) as cnt FROM " . DB_PREFIX . "vod GROUP BY vod_type_id"
+        );
+        $countMap = [];
+        foreach ($vodCounts as $row) {
+            $countMap[$row['vod_type_id']] = (int)$row['cnt'];
+        }
+        
+        // 将数量添加到分类数据中
+        foreach ($types as &$type) {
+            $type['vod_count'] = $countMap[$type['type_id']] ?? 0;
+        }
+        unset($type);
 
         $this->assign('types', $types);
         $this->assign('parentTypes', $parentTypes);

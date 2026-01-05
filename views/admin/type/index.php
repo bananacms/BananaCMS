@@ -30,6 +30,7 @@
                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">ID</th>
                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">分类名称</th>
                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">英文名</th>
+                <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">资源数</th>
                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">排序</th>
                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">状态</th>
                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">操作</th>
@@ -38,7 +39,7 @@
         <tbody class="divide-y">
             <?php if (empty($types)): ?>
             <tr>
-                <td colspan="7" class="px-4 py-8 text-center text-gray-500">暂无数据</td>
+                <td colspan="8" class="px-4 py-8 text-center text-gray-500">暂无数据</td>
             </tr>
             <?php else: ?>
             <?php foreach ($types as $type): ?>
@@ -52,6 +53,13 @@
                     <?= htmlspecialchars($type['type_name']) ?>
                 </td>
                 <td class="px-4 py-3 text-sm text-gray-500"><?= htmlspecialchars($type['type_en']) ?></td>
+                <td class="px-4 py-3 text-sm">
+                    <?php if ($type['vod_count'] > 0): ?>
+                    <a href="<?= adminUrl('/vod?type_id=' . $type['type_id']) ?>" class="text-blue-500 hover:underline"><?= number_format($type['vod_count']) ?></a>
+                    <?php else: ?>
+                    <span class="text-gray-400">0</span>
+                    <?php endif; ?>
+                </td>
                 <td class="px-4 py-3 text-sm"><?= $type['type_sort'] ?></td>
                 <td class="px-4 py-3">
                     <span class="px-2 py-1 rounded text-xs <?= $type['type_status'] ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700' ?>">
