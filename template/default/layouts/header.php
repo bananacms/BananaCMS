@@ -278,4 +278,4 @@
     </div>
 
     <!-- 主内容 -->
-    <main class="container mx-auto px-4 py-6" id="main-content" role="main">
+    <main class="container mx-auto px-4 pt-4 pb-6" id="main-content" role="main">
