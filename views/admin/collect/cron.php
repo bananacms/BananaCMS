@@ -3,21 +3,10 @@
 <?php
 // 获取 PHP CLI 路径
 $phpBinary = PHP_BINARY;
-// 如果是 php-fpm，尝试找到对应的 php cli
+// 如果是 php-fpm，转换为对应的 php cli 路径
 if (strpos($phpBinary, 'php-fpm') !== false || strpos($phpBinary, 'fpm') !== false) {
-    // 宝塔面板常见路径
-    $possiblePaths = [
-        dirname(dirname($phpBinary)) . '/bin/php',  // /www/server/php/82/bin/php
-        '/usr/bin/php',
-        '/usr/local/bin/php',
-    ];
-    foreach ($possiblePaths as $path) {
-        // 使用安全的文件检查函数
-        if (xpk_file_exists($path) && xpk_is_executable($path)) {
-            $phpBinary = $path;
-            break;
-        }
-    }
+    // 宝塔面板: /www/server/php/83/sbin/php-fpm -> /www/server/php/83/bin/php
+    $phpBinary = str_replace(['/sbin/php-fpm', '/sbin/php-fpm83'], '/bin/php', $phpBinary);
 }
 ?>
 
