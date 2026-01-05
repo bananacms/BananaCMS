@@ -64,7 +64,7 @@
                 <td class="px-4 py-3 text-sm text-gray-500"><?= htmlspecialchars($type['type_en']) ?></td>
                 <td class="px-4 py-3 text-sm">
                     <?php if ($type['vod_count'] > 0): ?>
-                    <a href="<?= $adminEntry ?>?s=vod&type_id=<?= $type['type_id'] ?>" class="text-blue-500 hover:underline"><?= number_format($type['vod_count']) ?></a>
+                    <a href="<?= $adminEntry ?>?s=vod&type=<?= $type['type_id'] ?>" class="text-blue-500 hover:underline"><?= number_format($type['vod_count']) ?></a>
                     <?php else: ?>
                     <span class="text-gray-400">0</span>
                     <?php endif; ?>
