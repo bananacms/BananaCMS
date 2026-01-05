@@ -249,7 +249,7 @@ function toggleAdvanced() {
 function saveConfig() {
     const data = getFormData();
     
-    fetch('/' + adminEntry + '/ai/save', {
+    fetch(adminUrl('ai/save'), {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: new URLSearchParams(data)
@@ -270,7 +270,7 @@ function testApi() {
     
     showToast('正在测试...', 'info');
     
-    fetch('/' + adminEntry + '/ai/test', {
+    fetch(adminUrl('ai/test'), {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: new URLSearchParams(data)
@@ -330,7 +330,7 @@ function runRewrite() {
     xpkConfirm('确定要执行一批改写任务吗？', function() {
         showToast('正在执行...', 'info');
         
-        fetch('/' + adminEntry + '/ai/run', {
+        fetch(adminUrl('ai/run'), {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
             body: '_token=' + document.getElementById('csrfToken').value
@@ -350,7 +350,7 @@ function runRewrite() {
 
 function resetFailed() {
     xpkConfirm('确定要重置所有失败状态吗？', function() {
-        fetch('/' + adminEntry + '/ai/reset', {
+        fetch(adminUrl('ai/reset'), {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
             body: '_token=' + document.getElementById('csrfToken').value + '&type=failed'
@@ -366,7 +366,7 @@ function resetFailed() {
 
 function resetAll() {
     xpkConfirm('确定要重置全部改写状态吗？这将导致所有视频重新改写！', function() {
-        fetch('/' + adminEntry + '/ai/reset', {
+        fetch(adminUrl('ai/reset'), {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
             body: '_token=' + document.getElementById('csrfToken').value + '&type=all'
