@@ -62,12 +62,13 @@ class VodController extends BaseController
         $this->assign('total', $result['total']);
         $this->assign('baseUrl', '/hot');
         
-        // SEO
+        // SEO（分页时添加页码）
+        $pageSuffix = $page > 1 ? " - 第{$page}页" : '';
         $seoVars = [
             'name' => '热门视频',
             'description' => '最受欢迎的热门视频推荐'
         ];
-        $this->assign('title', $this->seoTitle('hot', $seoVars));
+        $this->assign('title', $this->seoTitle('hot', $seoVars) . $pageSuffix);
         $this->assign('keywords', $this->seoKeywords('hot', $seoVars));
         $this->assign('description', $this->seoDescription('hot', $seoVars));
         
@@ -87,12 +88,13 @@ class VodController extends BaseController
         $this->assign('total', $result['total']);
         $this->assign('baseUrl', '/latest');
         
-        // SEO
+        // SEO（分页时添加页码）
+        $pageSuffix = $page > 1 ? " - 第{$page}页" : '';
         $seoVars = [
             'name' => '最新更新',
             'description' => '最新更新的视频列表'
         ];
-        $this->assign('title', $this->seoTitle('latest', $seoVars));
+        $this->assign('title', $this->seoTitle('latest', $seoVars) . $pageSuffix);
         $this->assign('keywords', $this->seoKeywords('latest', $seoVars));
         $this->assign('description', $this->seoDescription('latest', $seoVars));
         
@@ -120,8 +122,9 @@ class VodController extends BaseController
         $this->assign('total', $result['total']);
         $this->assign('baseUrl', '/vod/top-type/' . $topTypeId);
         
-        // SEO
-        $this->assign('title', $type['type_name'] . '大全 - ' . SITE_NAME);
+        // SEO（分页时添加页码）
+        $pageSuffix = $page > 1 ? " - 第{$page}页" : '';
+        $this->assign('title', $type['type_name'] . '大全' . $pageSuffix . ' - ' . SITE_NAME);
         
         $this->render('vod/type');
     }

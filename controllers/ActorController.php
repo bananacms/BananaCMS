@@ -26,8 +26,10 @@ class ActorController extends BaseController
         $this->assign('totalPages', $result['totalPages']);
         $this->assign('total', $result['total']);
         
-        // SEO
-        $this->assign('title', '演员列表 - ' . $this->data['siteName']);
+        // SEO（分页时添加页码）
+        $pageSuffix = $page > 1 ? " - 第{$page}页" : '';
+        $this->assign('title', '演员列表' . $pageSuffix . ' - ' . $this->data['siteName']);
+        $this->assign('baseUrl', '/actor');
         
         $this->render('actor/index');
     }

@@ -71,9 +71,10 @@ class TypeController extends BaseController
         $this->assign('total', $result['total']);
         $this->assign('baseUrl', '/type/' . $id);
         
-        // SEO
+        // SEO（分页时添加页码）
+        $pageSuffix = $page > 1 ? " - 第{$page}页" : '';
         $seoVars = ['name' => $type['type_name']];
-        $this->assign('title', $this->seoTitle('type', $seoVars));
+        $this->assign('title', $this->seoTitle('type', $seoVars) . $pageSuffix);
         $this->assign('keywords', $this->seoKeywords('type', $seoVars));
         
         $this->render('vod/type');
