@@ -24,6 +24,23 @@ class AdminAuthController
     }
 
     /**
+     * 生成伪造IP地址（保护管理员真实IP）
+     */
+    private function generateFakeIP(int $adminId): string
+    {
+        $salt = defined('ADMIN_IP_SALT') ? ADMIN_IP_SALT : 'BananaCMS_Admin_IP_Salt_2024';
+        $date = date('Y-m-d');
+        $hash = md5($adminId . $date . 'login' . $salt);
+        
+        $ip1 = 192;
+        $ip2 = 168;
+        $ip3 = (hexdec(substr($hash, 0, 2)) % 254) + 1;
+        $ip4 = (hexdec(substr($hash, 2, 2)) % 254) + 1;
+        
+        return "$ip1.$ip2.$ip3.$ip4";
+    }
+
+    /**
      * 登录页面
      */
     public function login(): void
@@ -90,8 +107,9 @@ class AdminAuthController
             exit;
         }
 
-        // 更新登录信息
-        $adminModel->updateLogin($admin['admin_id'], $_SERVER['REMOTE_ADDR'] ?? '');
+        // 更新登录信息（使用伪造IP保护管理员隐私）
+        $fakeIP = $this->generateFakeIP($admin['admin_id']);
+        $adminModel->updateLogin($admin['admin_id'], $fakeIP);
 
         // 保存Session
         $_SESSION['admin'] = [
