@@ -10,9 +10,11 @@
  * php cron.php collect --id=1       # 只采集指定采集站
  * php cron.php collect --type=6     # 只采集指定分类
  * php cron.php auto                 # 执行自动采集任务（根据后台配置）
+ * php cron.php ai_rewrite           # 执行AI内容改写
  * 
- * 定时任务示例（每小时执行）：
- * 0 * * * * php /www/bananacms/cron.php auto >> /www/bananacms/runtime/cron.log 2>&1
+ * 宝塔定时任务设置：
+ * 任务类型：Shell脚本
+ * 脚本内容：/www/server/php/83/bin/php /www/wwwroot/你的域名/cron.php auto
  */
 
 // 只允许命令行运行
@@ -46,6 +48,55 @@ for ($i = 2; $i < count($argv); $i++) {
 // 日志函数
 function clog(string $msg): void {
     echo '[' . date('Y-m-d H:i:s') . '] ' . $msg . PHP_EOL;
+}
+
+/**
+ * 下载图片到本地
+ */
+function downloadImage(string $url): ?string {
+    if (empty($url) || !filter_var($url, FILTER_VALIDATE_URL)) {
+        return null;
+    }
+    
+    // 创建上传目录
+    $uploadDir = ROOT_PATH . 'upload/vod/' . date('Ymd') . '/';
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0755, true);
+    }
+    
+    // 获取文件扩展名
+    $ext = pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION);
+    if (!in_array(strtolower($ext), ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+        $ext = 'jpg';
+    }
+    
+    // 生成文件名
+    $filename = md5($url . time()) . '.' . $ext;
+    $filepath = $uploadDir . $filename;
+    
+    // 下载图片
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_TIMEOUT => 30,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    ]);
+    $content = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    
+    if ($httpCode !== 200 || empty($content)) {
+        return null;
+    }
+    
+    // 保存文件
+    if (file_put_contents($filepath, $content) === false) {
+        return null;
+    }
+    
+    return '/upload/vod/' . date('Ymd') . '/' . $filename;
 }
 
 /**
@@ -129,6 +180,7 @@ function runCollect(array $options): void {
     $mode = isset($options['all']) ? 'all' : (isset($options['update']) ? 'update' : 'add');
     $hours = $options['hours'] ?? null;
     $typeId = isset($options['type']) ? (int)$options['type'] : null;
+    $downloadPic = !empty($options['download_pic']);
     
     foreach ($collects as $collect) {
         clog("开始采集: {$collect['collect_name']}");
@@ -320,9 +372,18 @@ function runCollect(array $options): void {
                     $typeModel = new XpkType();
                     $topLevelId = $typeModel->getTopLevelId($localTypeId);
                     
+                    // 下载图片（如果开启）
+                    $picUrl = $video['vod_pic'];
+                    if ($downloadPic && !empty($picUrl)) {
+                        $localPic = downloadImage($picUrl);
+                        if ($localPic) {
+                            $picUrl = $localPic;
+                        }
+                    }
+                    
                     $db->execute(
                         "INSERT INTO " . DB_PREFIX . "vod (vod_type_id, vod_type_id_1, vod_name, vod_sub, vod_en, vod_slug, vod_pic, vod_actor, vod_director, vod_year, vod_area, vod_lang, vod_score, vod_hits, vod_remarks, vod_content, vod_play_from, vod_play_url, vod_status, vod_collect_id, vod_time, vod_time_add) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)",
-                        [$localTypeId, $topLevelId, $video['vod_name'], $video['vod_sub'], $video['vod_en'], $slug, $video['vod_pic'], $video['vod_actor'], $video['vod_director'], $video['vod_year'], $video['vod_area'], $video['vod_lang'], $score, $hits, $video['vod_remarks'], $video['vod_content'], $video['vod_play_from'], $video['vod_play_url'], $collect['collect_id'], time(), time()]
+                        [$localTypeId, $topLevelId, $video['vod_name'], $video['vod_sub'], $video['vod_en'], $slug, $picUrl, $video['vod_actor'], $video['vod_director'], $video['vod_year'], $video['vod_area'], $video['vod_lang'], $score, $hits, $video['vod_remarks'], $video['vod_content'], $video['vod_play_from'], $video['vod_play_url'], $collect['collect_id'], time(), time()]
                     );
                     $added++;
                 }
@@ -397,6 +458,10 @@ function runAuto(): void {
     
     if (!empty($settings['hours'])) {
         $options['hours'] = $settings['hours'];
+    }
+    
+    if (!empty($settings['download_pic'])) {
+        $options['download_pic'] = true;
     }
     
     if (!empty($settings['collect_ids'])) {

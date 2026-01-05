@@ -66,6 +66,14 @@ if (strpos($phpBinary, 'php-fpm') !== false || strpos($phpBinary, 'fpm') !== fal
                 </div>
 
                 <div>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" name="download_pic" value="1" <?= !empty($config['download_pic']) ? 'checked' : '' ?> class="w-4 h-4 rounded">
+                        <span class="text-sm font-medium text-gray-700">下载图片到本地</span>
+                    </label>
+                    <p class="text-xs text-gray-500 mt-1">勾选后会下载海报图片到服务器，速度较慢</p>
+                </div>
+
+                <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">采集站选择</label>
                     <div class="space-y-2 max-h-48 overflow-y-auto border rounded p-3">
                         <?php $selectedIds = $config['collect_ids'] ?? []; ?>
@@ -122,7 +130,12 @@ if (strpos($phpBinary, 'php-fpm') !== false || strpos($phpBinary, 'fpm') !== fal
             </div>
             
             <div class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
-                <p class="font-medium">💡 说明：</p>
+                <p class="font-medium flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    说明：
+                </p>
                 <p>左侧"执行间隔"用于防止重复执行。宝塔执行周期应与之一致，例如：</p>
                 <p class="mt-1">• 执行间隔选1小时 → 宝塔设置每1小时执行</p>
                 <p>• 执行间隔选6小时 → 宝塔设置每6小时执行</p>

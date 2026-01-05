@@ -1068,6 +1068,7 @@ class AdminCollectController extends AdminBaseController
             'interval' => (int)$this->post('interval', 60),
             'mode' => $this->post('mode', 'add'),
             'hours' => $this->post('hours', ''),
+            'download_pic' => (int)$this->post('download_pic', 0),
             'collect_ids' => $this->post('collect_ids', [])
         ];
 
