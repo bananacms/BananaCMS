@@ -368,17 +368,34 @@ class XpkVod extends XpkModel
         
         $offset = ($page - 1) * $pageSize;
         
-        // 如果是一级分类（type_pid = 0），使用 vod_type_id_1 查询更高效
+        // 如果是一级分类（type_pid = 0），检查是否有子分类
         if ($type && $type['type_pid'] == 0) {
-            $sql = "SELECT * FROM {$this->table} 
-                    WHERE vod_status = 1 AND vod_type_id_1 = ?
-                    ORDER BY vod_time DESC LIMIT {$pageSize} OFFSET {$offset}";
+            // 检查是否有子分类
+            $hasChildren = $typeModel->hasChildren($typeId);
             
-            $countSql = "SELECT COUNT(*) as total FROM {$this->table} 
-                         WHERE vod_status = 1 AND vod_type_id_1 = ?";
-            
-            $list = $this->db->query($sql, [$typeId]);
-            $total = $this->db->queryOne($countSql, [$typeId])['total'] ?? 0;
+            if ($hasChildren) {
+                // 有子分类：使用 vod_type_id_1 查询（包含所有子分类的视频）
+                $sql = "SELECT * FROM {$this->table} 
+                        WHERE vod_status = 1 AND vod_type_id_1 = ?
+                        ORDER BY vod_time DESC LIMIT {$pageSize} OFFSET {$offset}";
+                
+                $countSql = "SELECT COUNT(*) as total FROM {$this->table} 
+                             WHERE vod_status = 1 AND vod_type_id_1 = ?";
+                
+                $list = $this->db->query($sql, [$typeId]);
+                $total = $this->db->queryOne($countSql, [$typeId])['total'] ?? 0;
+            } else {
+                // 无子分类：直接用 vod_type_id 查询（扁平分类结构）
+                $sql = "SELECT * FROM {$this->table} 
+                        WHERE vod_status = 1 AND vod_type_id = ?
+                        ORDER BY vod_time DESC LIMIT {$pageSize} OFFSET {$offset}";
+                
+                $countSql = "SELECT COUNT(*) as total FROM {$this->table} 
+                             WHERE vod_status = 1 AND vod_type_id = ?";
+                
+                $list = $this->db->query($sql, [$typeId]);
+                $total = $this->db->queryOne($countSql, [$typeId])['total'] ?? 0;
+            }
         } else {
             // 子分类：获取该分类及其所有子分类的ID
             $typeIds = $typeModel->getChildIds($typeId);

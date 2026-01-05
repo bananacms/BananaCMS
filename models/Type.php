@@ -117,6 +117,18 @@ class XpkType extends XpkModel
     }
 
     /**
+     * 检查分类是否有子分类
+     */
+    public function hasChildren(int $typeId): bool
+    {
+        $result = $this->db->queryOne(
+            "SELECT 1 FROM {$this->table} WHERE type_pid = ? AND type_status = 1 LIMIT 1",
+            [$typeId]
+        );
+        return !empty($result);
+    }
+
+    /**
      * 获取分类及其子分类ID
      * 优先使用父子关系，如果没有子分类则尝试名称匹配
      */
