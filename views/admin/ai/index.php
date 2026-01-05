@@ -122,8 +122,9 @@ if (strpos($phpBinary, 'php-fpm') !== false || strpos($phpBinary, 'fpm') !== fal
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">超时时间（秒）</label>
-                    <input type="number" id="ai_timeout" value="<?= htmlspecialchars($config['ai_timeout'] ?? '30') ?>"
-                        class="w-full border rounded px-3 py-2" min="10" max="120">
+                    <input type="number" id="ai_timeout" value="<?= htmlspecialchars($config['ai_timeout'] ?? '120') ?>"
+                        class="w-full border rounded px-3 py-2" min="10" max="300">
+                    <p class="text-xs text-gray-500 mt-1">免费API响应较慢，建议设置 60-120 秒</p>
                 </div>
             </div>
         </div>

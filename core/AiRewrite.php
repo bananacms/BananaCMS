@@ -43,7 +43,7 @@ class XpkAiRewrite
         $this->userPrompt = $config['user_prompt'] ?? self::DEFAULT_USER_PROMPT;
         $this->temperature = (float)($config['temperature'] ?? 0.8);
         $this->maxTokens = (int)($config['max_tokens'] ?? 2000);
-        $this->timeout = (int)($config['timeout'] ?? 30);
+        $this->timeout = (int)($config['timeout'] ?? 120);
     }
 
     /**

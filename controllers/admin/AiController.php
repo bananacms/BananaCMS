@@ -41,7 +41,7 @@ class AdminAiController extends AdminBaseController
             'ai_user_prompt' => trim($this->post('ai_user_prompt', '')),
             'ai_temperature' => (float)$this->post('ai_temperature', 0.8),
             'ai_max_tokens' => (int)$this->post('ai_max_tokens', 2000),
-            'ai_timeout' => (int)$this->post('ai_timeout', 30),
+            'ai_timeout' => (int)$this->post('ai_timeout', 120),
             'ai_batch_size' => (int)$this->post('ai_batch_size', 10),
         ];
 
@@ -87,7 +87,7 @@ class AdminAiController extends AdminBaseController
             'user_prompt' => trim($this->post('ai_user_prompt', '')),
             'temperature' => (float)$this->post('ai_temperature', 0.8),
             'max_tokens' => (int)$this->post('ai_max_tokens', 2000),
-            'timeout' => (int)$this->post('ai_timeout', 30),
+            'timeout' => (int)$this->post('ai_timeout', 120),
         ];
 
         if (empty($config['api_url']) || empty($config['api_key'])) {
@@ -227,7 +227,7 @@ class AdminAiController extends AdminBaseController
             'ai_user_prompt' => XpkAiRewrite::getDefaultUserPrompt(),
             'ai_temperature' => '0.8',
             'ai_max_tokens' => '2000',
-            'ai_timeout' => '30',
+            'ai_timeout' => '120',
             'ai_batch_size' => '10',
         ];
 
