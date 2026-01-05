@@ -33,15 +33,16 @@ if (strpos($phpBinary, 'php-fpm') !== false || strpos($phpBinary, 'fpm') !== fal
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">执行间隔（分钟）</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">采集频率</label>
                     <select name="interval" class="w-full border rounded px-3 py-2">
-                        <option value="30" <?= ($config['interval'] ?? 60) == 30 ? 'selected' : '' ?>>30分钟</option>
-                        <option value="60" <?= ($config['interval'] ?? 60) == 60 ? 'selected' : '' ?>>1小时</option>
-                        <option value="120" <?= ($config['interval'] ?? 60) == 120 ? 'selected' : '' ?>>2小时</option>
-                        <option value="360" <?= ($config['interval'] ?? 60) == 360 ? 'selected' : '' ?>>6小时</option>
-                        <option value="720" <?= ($config['interval'] ?? 60) == 720 ? 'selected' : '' ?>>12小时</option>
-                        <option value="1440" <?= ($config['interval'] ?? 60) == 1440 ? 'selected' : '' ?>>24小时</option>
+                        <option value="30" <?= ($config['interval'] ?? 60) == 30 ? 'selected' : '' ?>>每30分钟</option>
+                        <option value="60" <?= ($config['interval'] ?? 60) == 60 ? 'selected' : '' ?>>每1小时</option>
+                        <option value="120" <?= ($config['interval'] ?? 60) == 120 ? 'selected' : '' ?>>每2小时</option>
+                        <option value="360" <?= ($config['interval'] ?? 60) == 360 ? 'selected' : '' ?>>每6小时</option>
+                        <option value="720" <?= ($config['interval'] ?? 60) == 720 ? 'selected' : '' ?>>每12小时</option>
+                        <option value="1440" <?= ($config['interval'] ?? 60) == 1440 ? 'selected' : '' ?>>每24小时</option>
                     </select>
+                    <p class="text-xs text-gray-500 mt-1">宝塔定时任务的执行周期需与此一致</p>
                 </div>
 
                 <div>
@@ -132,13 +133,14 @@ if (strpos($phpBinary, 'php-fpm') !== false || strpos($phpBinary, 'fpm') !== fal
             <div class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
                 <p class="font-medium flex items-center">
                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                     </svg>
-                    说明：
+                    重要说明：
                 </p>
-                <p>左侧"执行间隔"用于防止重复执行。宝塔执行周期应与之一致，例如：</p>
-                <p class="mt-1">• 执行间隔选1小时 → 宝塔设置每1小时执行</p>
-                <p>• 执行间隔选6小时 → 宝塔设置每6小时执行</p>
+                <p class="mt-1">启用自动采集后，必须在宝塔面板添加定时任务才能生效。</p>
+                <p class="mt-1">左侧"采集频率"与宝塔执行周期需保持一致，例如：</p>
+                <p class="mt-1">• 采集频率选每1小时 → 宝塔设置每1小时执行</p>
+                <p>• 采集频率选每6小时 → 宝塔设置每6小时执行</p>
             </div>
         </div>
 
