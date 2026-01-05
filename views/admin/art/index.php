@@ -19,6 +19,7 @@
 <!-- 搜索 -->
 <div class="bg-white rounded-lg shadow p-4 mb-6">
     <form method="GET" class="flex gap-4 items-end flex-wrap">
+        <input type="hidden" name="s" value="art">
         <div>
             <label class="block text-sm text-gray-600 mb-1">分类</label>
             <select name="type_id" class="border rounded px-3 py-2">

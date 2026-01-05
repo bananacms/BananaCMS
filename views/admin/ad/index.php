@@ -43,6 +43,7 @@
     <!-- 筛选 -->
     <div class="bg-white p-4 rounded shadow mb-4">
         <form method="get" class="flex gap-4 items-center">
+            <input type="hidden" name="s" value="ad">
             <select name="position" class="border rounded px-3 py-2">
                 <option value="">全部位置</option>
                 <?php foreach ($positions as $key => $name): ?>

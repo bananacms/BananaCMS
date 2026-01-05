@@ -10,6 +10,7 @@
 
     <!-- 筛选 -->
     <form method="get" class="flex gap-4 items-end">
+        <input type="hidden" name="s" value="log">
         <div>
             <label class="block text-sm text-gray-600 mb-1">模块</label>
             <select name="module" class="border rounded px-3 py-2">

@@ -3,6 +3,7 @@
 <!-- 搜索筛选 -->
 <div class="bg-white rounded-lg shadow p-6 mb-6">
     <form method="GET" class="flex items-center gap-4">
+        <input type="hidden" name="s" value="search/log">
         <div class="flex-1">
             <input type="text" name="keyword" value="<?= htmlspecialchars($keyword) ?>" 
                 placeholder="搜索关键词..." class="w-full border rounded px-3 py-2">

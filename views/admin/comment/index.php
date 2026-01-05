@@ -38,6 +38,7 @@
     <!-- 筛选 -->
     <div class="bg-white p-4 rounded shadow mb-4">
         <form method="get" class="flex gap-4 items-center">
+            <input type="hidden" name="s" value="comment">
             <select name="status" class="border rounded px-3 py-2">
                 <option value="">全部状态</option>
                 <option value="0" <?= $status === '0' ? 'selected' : '' ?>>待审核</option>

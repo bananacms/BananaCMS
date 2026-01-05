@@ -77,6 +77,7 @@
 <div class="bg-white rounded-lg shadow p-4 mb-6">
     <div class="flex flex-wrap items-center justify-between gap-4">
         <form method="GET" class="flex items-center gap-4">
+            <input type="hidden" name="s" value="collect/log">
             <select name="collect_id" class="border rounded px-3 py-2 text-sm" onchange="this.form.submit()">
                 <option value="">全部采集站</option>
                 <?php foreach ($collects as $c): ?>

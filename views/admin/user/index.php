@@ -11,6 +11,7 @@
 <!-- 搜索 -->
 <div class="bg-white rounded-lg shadow p-4 mb-6">
     <form method="GET" class="flex flex-wrap gap-4 items-end">
+        <input type="hidden" name="s" value="user">
         <div>
             <label class="block text-sm text-gray-600 mb-1">关键词</label>
             <input type="text" name="keyword" value="<?= htmlspecialchars($keyword) ?>" 

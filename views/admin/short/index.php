@@ -39,6 +39,7 @@
     <!-- 筛选 -->
     <div class="bg-white p-4 rounded shadow mb-4">
         <form method="get" class="flex gap-4 items-center">
+            <input type="hidden" name="s" value="short">
             <select name="type" class="border rounded px-3 py-2">
                 <option value="">全部类型</option>
                 <option value="video" <?= $type === 'video' ? 'selected' : '' ?>>短视频</option>
