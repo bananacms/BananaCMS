@@ -10,18 +10,24 @@ class XpkType extends XpkModel
     protected string $pk = 'type_id';
 
     /**
-     * 获取分类列表
+     * 获取分类列表（只返回有资源的分类）
      */
     public function getList(int $pid = 0): array
     {
         // 当 pid=0 时，直接使用硬编码避免参数绑定问题
         if ($pid === 0) {
             return $this->db->query(
-                "SELECT * FROM {$this->table} WHERE type_pid = 0 AND type_status = 1 ORDER BY type_sort ASC, type_id ASC"
+                "SELECT t.* FROM {$this->table} t 
+                 WHERE t.type_pid = 0 AND t.type_status = 1 
+                 AND EXISTS (SELECT 1 FROM " . DB_PREFIX . "vod v WHERE v.vod_type_id = t.type_id OR v.vod_type_id_1 = t.type_id)
+                 ORDER BY t.type_sort ASC, t.type_id ASC"
             );
         }
         return $this->db->query(
-            "SELECT * FROM {$this->table} WHERE type_pid = ? AND type_status = 1 ORDER BY type_sort ASC, type_id ASC",
+            "SELECT t.* FROM {$this->table} t 
+             WHERE t.type_pid = ? AND t.type_status = 1 
+             AND EXISTS (SELECT 1 FROM " . DB_PREFIX . "vod v WHERE v.vod_type_id = t.type_id)
+             ORDER BY t.type_sort ASC, t.type_id ASC",
             [$pid]
         );
     }
@@ -227,21 +233,27 @@ class XpkType extends XpkModel
     }
 
     /**
-     * 获取导航分类
+     * 获取导航分类（只返回有资源的分类）
      * @param int $limit 显示数量，0表示不限制
      */
     public function getNav(int $limit = 10): array
     {
-        // 优先获取一级分类
-        $sql = "SELECT * FROM {$this->table} WHERE type_pid = 0 AND type_status = 1 ORDER BY type_sort ASC";
+        // 优先获取一级分类（有资源的）
+        $sql = "SELECT t.* FROM {$this->table} t 
+                WHERE t.type_pid = 0 AND t.type_status = 1 
+                AND EXISTS (SELECT 1 FROM " . DB_PREFIX . "vod v WHERE v.vod_type_id = t.type_id OR v.vod_type_id_1 = t.type_id)
+                ORDER BY t.type_sort ASC";
         if ($limit > 0) {
             $sql .= " LIMIT {$limit}";
         }
         $result = $this->db->query($sql);
         
-        // 如果没有一级分类，获取所有分类
+        // 如果没有一级分类，获取所有有资源的分类
         if (empty($result)) {
-            $sql = "SELECT * FROM {$this->table} WHERE type_status = 1 ORDER BY type_sort ASC, type_id ASC";
+            $sql = "SELECT t.* FROM {$this->table} t 
+                    WHERE t.type_status = 1 
+                    AND EXISTS (SELECT 1 FROM " . DB_PREFIX . "vod v WHERE v.vod_type_id = t.type_id)
+                    ORDER BY t.type_sort ASC, t.type_id ASC";
             if ($limit > 0) {
                 $sql .= " LIMIT {$limit}";
             }
