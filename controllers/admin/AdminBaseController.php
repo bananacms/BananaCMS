@@ -37,7 +37,7 @@ class AdminBaseController
      */
     protected function getAdminEntry(): string
     {
-        return basename($_SERVER['SCRIPT_NAME'], '.php') . '.php';
+        return basename($_SERVER['SCRIPT_NAME'], '.php');
     }
 
     /**

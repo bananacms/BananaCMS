@@ -11,7 +11,7 @@ class AdminAuthController
      */
     private function getAdminEntry(): string
     {
-        return basename($_SERVER['SCRIPT_NAME']);
+        return basename($_SERVER['SCRIPT_NAME'], '.php');
     }
     
     /**
@@ -39,7 +39,8 @@ class AdminAuthController
         }
 
         $error = $_SESSION['login_error'] ?? '';
-        unset($_SESSION['login_error']);
+        $success = $_SESSION['login_success'] ?? '';
+        unset($_SESSION['login_error'], $_SESSION['login_success']);
         $csrfToken = $_SESSION['csrf_token'];
         $adminEntry = $this->getAdminEntry();
 
@@ -197,8 +198,11 @@ class AdminAuthController
         // 更新密码
         $adminModel->updatePassword($admin['admin_id'], $newPassword);
 
-        $_SESSION['password_success'] = '密码修改成功';
-        header('Location: ' . $this->adminUrl('password'));
+        // 清除登录状态，要求重新登录
+        unset($_SESSION['admin']);
+        
+        $_SESSION['login_success'] = '密码修改成功，请重新登录';
+        header('Location: ' . $this->adminUrl('login'));
         exit;
     }
 }

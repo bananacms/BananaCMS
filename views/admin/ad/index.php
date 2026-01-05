@@ -10,7 +10,7 @@
             <button onclick="openAdModal()" class="bg-primary text-white px-4 py-2 rounded hover:bg-red-600">
                 + 添加广告
             </button>
-            <a href="/<?= ADMIN_ENTRY ?>/ad/securityConfig" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+            <a href="/<?= $adminEntry ?>?s=ad/securityConfig" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
                 🔒 安全配置
             </a>
         </div>

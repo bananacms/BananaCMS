@@ -46,8 +46,8 @@ class BaseController
     {
         // 只记录前端页面访问，排除管理后台和API
         $uri = $_SERVER['REQUEST_URI'] ?? '';
-        $adminEntry = defined('ADMIN_ENTRY') ? ADMIN_ENTRY : 'admin.php';
-        $adminPath = '/' . str_replace('.php', '', $adminEntry);
+        $adminEntry = defined('ADMIN_ENTRY') ? ADMIN_ENTRY : 'admin';
+        $adminPath = '/' . $adminEntry;
         if (strpos($uri, $adminPath) !== false || strpos($uri, XPK_API_PATH) !== false) {
             return;
         }

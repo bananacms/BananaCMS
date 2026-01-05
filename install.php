@@ -36,7 +36,7 @@ function getSensitiveFiles(): array {
 // 检查是否已安装
 if (file_exists(CONFIG_PATH . 'install.lock')) {
     // 尝试加载配置以获取后台入口
-    $adminEntry = 'admin.php';
+    $adminEntry = 'admin';
     if (file_exists(CONFIG_PATH . 'config.php')) {
         $configContent = file_get_contents(CONFIG_PATH . 'config.php');
         if (preg_match("/define\('ADMIN_ENTRY',\s*'([^']+)'\)/", $configContent, $matches)) {
@@ -202,7 +202,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $config .= "define('PAGE_SIZE', 24);\n";
                 $config .= "define('UPLOAD_MAX_SIZE', 10485760);\n";
                 $config .= "define('UPLOAD_ALLOW_EXT', 'jpg,jpeg,png,gif,webp');\n";
-                $config .= "define('ADMIN_ENTRY', '{$adminEntry}.php');\n";
+                $config .= "define('ADMIN_ENTRY', '{$adminEntry}');\n";
                 $config .= "define('XPK_ROOT', true);\n";
                 $config .= "require_once CONFIG_PATH . 'constants.php';\n";
                 
@@ -251,7 +251,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 
                 $_SESSION['install_admin'] = $adminUser;
-                $_SESSION['install_admin_entry'] = $adminEntry . '.php';
+                $_SESSION['install_admin_entry'] = $adminEntry;
                 header('Location: install.php?step=4');
                 exit;
                 
@@ -371,7 +371,7 @@ $envPass = !in_array(false, array_column($envChecks, 3));
                     <div>
                         <label class="block text-sm mb-1">后台入口文件名 * (不含.php后缀)</label>
                         <input type="text" name="admin_entry" value="admin" required pattern="[a-zA-Z0-9_-]+" class="w-full border rounded px-3 py-2" placeholder="例如: admin, manage, backend">
-                        <p class="text-xs text-gray-500 mt-1">自定义后台访问路径，避免使用默认的admin.php被扫描攻击。只能包含字母、数字、下划线和连字符。</p>
+                        <p class="text-xs text-gray-500 mt-1">自定义后台访问路径，配合伪静态可直接访问 /admin 等路径。只能包含字母、数字、下划线和连字符。</p>
                     </div>
                 </div>
             </div>
@@ -394,7 +394,7 @@ $envPass = !in_array(false, array_column($envChecks, 3));
             <h2 class="text-2xl font-bold mb-4 text-green-600">安装成功！</h2>
             <div class="bg-gray-50 rounded p-6 mb-6">
                 <p class="mb-2"><strong>管理员：</strong><?= htmlspecialchars($_SESSION['install_admin'] ?? '') ?></p>
-                <p class="mb-2"><strong>后台地址：</strong><a href="/<?= htmlspecialchars($_SESSION['install_admin_entry'] ?? 'admin.php') ?>" class="text-blue-600 hover:underline"><?= htmlspecialchars($_SESSION['install_admin_entry'] ?? 'admin.php') ?></a></p>
+                <p class="mb-2"><strong>后台地址：</strong><a href="/<?= htmlspecialchars($_SESSION['install_admin_entry'] ?? 'admin') ?>" class="text-blue-600 hover:underline">/<?= htmlspecialchars($_SESSION['install_admin_entry'] ?? 'admin') ?></a></p>
                 <p class="text-sm text-gray-500 mb-4">请牢记您设置的密码和后台访问地址</p>
             </div>
             
@@ -441,7 +441,7 @@ $envPass = !in_array(false, array_column($envChecks, 3));
             
             <div class="flex justify-center space-x-4">
                 <a href="/" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded font-bold">访问首页</a>
-                <a href="/<?= htmlspecialchars($_SESSION['install_admin_entry'] ?? 'admin.php') ?>" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded font-bold">进入后台</a>
+                <a href="/<?= htmlspecialchars($_SESSION['install_admin_entry'] ?? 'admin') ?>" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded font-bold">进入后台</a>
             </div>
         </div>
         
@@ -513,7 +513,7 @@ $envPass = !in_array(false, array_column($envChecks, 3));
                                 showToast('部分文件删除失败，请检查权限', 'error');
                             } else {
                                 showToast('所有敏感文件已删除', 'success');
-                                setTimeout(() => location.href = '/' + '<?= htmlspecialchars($_SESSION['install_admin_entry'] ?? 'admin.php') ?>', 1500);
+                                setTimeout(() => location.href = '/' + '<?= htmlspecialchars($_SESSION['install_admin_entry'] ?? 'admin') ?>', 1500);
                             }
                         }
                     })

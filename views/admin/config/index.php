@@ -6,7 +6,7 @@
 
 <h1 class="text-2xl font-bold mb-6 flex justify-between items-center">
     系统配置
-    <a href="/<?= ADMIN_ENTRY ?>?s=config/security" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 text-sm">
+    <a href="/<?= $adminEntry ?>?s=config/security" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 text-sm">
         🔒 安全配置
     </a>
 </h1>

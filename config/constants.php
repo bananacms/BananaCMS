@@ -9,6 +9,29 @@ if (!defined('XPK_ROOT')) {
     exit('Access denied');
 }
 
+// ========== 安全的文件检查函数 ==========
+// 避免 open_basedir 限制错误
+
+if (!function_exists('xpk_file_exists')) {
+    function xpk_file_exists(string $path): bool {
+        try {
+            return @file_exists($path);
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+}
+
+if (!function_exists('xpk_is_executable')) {
+    function xpk_is_executable(string $path): bool {
+        try {
+            return @is_executable($path);
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+}
+
 // ========== 系统基础常量 ==========
 
 // 默认值常量
