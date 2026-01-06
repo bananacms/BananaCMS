@@ -18,6 +18,40 @@ class SearchController extends BaseController
     }
 
     /**
+     * 搜索防护检查
+     * 包含：空查询拦截、Referer校验
+     * @param string $keyword 搜索关键词
+     */
+    private function searchProtection(string $keyword): void
+    {
+        // 1. 空查询拦截 - 阻止 /search?wd= 空参数攻击
+        if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['wd']) && trim($_GET['wd']) === '') {
+            http_response_code(400);
+            exit;
+        }
+
+        // 2. Referer 校验 - 仅对有关键词的搜索请求进行校验
+        // 无关键词时允许直接访问搜索页（显示热门搜索等）
+        if (!empty($keyword)) {
+            $referer = $_SERVER['HTTP_REFERER'] ?? '';
+            if (empty($referer)) {
+                http_response_code(403);
+                exit;
+            }
+            
+            // 获取站点域名（从配置或常量）
+            $siteUrl = $this->data['siteUrl'] ?? SITE_URL;
+            $siteHost = parse_url($siteUrl, PHP_URL_HOST);
+            $refererHost = parse_url($referer, PHP_URL_HOST);
+            
+            if ($refererHost !== $siteHost) {
+                http_response_code(403);
+                exit;
+            }
+        }
+    }
+
+    /**
      * 搜索页
      */
     public function index(int $page = 1, string $keyword = ''): void
@@ -28,6 +62,18 @@ class SearchController extends BaseController
         }
         // 路由已经解码过了，不需要再urldecode
         $keyword = trim($keyword);
+        
+        // 搜索防护检查（空查询拦截、Referer校验）
+        $this->searchProtection($keyword);
+        
+        // 关键词长度限制 - 防止超短/超长关键词打数据库 LIKE 查询
+        if (!empty($keyword)) {
+            $len = mb_strlen($keyword, 'UTF-8');
+            if ($len < 1 || $len > 100) {
+                http_response_code(400);
+                exit;
+            }
+        }
         
         // 支持排序参数（用于"查看更多"功能）
         $order = $this->get('order', '');
@@ -99,12 +145,30 @@ class SearchController extends BaseController
      */
     public function suggest(): void
     {
+        // Referer 校验 - 阻止外站直接调用
+        $referer = $_SERVER['HTTP_REFERER'] ?? '';
+        if (empty($referer)) {
+            http_response_code(403);
+            exit;
+        }
+        
+        $siteUrl = $this->data['siteUrl'] ?? SITE_URL;
+        $siteHost = parse_url($siteUrl, PHP_URL_HOST);
+        $refererHost = parse_url($referer, PHP_URL_HOST);
+        
+        if ($refererHost !== $siteHost) {
+            http_response_code(403);
+            exit;
+        }
+        
         // 搜索建议也需要速率限制
         $this->requireRateLimit('suggest', 60, 60); // 1分钟内最多60次建议请求
         
         $query = trim($this->get('q', ''));
         
-        if (strlen($query) < 2) {
+        // 关键词长度限制
+        $len = mb_strlen($query, 'UTF-8');
+        if ($len < 2 || $len > 100) {
             $this->json(['suggestions' => []]);
             return;
         }
