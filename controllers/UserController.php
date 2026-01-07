@@ -363,4 +363,151 @@ class UserController extends BaseController
     {
         $this->error('暂不支持在线找回密码，请联系管理员');
     }
+
+    /**
+     * VIP购买页面
+     */
+    public function vip(): void
+    {
+        require_once CORE_PATH . 'Vip.php';
+        require_once CORE_PATH . 'Payment.php';
+        require_once CORE_PATH . 'UsdtPayment.php';
+        
+        $vip = new XpkVip();
+        $payment = XpkPayment::getInstance();
+        $usdt = new XpkUsdtPayment();
+        
+        // 获取VIP套餐并格式化
+        $rawPackages = $vip->getPackages();
+        $packages = [];
+        foreach ($rawPackages as $pkg) {
+            $packages[] = [
+                'package_id' => $pkg['package_id'],
+                'package_name' => $pkg['package_name'],
+                'price' => $pkg['package_price'],
+                'price_usdt' => $pkg['package_price_usdt'],
+                'original_price' => $pkg['package_original'],
+                'days' => $pkg['package_days'],
+                'daily_limit' => $pkg['package_daily_limit'],
+                'bonus_points' => $pkg['package_bonus_points'],
+                'description' => $pkg['package_desc'],
+                'is_hot' => $pkg['package_hot'],
+            ];
+        }
+        
+        // 获取支付通道
+        $channels = $payment->getEnabledChannels();
+        $formattedChannels = [];
+        foreach ($channels as $ch) {
+            $formattedChannels[] = [
+                'channel_id' => $ch['channel_id'],
+                'channel_code' => $ch['channel_code'],
+                'channel_name' => $ch['channel_name'],
+                'support_methods' => explode(',', $ch['support_methods']),
+            ];
+        }
+        
+        // 用户VIP状态
+        $vipStatus = null;
+        if ($this->checkLogin()) {
+            $user = $_SESSION['user'];
+            // 刷新用户数据
+            $user = $this->userModel->find($user['user_id']);
+            $vipStatus = [
+                'is_vip' => $vip->isVip($user),
+                'vip_expire' => $user['user_vip_expire'] ? date('Y-m-d', $user['user_vip_expire']) : null,
+                'remaining_views' => max(0, $vip->getDailyLimit($user) - $vip->getTodayViews($user['user_id'])),
+                'points' => $user['user_points'] ?? 0,
+            ];
+        }
+        
+        $this->assign('packages', $packages);
+        $this->assign('channels', $formattedChannels);
+        $this->assign('usdtEnabled', $usdt->isEnabled());
+        $this->assign('vipStatus', $vipStatus);
+        $this->assign('title', 'VIP会员 - ' . SITE_NAME);
+        $this->render('user/vip');
+    }
+
+    /**
+     * USDT支付页面
+     */
+    public function payUsdt(): void
+    {
+        $this->requireLogin();
+        
+        $orderNo = $_GET['order_no'] ?? '';
+        if (empty($orderNo)) {
+            $this->redirect(xpk_url('user/vip'));
+            return;
+        }
+        
+        require_once CORE_PATH . 'Payment.php';
+        require_once CORE_PATH . 'UsdtPayment.php';
+        
+        $payment = XpkPayment::getInstance();
+        $usdt = new XpkUsdtPayment();
+        
+        $order = $payment->getOrderByNo($orderNo);
+        if (!$order || $order['user_id'] != $_SESSION['user']['user_id']) {
+            $this->redirect(xpk_url('user/vip'));
+            return;
+        }
+        
+        // 已支付则跳转结果页
+        if ($order['order_status'] == 1) {
+            $this->redirect(xpk_url('user/pay/result') . '?order_no=' . $orderNo);
+            return;
+        }
+        
+        $this->assign('order', $order);
+        $this->assign('usdtAddress', $usdt->getAddress());
+        $this->assign('title', 'USDT支付 - ' . SITE_NAME);
+        $this->assign('noindex', true);
+        $this->render('user/pay_usdt');
+    }
+
+    /**
+     * 支付结果页面
+     */
+    public function payResult(): void
+    {
+        $orderNo = $_GET['order_no'] ?? '';
+        if (empty($orderNo)) {
+            $this->redirect('/');
+            return;
+        }
+        
+        require_once CORE_PATH . 'Payment.php';
+        require_once CORE_PATH . 'Vip.php';
+        
+        $payment = XpkPayment::getInstance();
+        $order = $payment->getOrderByNo($orderNo);
+        
+        if (!$order) {
+            $this->redirect('/');
+            return;
+        }
+        
+        // 获取套餐信息并格式化
+        $package = null;
+        if ($order['order_type'] === 'vip' && $order['product_id']) {
+            $vip = new XpkVip();
+            $rawPackage = $vip->getPackage($order['product_id']);
+            if ($rawPackage) {
+                $package = [
+                    'package_id' => $rawPackage['package_id'],
+                    'package_name' => $rawPackage['package_name'],
+                    'days' => $rawPackage['package_days'],
+                    'bonus_points' => $rawPackage['package_bonus_points'],
+                ];
+            }
+        }
+        
+        $this->assign('order', $order);
+        $this->assign('package', $package);
+        $this->assign('title', '支付结果 - ' . SITE_NAME);
+        $this->assign('noindex', true);
+        $this->render('user/pay_result');
+    }
 }

@@ -198,6 +198,28 @@ class VodController extends BaseController
             $stats->log('play', $id);
         } catch (Exception $e) {}
         
+        // VIP权限检查
+        require_once CORE_PATH . 'Vip.php';
+        $vipService = new XpkVip();
+        $vipEnabled = $vipService->isEnabled();
+        $canWatch = true;
+        $vipCheck = null;
+        
+        if ($vipEnabled) {
+            $user = $this->data['user'] ?? null;
+            if (!empty($user)) {
+                $vipCheck = $vipService->canWatch($user['user_id'], $id);
+                $canWatch = $vipCheck['can'];
+            } else {
+                $canWatch = false;
+                $vipCheck = ['can' => false, 'reason' => 'not_login', 'message' => '请先登录后观看'];
+            }
+        }
+        
+        $this->assign('vipEnabled', $vipEnabled);
+        $this->assign('canWatch', $canWatch);
+        $this->assign('vipCheck', $vipCheck);
+
         // 解析播放地址
         $playFroms = explode('$$$', $vod['vod_play_from'] ?? '');
         $rawPlayUrls = $this->parsePlayUrl($vod['vod_play_url'] ?? '');

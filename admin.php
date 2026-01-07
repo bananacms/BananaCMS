@@ -79,6 +79,9 @@ require_once CTRL_PATH . 'admin/AdController.php';
 require_once CTRL_PATH . 'admin/CommentController.php';
 require_once CTRL_PATH . 'admin/StatsController.php';
 require_once CTRL_PATH . 'admin/ShortController.php';
+require_once CTRL_PATH . 'admin/PaymentController.php';
+require_once CTRL_PATH . 'admin/VipController.php';
+require_once CTRL_PATH . 'admin/OrderController.php';
 
 // Session
 if (session_status() === PHP_SESSION_NONE) {
@@ -286,6 +289,30 @@ $routes = [
     'POST:short/delete'    => fn() => (new AdminShortController())->delete(),
     'POST:short/toggle'    => fn() => (new AdminShortController())->toggle(),
     'POST:short/deleteEpisode' => fn() => (new AdminShortController())->deleteEpisode(),
+    
+    // 支付通道管理
+    'GET:payment'          => fn() => (new AdminPaymentController())->index(),
+    'GET:payment/add'      => fn() => (new AdminPaymentController())->add(),
+    'POST:payment/add'     => fn() => (new AdminPaymentController())->add(),
+    'POST:payment/toggle'  => fn() => (new AdminPaymentController())->toggle(),
+    'POST:payment/delete'  => fn() => (new AdminPaymentController())->delete(),
+    'GET:payment/usdt'     => fn() => (new AdminPaymentController())->usdt(),
+    'POST:payment/usdt'    => fn() => (new AdminPaymentController())->usdt(),
+    
+    // VIP套餐管理
+    'GET:vip'              => fn() => (new AdminVipController())->index(),
+    'GET:vip/add'          => fn() => (new AdminVipController())->add(),
+    'POST:vip/add'         => fn() => (new AdminVipController())->add(),
+    'POST:vip/toggle'      => fn() => (new AdminVipController())->toggle(),
+    'POST:vip/delete'      => fn() => (new AdminVipController())->delete(),
+    'GET:vip/config'       => fn() => (new AdminVipController())->config(),
+    'POST:vip/config'      => fn() => (new AdminVipController())->config(),
+    
+    // 订单管理
+    'GET:order'            => fn() => (new AdminOrderController())->index(),
+    'POST:order/complete'  => fn() => (new AdminOrderController())->complete(),
+    'POST:order/cancel'    => fn() => (new AdminOrderController())->cancel(),
+    'GET:order/export'     => fn() => (new AdminOrderController())->export(),
 ];
 
 // 带 ID 参数的路由
@@ -324,6 +351,17 @@ $idRoutes = [
     'POST:short/doAddEpisode' => fn($id) => (new AdminShortController())->doAddEpisode($id),
     'GET:short/editEpisode' => fn($id) => (new AdminShortController())->editEpisode($id),
     'POST:short/doEditEpisode' => fn($id) => (new AdminShortController())->doEditEpisode($id),
+    
+    // 支付通道编辑
+    'GET:payment/edit'     => fn($id) => (new AdminPaymentController())->edit($id),
+    'POST:payment/edit'    => fn($id) => (new AdminPaymentController())->edit($id),
+    
+    // VIP套餐编辑
+    'GET:vip/edit'         => fn($id) => (new AdminVipController())->edit($id),
+    'POST:vip/edit'        => fn($id) => (new AdminVipController())->edit($id),
+    
+    // 订单详情
+    'GET:order/detail'     => fn($id) => (new AdminOrderController())->detail($id),
 ];
 
 // 路由分发

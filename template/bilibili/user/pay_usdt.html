@@ -1,0 +1,93 @@
+<?php include TPL_PATH . 'bilibili/layouts/header.php'; ?>
+
+<div class="max-w-lg mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="bg-gradient-to-r from-pink-500 to-purple-500 p-6 text-white text-center">
+            <h1 class="text-2xl font-bold">USDT支付</h1>
+            <p class="opacity-90">TRC20网络</p>
+        </div>
+        
+        <div class="p-6 border-b">
+            <div class="flex justify-between mb-2">
+                <span class="text-gray-500">订单号</span>
+                <span class="font-mono"><?= htmlspecialchars($order['order_no']) ?></span>
+            </div>
+            <div class="flex justify-between mb-2">
+                <span class="text-gray-500">商品</span>
+                <span><?= htmlspecialchars($order['product_name']) ?></span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-500">支付金额</span>
+                <span class="text-2xl font-bold text-pink-500">$<?= $order['usdt_amount'] ?></span>
+            </div>
+        </div>
+        
+        <div class="p-6 bg-gray-50">
+            <p class="text-center text-gray-600 mb-4">请向以下地址转账 <strong class="text-pink-500">$<?= $order['usdt_amount'] ?></strong> USDT</p>
+            <div class="bg-white p-4 rounded-lg mb-4 text-center"><div id="qrcode" class="inline-block"></div></div>
+            <div class="bg-white rounded-lg p-3 flex items-center">
+                <input type="text" value="<?= htmlspecialchars($usdtAddress) ?>" readonly class="flex-1 bg-transparent font-mono text-sm outline-none" id="addressInput">
+                <button onclick="copyAddress()" class="text-pink-500 hover:text-pink-700 ml-2">复制</button>
+            </div>
+            <div class="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm">
+                <p class="text-yellow-800 font-medium mb-1 flex items-center gap-1">
+                    <svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    重要提示
+                </p>
+                <ul class="text-yellow-700 space-y-1">
+                    <li>• 请确保转账金额为 <strong>$<?= $order['usdt_amount'] ?></strong></li>
+                    <li>• 仅支持 <strong>TRC20</strong> 网络</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="p-6 text-center border-t">
+            <p class="text-gray-500 mb-2">订单剩余支付时间</p>
+            <p class="text-3xl font-bold text-pink-500" id="countdown">--:--</p>
+            <p class="text-sm text-gray-400 mt-2" id="statusText">等待支付中...</p>
+        </div>
+        
+        <div class="p-6 bg-gray-50 flex gap-4">
+            <a href="/user/vip" class="flex-1 text-center py-3 border rounded-lg hover:bg-gray-100">返回</a>
+            <button onclick="checkPayment()" class="flex-1 bg-pink-500 text-white py-3 rounded-lg hover:bg-pink-600">我已支付</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<script>
+var orderNo = '<?= htmlspecialchars($order['order_no']) ?>';
+var expireTime = <?= $order['expire_time'] ?>;
+var checkInterval;
+
+function generateQR() {
+    var qr = qrcode(0, 'M'); qr.addData('<?= htmlspecialchars($usdtAddress) ?>'); qr.make();
+    document.getElementById('qrcode').innerHTML = qr.createImgTag(5, 10);
+}
+function copyAddress() { document.getElementById('addressInput').select(); document.execCommand('copy'); alert('地址已复制'); }
+function updateCountdown() {
+    var remaining = expireTime - Math.floor(Date.now() / 1000);
+    if (remaining <= 0) { document.getElementById('countdown').textContent = '已过期'; clearInterval(checkInterval); return; }
+    document.getElementById('countdown').textContent = String(Math.floor(remaining / 60)).padStart(2, '0') + ':' + String(remaining % 60).padStart(2, '0');
+}
+function checkPayment() {
+    document.getElementById('statusText').textContent = '正在查询...';
+    fetch('/api?action=pay.usdt.check&order_no=' + orderNo).then(r => r.json()).then(data => {
+        if (data.code === 0 && data.data.status === 'paid') {
+            document.getElementById('statusText').textContent = '支付成功！';
+            clearInterval(checkInterval);
+            setTimeout(() => location.href = '/user/pay/result?order_no=' + orderNo, 1500);
+        } else {
+            document.getElementById('statusText').textContent = data.data?.status === 'expired' ? '订单已过期' : '暂未检测到付款';
+        }
+    });
+}
+document.addEventListener('DOMContentLoaded', function() {
+    generateQR(); updateCountdown(); setInterval(updateCountdown, 1000);
+    checkInterval = setInterval(checkPayment, 10000);
+});
+</script>
+
+<?php include TPL_PATH . 'bilibili/layouts/footer.php'; ?>

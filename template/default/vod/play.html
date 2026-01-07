@@ -17,6 +17,35 @@
     <!-- 播放器 -->
     <div class="mb-6">
         <div class="player-container rounded-lg overflow-hidden relative">
+            <?php if (!$canWatch): ?>
+            <!-- VIP限制遮罩 -->
+            <div class="absolute inset-0 z-50 bg-gray-900/95 flex flex-col items-center justify-center text-white p-6">
+                <svg class="w-20 h-20 mb-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+                <?php if (empty($user)): ?>
+                <h3 class="text-xl font-bold mb-2">请先登录</h3>
+                <p class="text-gray-400 mb-4">登录后即可观看视频</p>
+                <a href="/user/login?redirect=<?= urlencode($_SERVER['REQUEST_URI']) ?>" class="bg-red-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-red-700">立即登录</a>
+                <?php elseif ($vipCheck['reason'] === 'limit_exceeded'): ?>
+                <h3 class="text-xl font-bold mb-2">今日免费次数已用完</h3>
+                <p class="text-gray-400 mb-4">开通VIP会员，享受无限观看特权</p>
+                <div class="flex gap-4">
+                    <a href="/user/vip" class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-8 py-3 rounded-lg font-medium hover:opacity-90">开通VIP</a>
+                    <?php if (!empty($vipCheck['have_points']) && $vipCheck['have_points'] >= ($vipCheck['need_points'] ?? 10)): ?>
+                    <button onclick="unlockWithPoints()" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-700">
+                        积分解锁 (<?= $vipCheck['need_points'] ?? 10 ?>积分)
+                    </button>
+                    <?php endif; ?>
+                </div>
+                <p class="text-sm text-gray-500 mt-4">当前积分: <?= $vipCheck['have_points'] ?? 0 ?></p>
+                <?php else: ?>
+                <h3 class="text-xl font-bold mb-2"><?= htmlspecialchars($vipCheck['message'] ?? '无法观看') ?></h3>
+                <a href="/user/vip" class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-8 py-3 rounded-lg font-medium hover:opacity-90 mt-4">开通VIP</a>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
+            
             <!-- 片头广告（覆盖在播放器上方） -->
             <?php 
             $playBeforeAd = xpk_ads('play_before');
@@ -90,7 +119,12 @@
                     <?php if (!empty($currentFrom)): ?>
                         <p class="text-sm text-gray-400 mb-2">播放器: <?php echo htmlspecialchars($currentFrom); ?></p>
                         <?php if (empty($playerInfo)): ?>
-                            <p class="text-xs text-yellow-500">⚠️ 未配置该播放器，请在后台"播放器管理"中添加</p>
+                            <p class="text-xs text-yellow-500 flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                </svg>
+                                未配置该播放器，请在后台"播放器管理"中添加
+                            </p>
                         <?php endif; ?>
                     <?php else: ?>
                         <p class="text-sm text-gray-400">该视频没有可用的播放地址</p>
@@ -102,9 +136,19 @@
         <div class="mt-2 text-xs text-gray-500 flex items-center gap-2">
             <span>播放源: <?php echo htmlspecialchars($currentFrom); ?></span>
             <?php if (!empty($playerInfo)): ?>
-                <span class="text-green-600">✓ 已配置</span>
+                <span class="text-green-600 flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    已配置
+                </span>
             <?php else: ?>
-                <span class="text-yellow-600">⚠ 未配置播放器</span>
+                <span class="text-yellow-600 flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    未配置播放器
+                </span>
             <?php endif; ?>
         </div>
         <?php endif; ?>
@@ -161,6 +205,39 @@
 
 <!-- 自动连播脚本 -->
 <script>
+<?php if ($canWatch && $vipEnabled && !empty($user)): ?>
+// 记录观看（消耗免费次数或VIP次数）
+(function() {
+    fetch('/api?action=vip.watch', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({vod_id: <?= $vod['vod_id'] ?>, use_points: false})
+    });
+})();
+<?php endif; ?>
+
+<?php if (!$canWatch && !empty($user)): ?>
+// 积分解锁
+function unlockWithPoints() {
+    xpk.confirm('确定使用 <?= $vipCheck['need_points'] ?? 10 ?> 积分解锁此视频？', function() {
+        fetch('/api?action=vip.watch', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({vod_id: <?= $vod['vod_id'] ?>, use_points: true})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.code === 0) {
+                location.reload();
+            } else {
+                xpk.toast(data.msg || '解锁失败', 'error');
+            }
+        })
+        .catch(() => xpk.toast('网络错误，请重试', 'error'));
+    });
+}
+<?php endif; ?>
+
 (function() {
     var nextUrl = '<?php 
         $nextNid = $nid + 1;

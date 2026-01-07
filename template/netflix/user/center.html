@@ -1,6 +1,11 @@
 <?php 
 $netflixLayoutPath = TPL_PATH . 'netflix/layouts/';
 include $netflixLayoutPath . 'header.php'; 
+
+require_once CORE_PATH . 'Vip.php';
+$vipHelper = new XpkVip();
+$isVip = $vipHelper->isVip($user);
+$vipExpire = $user['user_vip_expire'] ?? null;
 ?>
 
 <!-- 用户中心 -->
@@ -13,10 +18,29 @@ include $netflixLayoutPath . 'header.php';
                     <?php echo mb_substr($user['user_nick_name'] ?? $user['user_name'], 0, 1); ?>
                 </div>
                 <div class="flex-1">
-                    <h1 class="text-xl md:text-2xl font-bold"><?php echo htmlspecialchars($user['user_nick_name'] ?? $user['user_name']); ?></h1>
+                    <div class="flex items-center">
+                        <h1 class="text-xl md:text-2xl font-bold"><?php echo htmlspecialchars($user['user_nick_name'] ?? $user['user_name']); ?></h1>
+                        <?php if ($isVip): ?>
+                        <span class="ml-2 px-2 py-0.5 bg-red-600 text-white text-xs rounded">高级会员</span>
+                        <?php endif; ?>
+                    </div>
                     <p class="text-gray-400 mt-1">ID: <?php echo $user['user_id']; ?> · 注册于 <?php echo date('Y-m-d', $user['user_reg_time']); ?></p>
+                    <?php if ($isVip && $vipExpire): ?>
+                    <p class="text-red-400 text-sm mt-1">会员到期：<?php echo date('Y-m-d', $vipExpire); ?></p>
+                    <?php endif; ?>
                 </div>
-                <a href="<?= xpk_url('user/logout') ?>" class="text-gray-400 hover:text-white">退出登录</a>
+                <div class="flex flex-col items-end space-y-2">
+                    <a href="<?= xpk_url('user/vip') ?>" class="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700">
+                        <?php echo $isVip ? '续费会员' : '升级会员'; ?>
+                    </a>
+                    <a href="<?= xpk_url('user/logout') ?>" class="text-gray-400 hover:text-white text-sm">退出登录</a>
+                </div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-gray-800 flex items-center justify-between text-sm">
+                <div class="flex items-center space-x-6 text-gray-400">
+                    <div><span>积分：</span><span class="text-white font-medium"><?php echo $user['user_points'] ?? 0; ?></span></div>
+                    <div><span>今日观看：</span><span class="text-white font-medium"><?php echo $user['user_daily_views'] ?? 0; ?></span><span class="text-gray-500">/<?php echo $isVip ? '无限' : $vipHelper->getDailyLimit($user); ?></span></div>
+                </div>
             </div>
         </div>
 

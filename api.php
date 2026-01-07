@@ -45,6 +45,11 @@ require_once MODEL_PATH . 'Actor.php';
 require_once MODEL_PATH . 'Art.php';
 require_once MODEL_PATH . 'User.php';
 
+// 加载支付相关核心类
+require_once CORE_PATH . 'Payment.php';
+require_once CORE_PATH . 'UsdtPayment.php';
+require_once CORE_PATH . 'Vip.php';
+
 // CORS
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
@@ -88,6 +93,8 @@ class XpkApi
             'favorite.list', 'favorite.add', 'favorite.remove', 'favorite.check',
             'history.list', 'history.add', 'history.remove', 'history.clear',
             'comment.post', 'comment.delete',
+            'pay.create', 'pay.usdt.check', 'pay.query',
+            'vip.status', 'vip.canwatch', 'vip.watch',
         ];
         
         if (in_array($action, $authActions)) {
@@ -183,6 +190,19 @@ class XpkApi
             // 转码
             case 'transcode.key': $this->transcodeKey(); break;
             case 'transcode.m3u8': $this->transcodeM3u8(); break;
+            
+            // 支付
+            case 'pay.channels': $this->payChannels(); break;
+            case 'pay.create': $this->payCreate(); break;
+            case 'pay.notify': $this->payNotify(); break;
+            case 'pay.query': $this->payQuery(); break;
+            case 'pay.usdt.check': $this->payUsdtCheck(); break;
+            
+            // VIP
+            case 'vip.packages': $this->vipPackages(); break;
+            case 'vip.status': $this->vipStatus(); break;
+            case 'vip.canwatch': $this->vipCanWatch(); break;
+            case 'vip.watch': $this->vipWatch(); break;
             
             default: $this->error('未知接口'); break;
         }
@@ -301,14 +321,21 @@ class XpkApi
      */
     private function userInfo(): void
     {
+        $vip = new XpkVip();
+        $isVip = $vip->isVip($this->user);
+        
         $this->success([
             'user_id' => $this->user['user_id'],
             'username' => $this->user['user_name'],
             'nickname' => $this->user['user_nick_name'] ?: $this->user['user_name'],
             'email' => $this->user['user_email'],
             'avatar' => $this->user['user_pic'],
-            'points' => $this->user['user_points'],
+            'points' => $this->user['user_points'] ?? 0,
             'reg_time' => date('Y-m-d', $this->user['user_reg_time']),
+            // VIP信息
+            'is_vip' => $isVip,
+            'vip_level' => $this->user['user_vip_level'] ?? 0,
+            'vip_expire' => $this->user['user_vip_expire'] ? date('Y-m-d', $this->user['user_vip_expire']) : null,
         ]);
     }
 
@@ -1714,5 +1741,380 @@ class XpkApi
             'data' => null,
         ], JSON_UNESCAPED_UNICODE);
         exit;
+    }
+
+    // ==================== 支付接口 ====================
+
+    /**
+     * 获取可用支付通道
+     * GET /api?action=pay.channels
+     */
+    private function payChannels(): void
+    {
+        $payment = XpkPayment::getInstance();
+        $channels = $payment->getEnabledChannels();
+        
+        $result = [];
+        foreach ($channels as $ch) {
+            $methods = explode(',', $ch['support_methods']);
+            $result[] = [
+                'channel_id' => $ch['channel_id'],
+                'channel_code' => $ch['channel_code'],
+                'channel_name' => $ch['channel_name'],
+                'support_methods' => $methods,
+                'min_amount' => $ch['min_amount'],
+                'max_amount' => $ch['max_amount'],
+            ];
+        }
+        
+        // USDT通道
+        $usdt = new XpkUsdtPayment();
+        if ($usdt->isEnabled()) {
+            $result[] = [
+                'channel_id' => 0,
+                'channel_code' => 'usdt',
+                'channel_name' => 'USDT/TRC20',
+                'support_methods' => ['usdt'],
+                'min_amount' => 1,
+                'max_amount' => 99999,
+            ];
+        }
+        
+        $this->success($result);
+    }
+
+    /**
+     * 创建支付订单
+     * POST /api?action=pay.create
+     */
+    private function payCreate(): void
+    {
+        $packageId = (int)$this->input('package_id', 0);
+        $payMethod = $this->input('pay_method', 'alipay');
+        $channelId = (int)$this->input('channel_id', 0);
+        
+        if ($packageId <= 0) {
+            $this->error('请选择套餐');
+        }
+        
+        $vip = new XpkVip();
+        $payment = XpkPayment::getInstance();
+        
+        // 获取套餐
+        $package = $vip->getPackage($packageId);
+        if (!$package) {
+            $this->error('套餐不存在');
+        }
+        
+        // USDT支付
+        if ($payMethod === 'usdt') {
+            $usdt = new XpkUsdtPayment();
+            
+            if (!$usdt->isEnabled()) {
+                $this->error('USDT支付未开启');
+            }
+            
+            if (empty($package['package_price_usdt'])) {
+                $this->error('该套餐不支持USDT支付');
+            }
+            
+            $usdtAmount = $usdt->generateAmount($package['package_price_usdt']);
+            
+            $order = $payment->createOrder([
+                'user_id' => $this->user['user_id'],
+                'order_type' => 'vip',
+                'product_id' => $packageId,
+                'product_name' => $package['package_name'],
+                'amount' => $package['package_price'],
+                'pay_amount' => $package['package_price_usdt'],
+                'pay_method' => 'usdt',
+            ]);
+            
+            if (!$order) {
+                $this->error('创建订单失败');
+            }
+            
+            // 锁定金额并更新订单
+            $usdt->lockAmount($usdtAmount, $order['order_id']);
+            $this->db->execute(
+                "UPDATE " . DB_PREFIX . "order SET usdt_amount = ? WHERE order_id = ?",
+                [$usdtAmount, $order['order_id']]
+            );
+            
+            $this->success([
+                'order_no' => $order['order_no'],
+                'pay_method' => 'usdt',
+                'usdt_amount' => $usdtAmount,
+                'usdt_address' => $usdt->getAddress(),
+                'expire_time' => $order['expire_time'],
+            ]);
+            return;
+        }
+        
+        // 第三方支付
+        if ($channelId > 0) {
+            $channel = $payment->getChannel($channelId);
+        } else {
+            $channel = $payment->selectChannel($payMethod);
+        }
+        
+        if (!$channel) {
+            $this->error('暂无可用支付通道');
+        }
+        
+        // 验证支付方式
+        $supportMethods = explode(',', $channel['support_methods']);
+        if (!in_array($payMethod, $supportMethods)) {
+            $this->error('该通道不支持此支付方式');
+        }
+        
+        // 创建订单
+        $order = $payment->createOrder([
+            'user_id' => $this->user['user_id'],
+            'order_type' => 'vip',
+            'product_id' => $packageId,
+            'product_name' => $package['package_name'],
+            'amount' => $package['package_price'],
+            'pay_amount' => $package['package_price'],
+            'pay_method' => $payMethod,
+            'channel_id' => $channel['channel_id'],
+            'channel_code' => $channel['channel_code'],
+        ]);
+        
+        if (!$order) {
+            $this->error('创建订单失败');
+        }
+        
+        // 生成支付参数
+        $payParams = $payment->buildPayParams($order, $channel);
+        
+        $this->success([
+            'order_no' => $order['order_no'],
+            'pay_method' => $payMethod,
+            'gateway' => $payParams['gateway'],
+            'params' => $payParams['params'],
+            'expire_time' => $order['expire_time'],
+        ]);
+    }
+
+    /**
+     * 支付回调(异步通知)
+     * POST /api?action=pay.notify
+     */
+    private function payNotify(): void
+    {
+        $payment = XpkPayment::getInstance();
+        $params = $_POST ?: $_GET;
+        $result = $payment->handleNotify($params);
+        
+        if ($result['success']) {
+            // 根据订单获取通道协议类型
+            $orderNo = $params['oid'] ?? $params['out_trade_no'] ?? '';
+            $order = $payment->getOrderByNo($orderNo);
+            $protocol = 'epay';
+            if ($order) {
+                $channel = $payment->getChannel($order['channel_id']);
+                if ($channel) {
+                    $extra = json_decode($channel['extra_config'] ?? '{}', true) ?: [];
+                    $protocol = $extra['protocol'] ?? 'epay';
+                }
+            }
+            echo $payment->getNotifySuccessResponse($protocol);
+        } else {
+            echo 'fail';
+        }
+        exit;
+    }
+
+    /**
+     * 查询订单状态
+     * GET /api?action=pay.query&order_no=xxx
+     */
+    private function payQuery(): void
+    {
+        $orderNo = $_GET['order_no'] ?? '';
+        if (empty($orderNo)) {
+            $this->error('订单号不能为空');
+        }
+        
+        $payment = XpkPayment::getInstance();
+        $order = $payment->getOrderByNo($orderNo);
+        
+        if (!$order || $order['user_id'] != $this->user['user_id']) {
+            $this->error('订单不存在');
+        }
+        
+        $statusMap = [0 => 'pending', 1 => 'paid', 2 => 'cancelled', 3 => 'refunded'];
+        
+        $this->success([
+            'order_no' => $order['order_no'],
+            'status' => $statusMap[$order['order_status']] ?? 'unknown',
+            'amount' => $order['order_amount'],
+            'pay_amount' => $order['pay_amount'],
+            'pay_method' => $order['pay_method'],
+            'product_name' => $order['product_name'],
+            'create_time' => date('Y-m-d H:i:s', $order['order_time']),
+            'pay_time' => $order['pay_time'] ? date('Y-m-d H:i:s', $order['pay_time']) : null,
+        ]);
+    }
+
+    /**
+     * USDT支付状态检查(前端轮询)
+     * GET /api?action=pay.usdt.check&order_no=xxx
+     */
+    private function payUsdtCheck(): void
+    {
+        $orderNo = $_GET['order_no'] ?? '';
+        if (empty($orderNo)) {
+            $this->error('订单号不能为空');
+        }
+        
+        $payment = XpkPayment::getInstance();
+        $usdt = new XpkUsdtPayment();
+        
+        $order = $payment->getOrderByNo($orderNo);
+        if (!$order || $order['user_id'] != $this->user['user_id']) {
+            $this->error('订单不存在');
+        }
+        
+        // 已支付
+        if ($order['order_status'] == 1) {
+            $this->success(['status' => 'paid']);
+            return;
+        }
+        
+        // 已过期
+        if ($order['expire_time'] < time()) {
+            $this->success(['status' => 'expired']);
+            return;
+        }
+        
+        // 检查USDT转账
+        $tx = $usdt->checkPayment($order['usdt_amount'], $order['order_time']);
+        
+        if ($tx) {
+            $result = $payment->completeOrder($order['order_id'], [
+                'txid' => $tx['txid'],
+            ]);
+            
+            if ($result['success']) {
+                $usdt->unlockAmount($order['usdt_amount']);
+                $this->success(['status' => 'paid', 'txid' => $tx['txid']]);
+                return;
+            }
+        }
+        
+        $this->success([
+            'status' => 'pending',
+            'remaining' => $order['expire_time'] - time(),
+        ]);
+    }
+
+    // ==================== VIP接口 ====================
+
+    /**
+     * 获取VIP套餐列表
+     * GET /api?action=vip.packages
+     */
+    private function vipPackages(): void
+    {
+        $vip = new XpkVip();
+        $packages = $vip->getPackages();
+        
+        $this->success(array_map(function($p) {
+            return [
+                'package_id' => $p['package_id'],
+                'name' => $p['package_name'],
+                'price' => $p['package_price'],
+                'price_usdt' => $p['package_price_usdt'],
+                'original_price' => $p['package_original'],
+                'days' => $p['package_days'],
+                'daily_limit' => $p['package_daily_limit'],
+                'bonus_points' => $p['package_bonus_points'],
+                'description' => $p['package_desc'],
+                'is_hot' => $p['package_hot'],
+            ];
+        }, $packages));
+    }
+
+    /**
+     * 获取用户VIP状态
+     * GET /api?action=vip.status
+     */
+    private function vipStatus(): void
+    {
+        $vip = new XpkVip();
+        $isVip = $vip->isVip($this->user);
+        $dailyLimit = $vip->getDailyLimit($this->user);
+        $todayViews = $vip->getTodayViews($this->user['user_id']);
+        
+        $this->success([
+            'is_vip' => $isVip,
+            'vip_level' => $this->user['user_vip_level'] ?? 0,
+            'vip_expire' => $this->user['user_vip_expire'] ? date('Y-m-d', $this->user['user_vip_expire']) : null,
+            'vip_expire_timestamp' => $this->user['user_vip_expire'] ?? null,
+            'daily_limit' => $dailyLimit,
+            'today_views' => $todayViews,
+            'remaining_views' => max(0, $dailyLimit - $todayViews),
+            'points' => $this->user['user_points'] ?? 0,
+        ]);
+    }
+
+    /**
+     * 检查视频观看权限
+     * GET /api?action=vip.canwatch&vod_id=xxx
+     */
+    private function vipCanWatch(): void
+    {
+        $vodId = (int)($_GET['vod_id'] ?? 0);
+        if ($vodId <= 0) {
+            $this->error('参数错误');
+        }
+        
+        $vip = new XpkVip();
+        $result = $vip->canWatch($this->user['user_id'], $vodId);
+        $this->success($result);
+    }
+
+    /**
+     * 记录观看(消耗次数或积分)
+     * POST /api?action=vip.watch
+     */
+    private function vipWatch(): void
+    {
+        $vodId = (int)$this->input('vod_id', 0);
+        $usePoints = (bool)$this->input('use_points', false);
+        
+        if ($vodId <= 0) {
+            $this->error('参数错误');
+        }
+        
+        $vip = new XpkVip();
+        
+        // 先检查权限
+        $canWatch = $vip->canWatch($this->user['user_id'], $vodId);
+        if (!$canWatch['can']) {
+            $this->error($canWatch['message'] ?? '无法观看');
+        }
+        
+        // 确定消耗类型
+        $type = 'free';
+        if ($canWatch['type'] === 'vip') {
+            $type = 'vip';
+        } elseif ($usePoints && $canWatch['type'] === 'points') {
+            $type = 'points';
+        }
+        
+        // 记录观看
+        $result = $vip->recordWatch($this->user['user_id'], $vodId, $type);
+        
+        if (!$result && $type === 'points') {
+            $this->error('积分不足');
+        }
+        
+        $this->success([
+            'success' => true,
+            'type' => $type,
+        ]);
     }
 }

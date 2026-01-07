@@ -178,6 +178,10 @@ $router->get('user/logout', fn() => (new UserController())->logout());
 $router->get('user/center', fn() => (new UserController())->center());
 $router->get('user/forgot', fn() => (new UserController())->forgot());
 $router->post('user/forgot', fn() => (new UserController())->doForgot());
+$router->get('user/vip', fn() => (new UserController())->vip());
+$router->get('user/pay/usdt', fn() => (new UserController())->payUsdt());
+$router->get('user/pay/result', fn() => (new UserController())->payResult());
+$router->get('vip/result', fn() => (new UserController())->payResult()); // 支付回调跳转
 
 // 友链
 require_once CTRL_PATH . 'LinkController.php';

@@ -169,6 +169,13 @@ CREATE TABLE `xpk_user` (
   `user_email` varchar(100) NOT NULL DEFAULT '' COMMENT '邮箱',
   `user_pic` varchar(255) NOT NULL DEFAULT '' COMMENT '头像',
   `user_status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态',
+  `user_vip_level` tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT 'VIP等级:0普通用户',
+  `user_vip_expire` int(10) unsigned NOT NULL DEFAULT 0 COMMENT 'VIP过期时间',
+  `user_points` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '积分余额',
+  `user_daily_views` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '今日观看次数',
+  `user_daily_date` date DEFAULT NULL COMMENT '观看次数日期',
+  `user_invite_code` varchar(10) DEFAULT NULL COMMENT '邀请码',
+  `user_invited_by` int(10) unsigned DEFAULT NULL COMMENT '邀请人ID',
   `user_reg_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '注册时间',
   `user_reg_ip` varchar(50) NOT NULL DEFAULT '' COMMENT '注册IP',
   `user_login_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '登录时间',
@@ -176,8 +183,10 @@ CREATE TABLE `xpk_user` (
   `user_login_num` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '登录次数',
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `user_name` (`user_name`),
+  UNIQUE KEY `user_invite_code` (`user_invite_code`),
   KEY `user_email` (`user_email`),
-  KEY `user_reg_ip` (`user_reg_ip`)
+  KEY `user_reg_ip` (`user_reg_ip`),
+  KEY `user_vip_level` (`user_vip_level`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
 
 -- 配置表
@@ -642,3 +651,126 @@ CREATE TABLE `xpk_user_logs` (
   KEY `idx_user_time` (`user_id`, `log_time`),
   KEY `idx_action_time` (`log_action`, `log_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户操作日志表';
+
+
+-- =============================================
+-- 支付系统相关表
+-- =============================================
+
+-- 支付通道表
+DROP TABLE IF EXISTS `xpk_payment_channel`;
+CREATE TABLE `xpk_payment_channel` (
+  `channel_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `channel_code` varchar(50) NOT NULL DEFAULT '' COMMENT '通道编码(唯一标识)',
+  `channel_name` varchar(100) NOT NULL DEFAULT '' COMMENT '通道名称',
+  `channel_type` varchar(20) NOT NULL DEFAULT 'gateway' COMMENT '通道类型:gateway网关',
+  `gateway_url` varchar(500) NOT NULL DEFAULT '' COMMENT '网关地址',
+  `query_url` varchar(500) NOT NULL DEFAULT '' COMMENT '订单查询地址',
+  `merchant_id` varchar(100) NOT NULL DEFAULT '' COMMENT '商户ID/PID',
+  `merchant_key` varchar(255) NOT NULL DEFAULT '' COMMENT '商户密钥',
+  `extra_config` text COMMENT '额外配置(JSON)',
+  `support_methods` varchar(100) NOT NULL DEFAULT 'alipay' COMMENT '支持的支付方式:alipay,wechat',
+  `fee_rate` decimal(5,4) NOT NULL DEFAULT 0.0000 COMMENT '手续费率',
+  `min_amount` decimal(10,2) NOT NULL DEFAULT 0.01 COMMENT '最小金额',
+  `max_amount` decimal(10,2) NOT NULL DEFAULT 50000.00 COMMENT '最大金额',
+  `daily_limit` decimal(12,2) NOT NULL DEFAULT 0.00 COMMENT '每日限额(0=不限)',
+  `weight` int(10) unsigned NOT NULL DEFAULT 100 COMMENT '权重(用于轮询)',
+  `channel_status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态:0禁用,1启用',
+  `channel_sort` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '排序',
+  `channel_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '创建时间',
+  `channel_update` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '更新时间',
+  PRIMARY KEY (`channel_id`),
+  UNIQUE KEY `uk_channel_code` (`channel_code`),
+  KEY `idx_status_type` (`channel_status`, `channel_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='支付通道表';
+
+
+-- VIP套餐表
+DROP TABLE IF EXISTS `xpk_vip_package`;
+CREATE TABLE `xpk_vip_package` (
+  `package_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `package_name` varchar(50) NOT NULL DEFAULT '' COMMENT '套餐名称',
+  `package_code` varchar(20) NOT NULL DEFAULT '' COMMENT '套餐编码',
+  `package_price` decimal(10,2) NOT NULL DEFAULT 0.00 COMMENT '价格(CNY)',
+  `package_price_usdt` decimal(10,2) DEFAULT NULL COMMENT 'USDT价格',
+  `package_original` decimal(10,2) DEFAULT NULL COMMENT '原价(划线价)',
+  `package_days` int(10) unsigned NOT NULL DEFAULT 1 COMMENT '有效天数',
+  `package_daily_limit` int(10) unsigned NOT NULL DEFAULT 9999 COMMENT '每日观看限制(9999=无限)',
+  `package_bonus_points` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '赠送积分',
+  `package_bonus_days` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '赠送天数',
+  `package_desc` varchar(255) NOT NULL DEFAULT '' COMMENT '套餐描述',
+  `package_icon` varchar(255) NOT NULL DEFAULT '' COMMENT '图标',
+  `package_hot` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否热门:0否,1是',
+  `package_status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态:0下架,1上架',
+  `package_sort` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '排序',
+  PRIMARY KEY (`package_id`),
+  UNIQUE KEY `uk_package_code` (`package_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='VIP套餐表';
+
+-- 默认VIP套餐
+INSERT INTO `xpk_vip_package` (`package_name`, `package_code`, `package_price`, `package_price_usdt`, `package_days`, `package_daily_limit`, `package_bonus_points`, `package_desc`, `package_hot`, `package_sort`) VALUES
+('日卡', 'day', 9.90, 1.50, 1, 20, 0, '体验尝鲜', 0, 1),
+('周卡', 'week', 29.90, 4.50, 7, 50, 10, '超值之选', 0, 2),
+('月卡', 'month', 99.00, 14.00, 30, 9999, 50, '热门推荐', 1, 3),
+('年卡', 'year', 299.00, 42.00, 365, 9999, 200, '尊享特权', 0, 4);
+
+
+-- 订单表
+DROP TABLE IF EXISTS `xpk_order`;
+CREATE TABLE `xpk_order` (
+  `order_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `order_no` varchar(32) NOT NULL DEFAULT '' COMMENT '订单号',
+  `user_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '用户ID',
+  `order_type` varchar(20) NOT NULL DEFAULT 'vip' COMMENT '订单类型:vip/points',
+  `product_id` int(10) unsigned DEFAULT NULL COMMENT '商品ID(套餐ID)',
+  `product_name` varchar(100) NOT NULL DEFAULT '' COMMENT '商品名称',
+  `order_amount` decimal(10,2) NOT NULL DEFAULT 0.00 COMMENT '订单金额',
+  `pay_amount` decimal(10,2) NOT NULL DEFAULT 0.00 COMMENT '实付金额',
+  `pay_method` varchar(20) DEFAULT NULL COMMENT '支付方式:alipay/wechat/usdt',
+  `channel_id` int(10) unsigned DEFAULT NULL COMMENT '支付通道ID',
+  `channel_code` varchar(50) DEFAULT NULL COMMENT '支付通道编码',
+  `trade_no` varchar(64) DEFAULT NULL COMMENT '第三方交易号',
+  `txid` varchar(100) DEFAULT NULL COMMENT 'USDT交易哈希',
+  `usdt_amount` decimal(12,4) DEFAULT NULL COMMENT 'USDT金额',
+  `order_status` tinyint(1) NOT NULL DEFAULT 0 COMMENT '状态:0待支付,1已支付,2已取消,3已退款',
+  `pay_time` int(10) unsigned DEFAULT NULL COMMENT '支付时间',
+  `expire_time` int(10) unsigned DEFAULT NULL COMMENT '过期时间',
+  `extra_data` text COMMENT '额外数据(JSON)',
+  `client_ip` varchar(45) NOT NULL DEFAULT '' COMMENT '客户端IP',
+  `order_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '创建时间',
+  `order_update` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '更新时间',
+  PRIMARY KEY (`order_id`),
+  UNIQUE KEY `uk_order_no` (`order_no`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_status` (`order_status`),
+  KEY `idx_order_time` (`order_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订单表';
+
+
+-- USDT金额锁定表
+DROP TABLE IF EXISTS `xpk_usdt_lock`;
+CREATE TABLE `xpk_usdt_lock` (
+  `lock_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `lock_amount` decimal(12,4) NOT NULL COMMENT 'USDT金额',
+  `order_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '订单ID',
+  `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间',
+  PRIMARY KEY (`lock_id`),
+  UNIQUE KEY `uk_amount` (`lock_amount`),
+  KEY `idx_expire` (`expire_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='USDT金额锁定表';
+
+-- 积分记录表
+DROP TABLE IF EXISTS `xpk_point_log`;
+CREATE TABLE `xpk_point_log` (
+  `log_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '用户ID',
+  `log_type` varchar(20) NOT NULL DEFAULT '' COMMENT '类型:earn获得/consume消费/gift赠送/refund退还',
+  `log_amount` int(11) NOT NULL DEFAULT 0 COMMENT '变动数量(正负)',
+  `log_balance` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '变动后余额',
+  `log_remark` varchar(255) NOT NULL DEFAULT '' COMMENT '备注',
+  `related_id` int(10) unsigned DEFAULT NULL COMMENT '关联ID',
+  `log_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '创建时间',
+  PRIMARY KEY (`log_id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_log_time` (`log_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='积分记录表';

@@ -16,6 +16,35 @@
     <!-- 播放器 -->
     <div class="bg-black rounded-lg overflow-hidden mb-6">
         <div class="aspect-video relative">
+            <?php if (!$canWatch): ?>
+            <!-- VIP限制遮罩 -->
+            <div class="absolute inset-0 z-50 bg-gray-900/95 flex flex-col items-center justify-center text-white p-6">
+                <svg class="w-20 h-20 mb-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+                <?php if (empty($user)): ?>
+                <h3 class="text-xl font-bold mb-2">请先登录</h3>
+                <p class="text-gray-400 mb-4">登录后即可观看视频</p>
+                <a href="/user/login?redirect=<?= urlencode($_SERVER['REQUEST_URI']) ?>" class="bg-green-500 text-white px-8 py-3 rounded-lg font-medium hover:bg-green-600">立即登录</a>
+                <?php elseif ($vipCheck['reason'] === 'limit_exceeded'): ?>
+                <h3 class="text-xl font-bold mb-2">今日免费次数已用完</h3>
+                <p class="text-gray-400 mb-4">开通VIP会员，享受无限观看特权</p>
+                <div class="flex gap-4">
+                    <a href="/user/vip" class="bg-gradient-to-r from-green-500 to-teal-500 text-white px-8 py-3 rounded-lg font-medium hover:opacity-90">开通VIP</a>
+                    <?php if (!empty($vipCheck['have_points']) && $vipCheck['have_points'] >= ($vipCheck['need_points'] ?? 10)): ?>
+                    <button onclick="unlockWithPoints()" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-700">
+                        积分解锁 (<?= $vipCheck['need_points'] ?? 10 ?>积分)
+                    </button>
+                    <?php endif; ?>
+                </div>
+                <p class="text-sm text-gray-500 mt-4">当前积分: <?= $vipCheck['have_points'] ?? 0 ?></p>
+                <?php else: ?>
+                <h3 class="text-xl font-bold mb-2"><?= htmlspecialchars($vipCheck['message'] ?? '无法观看') ?></h3>
+                <a href="/user/vip" class="bg-gradient-to-r from-green-500 to-teal-500 text-white px-8 py-3 rounded-lg font-medium hover:opacity-90 mt-4">开通VIP</a>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
+            
             <!-- 片头广告 -->
             <?php 
             $playBeforeAd = xpk_ads('play_before');
@@ -150,6 +179,39 @@
 
 <!-- 播放器广告消息监听 -->
 <script>
+<?php if ($canWatch && $vipEnabled && !empty($user)): ?>
+// 记录观看
+(function() {
+    fetch('/api?action=vip.watch', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({vod_id: <?= $vod['vod_id'] ?>, use_points: false})
+    });
+})();
+<?php endif; ?>
+
+<?php if (!$canWatch && !empty($user)): ?>
+// 积分解锁
+function unlockWithPoints() {
+    xpk.confirm('确定使用 <?= $vipCheck['need_points'] ?? 10 ?> 积分解锁此视频？', function() {
+        fetch('/api?action=vip.watch', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({vod_id: <?= $vod['vod_id'] ?>, use_points: true})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.code === 0) {
+                location.reload();
+            } else {
+                xpk.toast(data.msg || '解锁失败', 'error');
+            }
+        })
+        .catch(() => xpk.toast('网络错误，请重试', 'error'));
+    });
+}
+<?php endif; ?>
+
 window.addEventListener('message', function(e) {
     if (e.data && typeof e.data === 'object') {
         if (e.data.type === 'ad_show' || e.data.type === 'ad_click') {

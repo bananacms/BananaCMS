@@ -1,5 +1,13 @@
 <?php include VIEW_PATH . 'layouts/header.php'; ?>
 
+<?php
+// 获取VIP状态
+require_once CORE_PATH . 'Vip.php';
+$vipHelper = new XpkVip();
+$isVip = $vipHelper->isVip($user);
+$vipExpire = $user['user_vip_expire'] ?? null;
+?>
+
 <div class="max-w-5xl mx-auto py-8">
     <!-- 用户信息卡片 -->
     <div class="bg-white rounded-lg shadow-sm border p-6 mb-6">
@@ -7,12 +15,38 @@
             <div class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
                 <?php echo mb_substr($user['user_nick_name'] ?? $user['user_name'], 0, 1); ?>
             </div>
-            <div class="ml-4">
-                <h1 class="text-xl font-bold"><?php echo htmlspecialchars($user['user_nick_name'] ?? $user['user_name']); ?></h1>
+            <div class="ml-4 flex-1">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-bold"><?php echo htmlspecialchars($user['user_nick_name'] ?? $user['user_name']); ?></h1>
+                    <?php if ($isVip): ?>
+                    <span class="ml-2 px-2 py-0.5 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs rounded-full">VIP</span>
+                    <?php endif; ?>
+                </div>
                 <p class="text-gray-500 text-sm">ID: <?php echo $user['user_id']; ?> · 注册于 <?php echo date('Y-m-d', $user['user_reg_time']); ?></p>
+                <?php if ($isVip && $vipExpire): ?>
+                <p class="text-yellow-600 text-sm mt-1">VIP到期：<?php echo date('Y-m-d', $vipExpire); ?></p>
+                <?php endif; ?>
             </div>
-            <div class="ml-auto">
+            <div class="flex items-center space-x-4">
+                <a href="<?= xpk_url('user/vip') ?>" class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-4 py-2 rounded-lg text-sm hover:opacity-90">
+                    <?php echo $isVip ? '续费VIP' : '开通VIP'; ?>
+                </a>
                 <a href="<?= xpk_url('user/logout') ?>" class="text-gray-500 hover:text-red-600">退出登录</a>
+            </div>
+        </div>
+        
+        <!-- VIP状态条 -->
+        <div class="mt-4 pt-4 border-t flex items-center justify-between text-sm">
+            <div class="flex items-center space-x-6">
+                <div>
+                    <span class="text-gray-500">积分：</span>
+                    <span class="font-medium text-yellow-600"><?php echo $user['user_points'] ?? 0; ?></span>
+                </div>
+                <div>
+                    <span class="text-gray-500">今日观看：</span>
+                    <span class="font-medium"><?php echo $user['user_daily_views'] ?? 0; ?></span>
+                    <span class="text-gray-400">/<?php echo $isVip ? '无限' : ($vipHelper->getDailyLimit($user)); ?></span>
+                </div>
             </div>
         </div>
     </div>
