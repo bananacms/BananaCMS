@@ -18,7 +18,7 @@ include $netflixLayoutPath . 'header.php';
         <!-- 子分类 -->
         <?php if (!empty($subTypes)): ?>
         <div class="flex flex-wrap gap-2">
-            <a href="<?php echo xpk_page_url('type', ['id' => $type['type_id'], 'slug' => $type['type_en']]); ?>" 
+            <a href="<?php echo xpk_page_url('type', ['id' => $parentType['type_id'], 'slug' => $parentType['type_en']]); ?>" 
                class="<?php echo empty($currentSubType) ? 'bg-red-600' : 'bg-gray-800 hover:bg-gray-700'; ?> px-4 py-2 rounded text-sm transition">全部</a>
             <?php foreach ($subTypes as $sub): ?>
             <a href="<?php echo xpk_page_url('type', ['id' => $sub['type_id'], 'slug' => $sub['type_en']]); ?>" 

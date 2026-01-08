@@ -60,11 +60,27 @@ class TypeController extends BaseController
 
         $result = $this->vodModel->getByType($id, $page, PAGE_SIZE);
         
-        // 子分类
-        $subTypes = $this->typeModel->getList($id);
+        // 子分类处理
+        // 如果当前是子分类（type_pid > 0），获取同级子分类列表
+        // 如果当前是父分类（type_pid = 0），获取其下的子分类列表
+        $currentSubType = null;
+        $parentType = null;
+        if ($type['type_pid'] > 0) {
+            // 当前是子分类，获取同级子分类
+            $subTypes = $this->typeModel->getList($type['type_pid']);
+            $currentSubType = $id;
+            // 获取父分类用于"全部"链接
+            $parentType = $this->typeModel->getById($type['type_pid']);
+        } else {
+            // 当前是父分类，获取子分类
+            $subTypes = $this->typeModel->getList($id);
+            $parentType = $type;
+        }
         
         $this->assign('type', $type);
         $this->assign('subTypes', $subTypes);
+        $this->assign('currentSubType', $currentSubType);
+        $this->assign('parentType', $parentType);
         $this->assign('vodList', $result['list']);
         $this->assign('page', $result['page']);
         $this->assign('totalPages', $result['totalPages']);
