@@ -37,6 +37,10 @@ class AdminBaseController
      */
     protected function getAdminEntry(): string
     {
+        // Priority: config constant > script name
+        if (defined('ADMIN_ENTRY') && ADMIN_ENTRY !== '') {
+            return ADMIN_ENTRY;
+        }
         return basename($_SERVER['SCRIPT_NAME'], '.php');
     }
 
