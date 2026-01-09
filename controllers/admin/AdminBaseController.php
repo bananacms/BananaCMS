@@ -20,6 +20,7 @@ class AdminBaseController
         $this->data['admin'] = $this->admin;
         $this->data['siteName'] = SITE_NAME;
         $this->data['adminEntry'] = $this->adminEntry;
+        $this->data['csrfToken'] = $this->csrfToken();
     }
 
     /**
