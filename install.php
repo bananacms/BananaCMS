@@ -243,6 +243,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $robotsContent .= "Sitemap: {$siteUrl}/sitemap.xml\n";
                 file_put_contents(ROOT_PATH . 'robots.txt', $robotsContent);
                 
+                // Generate .htaccess for Apache
+                $htaccessContent = "# 香蕉CMS Apache 伪静态配置\n";
+                $htaccessContent .= "# 后台入口: /{$adminEntry}\n\n";
+                $htaccessContent .= "<IfModule mod_rewrite.c>\n";
+                $htaccessContent .= "    RewriteEngine On\n";
+                $htaccessContent .= "    RewriteBase /\n\n";
+                $htaccessContent .= "    # Sitemap\n";
+                $htaccessContent .= "    RewriteRule ^sitemap\\.xml\$ sitemap.php [QSA,L]\n\n";
+                $htaccessContent .= "    # Static files\n";
+                $htaccessContent .= "    RewriteCond %{REQUEST_URI} ^/static/ [OR]\n";
+                $htaccessContent .= "    RewriteCond %{REQUEST_URI} ^/upload/\n";
+                $htaccessContent .= "    RewriteRule ^ - [L]\n\n";
+                $htaccessContent .= "    # All requests to index.php\n";
+                $htaccessContent .= "    RewriteCond %{REQUEST_FILENAME} !-f\n";
+                $htaccessContent .= "    RewriteCond %{REQUEST_FILENAME} !-d\n";
+                $htaccessContent .= "    RewriteRule ^(.*)\$ index.php?s=\$1 [QSA,L]\n";
+                $htaccessContent .= "</IfModule>\n\n";
+                $htaccessContent .= "<IfModule mod_negotiation.c>\n";
+                $htaccessContent .= "    Options -MultiViews\n";
+                $htaccessContent .= "</IfModule>\n\n";
+                $htaccessContent .= "AcceptPathInfo On\n\n";
+                $htaccessContent .= "# Block sensitive directories\n";
+                $htaccessContent .= "<FilesMatch \"^(config|core|models|controllers|views|runtime)\">\n";
+                $htaccessContent .= "    Order deny,allow\n";
+                $htaccessContent .= "    Deny from all\n";
+                $htaccessContent .= "</FilesMatch>\n";
+                file_put_contents(ROOT_PATH . '.htaccess', $htaccessContent);
+                
+                // Generate nginx.conf for reference
+                $nginxContent = "# 香蕉CMS Nginx 伪静态配置\n";
+                $nginxContent .= "# 后台入口: /{$adminEntry}\n";
+                $nginxContent .= "# 使用方法: 宝塔面板 → 网站设置 → 伪静态 → 粘贴规则 → 保存\n\n";
+                $nginxContent .= "location = /sitemap.xml {\n";
+                $nginxContent .= "    rewrite ^ /sitemap.php last;\n";
+                $nginxContent .= "}\n\n";
+                $nginxContent .= "location ~ ^/(config|core|models|controllers|views|runtime)/ {\n";
+                $nginxContent .= "    deny all;\n";
+                $nginxContent .= "}\n\n";
+                $nginxContent .= "location /static/ {\n";
+                $nginxContent .= "    try_files \$uri =404;\n";
+                $nginxContent .= "}\n\n";
+                $nginxContent .= "location /upload/ {\n";
+                $nginxContent .= "    try_files \$uri =404;\n";
+                $nginxContent .= "}\n\n";
+                $nginxContent .= "location / {\n";
+                $nginxContent .= "    try_files \$uri \$uri/ /index.php?s=\$uri&\$args;\n";
+                $nginxContent .= "}\n";
+                file_put_contents(ROOT_PATH . 'nginx.conf', $nginxContent);
+                
                 // 自动删除敏感文件
                 $sensitiveExts = ['md', 'sql', 'txt', 'rar', 'zip'];
                 $excludeFiles = ['.htaccess', 'index.html', 'robots.txt'];
@@ -604,8 +653,12 @@ AcceptPathInfo On
         $host = parse_url($siteUrl, PHP_URL_HOST) ?: $_SERVER['HTTP_HOST'];
         $filenameDomain = preg_replace('/^www\./i', '', $host);
         
-        // 转义 JS 模板字符串中的特殊字符
-        $jsAdminPass = str_replace(['`', '${', '\\'], ['\\`', '\\${', '\\\\'], $adminPass);
+        // 转义 JS 字符串中的特殊字符（用于模板字符串）
+        $jsAdminPass = addslashes($adminPass);
+        $jsAdminPass = str_replace(['`', '${'], ['\\`', '\\${'], $jsAdminPass);
+        
+        // 如果密码为空，显示提示
+        $displayPass = !empty($adminPass) ? $jsAdminPass : '（密码未保存，请使用您设置的密码）';
         ?>
         <script>
         // 账号信息下载
@@ -618,7 +671,7 @@ AcceptPathInfo On
 
 管理员账号：<?= htmlspecialchars($adminUser) ?>
 
-管理员密码：<?= $jsAdminPass ?>
+管理员密码：<?= $displayPass ?>
 
 ========================================
 ⚠️ 重要提示：
@@ -661,15 +714,15 @@ location ~ ^/(config|core|models|controllers|views|runtime)/ {
 }
 
 location /static/ {
-    try_files $uri =404;
+    try_files \\$uri =404;
 }
 
 location /upload/ {
-    try_files $uri =404;
+    try_files \\$uri =404;
 }
 
 location / {
-    try_files $uri $uri/ /index.php?s=$uri&$args;
+    try_files \\$uri \\$uri/ /index.php?s=\\$uri&\\$args;
 }`,
             apache: `# 香蕉CMS Apache 伪静态配置
 # 后台入口: /<?= htmlspecialchars($adminEntry) ?>
@@ -682,7 +735,7 @@ location / {
     
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^(.*)$ index.php?s=$1 [QSA,L]
+    RewriteRule ^(.*)\\$ index.php?s=\\$1 [QSA,L]
 </IfModule>
 
 <IfModule mod_negotiation.c>

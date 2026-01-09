@@ -1,0 +1,32 @@
+# 香蕉CMS Apache 伪静态配置
+# Powered by https://xpornkit.com
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Sitemap
+    RewriteRule ^sitemap\.xml$ sitemap.php [QSA,L]
+
+    # Static files
+    RewriteCond %{REQUEST_URI} ^/static/ [OR]
+    RewriteCond %{REQUEST_URI} ^/upload/
+    RewriteRule ^ - [L]
+
+    # All requests to index.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ index.php?s=$1 [QSA,L]
+</IfModule>
+
+<IfModule mod_negotiation.c>
+    Options -MultiViews
+</IfModule>
+
+AcceptPathInfo On
+
+# Block sensitive directories
+<FilesMatch "^(config|core|models|controllers|views|runtime)">
+    Order deny,allow
+    Deny from all
+</FilesMatch>
