@@ -71,7 +71,7 @@ function generateQR() {
     var qr = qrcode(0, 'M'); qr.addData('<?= htmlspecialchars($usdtAddress) ?>'); qr.make();
     document.getElementById('qrcode').innerHTML = qr.createImgTag(5, 10);
 }
-function copyAddress() { document.getElementById('addressInput').select(); document.execCommand('copy'); alert('地址已复制'); }
+function copyAddress() { document.getElementById('addressInput').select(); document.execCommand('copy'); xpk.toast('地址已复制', 'success'); }
 function updateCountdown() {
     var remaining = expireTime - Math.floor(Date.now() / 1000);
     if (remaining <= 0) { document.getElementById('countdown').textContent = '已过期'; clearInterval(checkInterval); return; }

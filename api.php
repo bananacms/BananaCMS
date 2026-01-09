@@ -1492,6 +1492,16 @@ class XpkApi
      */
     private function checkAuth(): void
     {
+        // 先检查 Session 登录（网页端）
+        if (!empty($_SESSION['user']['user_id'])) {
+            $userModel = new XpkUser();
+            $this->user = $userModel->find($_SESSION['user']['user_id']);
+            if ($this->user && $this->user['user_status'] == 1) {
+                return;
+            }
+        }
+        
+        // 再检查 Token 登录（APP/API端）
         $token = $_SERVER['HTTP_X_TOKEN'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? $_GET['token'] ?? '';
         $token = str_replace('Bearer ', '', $token);
 

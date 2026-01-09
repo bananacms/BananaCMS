@@ -15,7 +15,7 @@
 
 <div class="max-w-5xl mx-auto">
     <!-- 播放器 -->
-    <div class="mb-6">
+    <div class="mb-6 relative z-10">
         <div class="player-container rounded-lg overflow-hidden relative">
             <?php if (!$canWatch): ?>
             <!-- VIP限制遮罩 -->
@@ -211,7 +211,15 @@
     fetch('/api?action=vip.watch', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
+        credentials: 'same-origin',
         body: JSON.stringify({vod_id: <?= $vod['vod_id'] ?>, use_points: false})
+    })
+    .then(r => r.json())
+    .then(data => {
+        console.log('vip.watch response:', data);
+    })
+    .catch(err => {
+        console.error('vip.watch error:', err);
     });
 })();
 <?php endif; ?>

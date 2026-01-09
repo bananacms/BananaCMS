@@ -33,54 +33,61 @@ function getSensitiveFiles(): array {
     return $files;
 }
 
-// 检查是否已安装
-if (file_exists(CONFIG_PATH . 'install.lock')) {
-    // 尝试加载配置以获取后台入口
-    $adminEntry = 'admin';
-    if (file_exists(CONFIG_PATH . 'config.php')) {
-        $configContent = file_get_contents(CONFIG_PATH . 'config.php');
-        if (preg_match("/define\('ADMIN_ENTRY',\s*'([^']+)'\)/", $configContent, $matches)) {
-            $adminEntry = $matches[1];
-        }
-    }
-    
-    // 处理删除文件请求
-    if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['file'])) {
-        header('Content-Type: application/json');
-        $allowedFiles = getSensitiveFiles();
-        $file = $_GET['file'];
-        
-        if (!in_array($file, $allowedFiles)) {
-            echo json_encode(['code' => 1, 'msg' => '不允许删除该文件']);
-            exit;
-        }
-        
-        $filePath = ROOT_PATH . $file;
-        if (!file_exists($filePath)) {
-            echo json_encode(['code' => 0, 'msg' => '文件已删除']);
-            exit;
-        }
-        
-        if (@unlink($filePath)) {
-            echo json_encode(['code' => 0, 'msg' => '删除成功']);
-        } else {
-            echo json_encode(['code' => 1, 'msg' => '删除失败，请检查文件权限']);
-        }
-        exit;
-    }
-    
-    // 获取文件列表（用于 AJAX）
-    if (isset($_GET['action']) && $_GET['action'] === 'list') {
-        header('Content-Type: application/json');
-        echo json_encode(['code' => 0, 'files' => getSensitiveFiles()]);
-        exit;
-    }
-    
-    die('<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="font-family:sans-serif;text-align:center;padding:50px;"><h1>🍌 香蕉CMS</h1><p>系统已安装，如需重新安装请删除 config/install.lock</p><p><a href="/">首页</a> | <a href="/' . $adminEntry . '">后台</a></p></body></html>');
-}
-
+// 先启动 session
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
+}
+
+// 检查是否已安装
+if (file_exists(CONFIG_PATH . 'install.lock')) {
+    // 如果是 step4 且有有效的安装 session，允许访问
+    $step = (int)($_GET['step'] ?? 1);
+    if ($step === 4 && !empty($_SESSION['install_admin']) && !empty($_SESSION['install_admin_entry'])) {
+        // 允许继续显示 step4
+    } else {
+        // 尝试加载配置以获取后台入口
+        $adminEntry = 'admin';
+        if (file_exists(CONFIG_PATH . 'config.php')) {
+            $configContent = file_get_contents(CONFIG_PATH . 'config.php');
+            if (preg_match("/define\('ADMIN_ENTRY',\s*'([^']+)'\)/", $configContent, $matches)) {
+                $adminEntry = $matches[1];
+            }
+        }
+        
+        // 处理删除文件请求
+        if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['file'])) {
+            header('Content-Type: application/json');
+            $allowedFiles = getSensitiveFiles();
+            $file = $_GET['file'];
+            
+            if (!in_array($file, $allowedFiles)) {
+                echo json_encode(['code' => 1, 'msg' => '不允许删除该文件']);
+                exit;
+            }
+            
+            $filePath = ROOT_PATH . $file;
+            if (!file_exists($filePath)) {
+                echo json_encode(['code' => 0, 'msg' => '文件已删除']);
+                exit;
+            }
+            
+            if (@unlink($filePath)) {
+                echo json_encode(['code' => 0, 'msg' => '删除成功']);
+            } else {
+                echo json_encode(['code' => 1, 'msg' => '删除失败，请检查文件权限']);
+            }
+            exit;
+        }
+        
+        // 获取文件列表（用于 AJAX）
+        if (isset($_GET['action']) && $_GET['action'] === 'list') {
+            header('Content-Type: application/json');
+            echo json_encode(['code' => 0, 'files' => getSensitiveFiles()]);
+            exit;
+        }
+        
+        die('<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="font-family:sans-serif;text-align:center;padding:50px;"><h1>🍌 香蕉CMS</h1><p>系统已安装，如需重新安装请删除 config/install.lock</p><p><a href="/">首页</a> | <a href="/' . $adminEntry . '">后台</a></p></body></html>');
+    }
 }
 
 $step = max(1, min(4, (int)($_GET['step'] ?? 1)));
@@ -251,6 +258,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $htaccessContent .= "    RewriteBase /\n\n";
                 $htaccessContent .= "    # Sitemap\n";
                 $htaccessContent .= "    RewriteRule ^sitemap\\.xml\$ sitemap.php [QSA,L]\n\n";
+                $htaccessContent .= "    # API\n";
+                $htaccessContent .= "    RewriteRule ^api\$ api.php [QSA,L]\n";
+                $htaccessContent .= "    RewriteRule ^api/(.*)\$ api.php?s=\$1 [QSA,L]\n\n";
                 $htaccessContent .= "    # Static files\n";
                 $htaccessContent .= "    RewriteCond %{REQUEST_URI} ^/static/ [OR]\n";
                 $htaccessContent .= "    RewriteCond %{REQUEST_URI} ^/upload/\n";
@@ -277,6 +287,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $nginxContent .= "# 使用方法: 宝塔面板 → 网站设置 → 伪静态 → 粘贴规则 → 保存\n\n";
                 $nginxContent .= "location = /sitemap.xml {\n";
                 $nginxContent .= "    rewrite ^ /sitemap.php last;\n";
+                $nginxContent .= "}\n\n";
+                $nginxContent .= "# API\n";
+                $nginxContent .= "location = /api {\n";
+                $nginxContent .= "    rewrite ^ /api.php last;\n";
                 $nginxContent .= "}\n\n";
                 $nginxContent .= "location ~ ^/(config|core|models|controllers|views|runtime)/ {\n";
                 $nginxContent .= "    deny all;\n";

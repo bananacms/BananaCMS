@@ -6,6 +6,9 @@ require_once CORE_PATH . 'Vip.php';
 $vipHelper = new XpkVip();
 $isVip = $vipHelper->isVip($user);
 $vipExpire = $user['user_vip_expire'] ?? null;
+// 获取实时的今日观看次数
+$todayViews = $vipHelper->getTodayViews($user['user_id']);
+$dailyLimit = $vipHelper->getDailyLimit($user);
 ?>
 
 <div class="max-w-5xl mx-auto py-8">
@@ -44,8 +47,8 @@ $vipExpire = $user['user_vip_expire'] ?? null;
                 </div>
                 <div>
                     <span class="text-gray-500">今日观看：</span>
-                    <span class="font-medium"><?php echo $user['user_daily_views'] ?? 0; ?></span>
-                    <span class="text-gray-400">/<?php echo $isVip ? '无限' : ($vipHelper->getDailyLimit($user)); ?></span>
+                    <span class="font-medium"><?php echo $todayViews; ?></span>
+                    <span class="text-gray-400">/<?php echo $dailyLimit >= 9999 ? '无限' : $dailyLimit; ?></span>
                 </div>
             </div>
         </div>

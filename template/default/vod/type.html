@@ -1,7 +1,7 @@
 <?php include VIEW_PATH . 'layouts/header.php'; ?>
 
 <!-- 分类标签 -->
-<div class="flex items-center gap-3 pt-2 mb-6 overflow-x-auto pb-2 scroll-hide">
+<div class="flex items-center gap-3 pt-2 mb-6 overflow-x-auto pb-2 px-1 -mx-1 scroll-hide">
     <a href="/" class="bg-gray-100 px-4 py-1.5 rounded-lg text-sm whitespace-nowrap hover:bg-gray-200 flex-shrink-0">全部</a>
     <?php foreach ($navTypes as $navType): ?>
         <a href="<?php echo xpk_page_url('type', ['id' => $navType['type_id'], 'slug' => $navType['type_en']]); ?>" 

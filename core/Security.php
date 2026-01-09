@@ -120,16 +120,16 @@ class XpkSecurity
                        "form-action 'none'";
                        
             default: // frontend
-                $scriptSrc = $config['security_csp_script_src'] ?? "'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://static.cloudflareinsights.com";
-                $styleSrc = $config['security_csp_style_src'] ?? "'self' 'unsafe-inline' https://cdn.tailwindcss.com https://fonts.googleapis.com";
+                $scriptSrc = $config['security_csp_script_src'] ?? "'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://static.cloudflareinsights.com";
+                $styleSrc = $config['security_csp_style_src'] ?? "'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://fonts.googleapis.com";
                 $imgSrc = $config['security_csp_img_src'] ?? "'self' data: https: http:";
                 
                 return "default-src 'self'; " .
                        "script-src $scriptSrc; " .
                        "style-src $styleSrc; " .
                        "img-src $imgSrc; " .
-                       "font-src 'self' https://fonts.gstatic.com data:; " .
-                       "connect-src 'self' https://cloudflareinsights.com; " .
+                       "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net data:; " .
+                       "connect-src 'self' https://cdn.jsdelivr.net https://cloudflareinsights.com; " .
                        "media-src 'self' https: http:; " .
                        "object-src 'none'; " .
                        "base-uri 'self'; " .

@@ -23,13 +23,13 @@
             </div>
             <div class="flex justify-between">
                 <span class="text-gray-500">支付金额</span>
-                <span class="text-2xl font-bold text-green-600">$<?= $order['usdt_amount'] ?></span>
+                <span class="text-2xl font-bold text-green-600">$<?= number_format((float)$order['usdt_amount'], 2) ?></span>
             </div>
         </div>
         
         <!-- 收款地址 -->
         <div class="p-6 bg-gray-50">
-            <p class="text-center text-gray-600 mb-4">请向以下地址转账 <strong class="text-green-600">$<?= $order['usdt_amount'] ?></strong> USDT</p>
+            <p class="text-center text-gray-600 mb-4">请向以下地址转账 <strong class="text-green-600">$<?= number_format((float)$order['usdt_amount'], 2) ?></strong> USDT</p>
             
             <!-- 二维码 -->
             <div class="bg-white p-4 rounded-lg mb-4 text-center">
@@ -56,7 +56,7 @@
                     重要提示
                 </p>
                 <ul class="text-yellow-700 space-y-1">
-                    <li>• 请确保转账金额为 <strong>$<?= $order['usdt_amount'] ?></strong>（精确到小数点后4位）</li>
+                    <li>• 请确保转账金额为 <strong>$<?= number_format((float)$order['usdt_amount'], 2) ?></strong></li>
                     <li>• 仅支持 <strong>TRC20</strong> 网络，其他网络转账将无法到账</li>
                     <li>• 转账后请等待区块确认，通常1-3分钟</li>
                 </ul>
@@ -85,7 +85,7 @@
 
 <script>
 var orderNo = '<?= htmlspecialchars($order['order_no']) ?>';
-var expireTime = <?= $order['expire_time'] ?>;
+var expireTime = <?= (int)($order['expire_time'] ?? 0) ?: (time() + 1800) ?>;
 var checkInterval;
 
 // 生成二维码
@@ -101,7 +101,7 @@ function copyAddress() {
     var input = document.getElementById('addressInput');
     input.select();
     document.execCommand('copy');
-    alert('地址已复制');
+    xpk.toast('地址已复制', 'success');
 }
 
 // 倒计时

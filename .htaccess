@@ -8,6 +8,10 @@
     # Sitemap
     RewriteRule ^sitemap\.xml$ sitemap.php [QSA,L]
 
+    # API
+    RewriteRule ^api$ api.php [QSA,L]
+    RewriteRule ^api/(.*)$ api.php?s=$1 [QSA,L]
+
     # Static files
     RewriteCond %{REQUEST_URI} ^/static/ [OR]
     RewriteCond %{REQUEST_URI} ^/upload/
