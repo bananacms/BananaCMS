@@ -643,6 +643,7 @@ AcceptPathInfo On
             </div>
             
             <div class="flex justify-center space-x-4">
+                <button onclick="downloadCredentials()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded font-bold">📥 下载账号信息</button>
                 <a href="/" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded font-bold">访问首页</a>
                 <a href="/<?= htmlspecialchars($adminEntry) ?>" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded font-bold">进入后台</a>
             </div>
