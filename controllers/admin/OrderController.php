@@ -66,7 +66,7 @@ class AdminOrderController extends AdminBaseController
         $this->assign('orders', $orders);
         $this->assign('total', $total);
         $this->assign('page', $page);
-        $this->assign('pages', ceil($total / $limit));
+        $this->assign('totalPages', ceil($total / $limit));
         $this->assign('stats', $stats);
         $this->render('order/index', '订单管理');
     }

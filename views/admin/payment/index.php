@@ -47,7 +47,7 @@
                     </button>
                 </td>
                 <td class="px-4 py-3 text-sm space-x-2">
-                    <a href="/<?= $adminEntry ?>?s=payment/edit/<?= $ch['channel_id'] ?>" class="text-blue-500 hover:underline">编辑</a>
+                    <a href="/<?= $adminEntry ?>?s=payment/edit&id=<?= $ch['channel_id'] ?>" class="text-blue-500 hover:underline">编辑</a>
                     <button onclick="deleteChannel(<?= $ch['channel_id'] ?>)" class="text-red-500 hover:underline">删除</button>
                 </td>
             </tr>
@@ -72,16 +72,17 @@ function toggleStatus(id) {
 }
 
 function deleteChannel(id) {
-    if (!confirm('确定删除该支付通道？')) return;
-    fetch(adminUrl('/payment/delete'), {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: 'id=' + id + '&_token=<?= $csrfToken ?>'
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.code === 0) location.reload();
-        else xpkToast(data.msg, 'error');
+    xpkConfirm('确定删除该支付通道？', function() {
+        fetch(adminUrl('/payment/delete'), {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'id=' + id + '&_token=<?= $csrfToken ?>'
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.code === 0) location.reload();
+            else xpkToast(data.msg, 'error');
+        });
     });
 }
 </script>

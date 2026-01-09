@@ -337,8 +337,7 @@ class XpkStats
     public function cleanOldLogs(int $keepDays = 90): int
     {
         $cutoffDate = date('Y-m-d', strtotime("-{$keepDays} days"));
-        $this->db->execute("DELETE FROM {$this->logTable} WHERE log_date < ?", [$cutoffDate]);
-        return $this->db->rowCount();
+        return $this->db->execute("DELETE FROM {$this->logTable} WHERE log_date < ?", [$cutoffDate]);
     }
 
     /**
@@ -352,50 +351,42 @@ class XpkStats
         // 1. 清理统计日志
         $statsDays = $options['stats_days'] ?? $defaultDays;
         $cutoffDate = date('Y-m-d', strtotime("-{$statsDays} days"));
-        $this->db->execute("DELETE FROM {$this->logTable} WHERE log_date < ?", [$cutoffDate]);
-        $results['stats_log'] = $this->db->rowCount();
+        $results['stats_log'] = $this->db->execute("DELETE FROM {$this->logTable} WHERE log_date < ?", [$cutoffDate]);
 
         // 2. 清理操作日志
         $adminDays = $options['admin_days'] ?? 30;
         $cutoffTime = time() - ($adminDays * 86400);
-        $this->db->execute("DELETE FROM " . DB_PREFIX . "admin_log WHERE log_time < ?", [$cutoffTime]);
-        $results['admin_log'] = $this->db->rowCount();
+        $results['admin_log'] = $this->db->execute("DELETE FROM " . DB_PREFIX . "admin_log WHERE log_time < ?", [$cutoffTime]);
 
         // 3. 清理搜索日志
         $searchDays = $options['search_days'] ?? $defaultDays;
         $cutoffTime = time() - ($searchDays * 86400);
-        $this->db->execute("DELETE FROM " . DB_PREFIX . "search_log WHERE search_time < ?", [$cutoffTime]);
-        $results['search_log'] = $this->db->rowCount();
+        $results['search_log'] = $this->db->execute("DELETE FROM " . DB_PREFIX . "search_log WHERE search_time < ?", [$cutoffTime]);
 
         // 4. 清理采集日志
         $collectDays = $options['collect_days'] ?? 30;
         $cutoffTime = time() - ($collectDays * 86400);
-        $this->db->execute("DELETE FROM " . DB_PREFIX . "collect_log WHERE log_time < ?", [$cutoffTime]);
-        $results['collect_log'] = $this->db->rowCount();
+        $results['collect_log'] = $this->db->execute("DELETE FROM " . DB_PREFIX . "collect_log WHERE log_time < ?", [$cutoffTime]);
 
         // 5. 清理评论投票记录
         $voteDays = $options['vote_days'] ?? 180;
         $cutoffTime = time() - ($voteDays * 86400);
-        $this->db->execute("DELETE FROM " . DB_PREFIX . "comment_vote WHERE vote_time < ?", [$cutoffTime]);
-        $results['comment_vote'] = $this->db->rowCount();
+        $results['comment_vote'] = $this->db->execute("DELETE FROM " . DB_PREFIX . "comment_vote WHERE vote_time < ?", [$cutoffTime]);
 
         // 6. 清理评分记录
         $scoreDays = $options['score_days'] ?? 365;
         $cutoffTime = time() - ($scoreDays * 86400);
-        $this->db->execute("DELETE FROM " . DB_PREFIX . "score WHERE score_time < ?", [$cutoffTime]);
-        $results['score'] = $this->db->rowCount();
+        $results['score'] = $this->db->execute("DELETE FROM " . DB_PREFIX . "score WHERE score_time < ?", [$cutoffTime]);
 
         // 7. 清理用户观看历史
         $historyDays = $options['history_days'] ?? 365;
         $cutoffTime = time() - ($historyDays * 86400);
-        $this->db->execute("DELETE FROM " . DB_PREFIX . "user_history WHERE watch_time < ?", [$cutoffTime]);
-        $results['user_history'] = $this->db->rowCount();
+        $results['user_history'] = $this->db->execute("DELETE FROM " . DB_PREFIX . "user_history WHERE watch_time < ?", [$cutoffTime]);
 
         // 8. 清理上传分片临时文件
         $chunkDays = $options['chunk_days'] ?? 7;
         $cutoffTime = time() - ($chunkDays * 86400);
-        $this->db->execute("DELETE FROM " . DB_PREFIX . "upload_chunk WHERE created_at < ?", [$cutoffTime]);
-        $results['upload_chunk'] = $this->db->rowCount();
+        $results['upload_chunk'] = $this->db->execute("DELETE FROM " . DB_PREFIX . "upload_chunk WHERE created_at < ?", [$cutoffTime]);
 
         return $results;
     }

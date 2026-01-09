@@ -91,12 +91,10 @@ class XpkSearchLog extends XpkModel
     {
         $timeLimit = time() - ($keepDays * 24 * 3600);
         
-        $result = $this->db->execute(
+        return $this->db->execute(
             "DELETE FROM {$this->table} WHERE search_time < ?",
             [$timeLimit]
         );
-        
-        return $result ? $this->db->rowCount() : 0;
     }
 
     /**

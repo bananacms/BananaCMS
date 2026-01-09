@@ -112,7 +112,7 @@
                 </td>
                 <td class="px-4 py-3 text-sm text-gray-500"><?= date('Y-m-d H:i', $o['order_time']) ?></td>
                 <td class="px-4 py-3 text-sm space-x-2">
-                    <a href="/<?= $adminEntry ?>?s=order/detail/<?= $o['order_id'] ?>" class="text-blue-500 hover:underline">详情</a>
+                    <a href="/<?= $adminEntry ?>?s=order/detail&id=<?= $o['order_id'] ?>" class="text-blue-500 hover:underline">详情</a>
                     <?php if ($o['order_status'] == 0): ?>
                     <button onclick="completeOrder(<?= $o['order_id'] ?>)" class="text-green-500 hover:underline">完成</button>
                     <button onclick="cancelOrder(<?= $o['order_id'] ?>)" class="text-red-500 hover:underline">取消</button>
@@ -136,30 +136,32 @@ include __DIR__ . '/../components/pagination.php';
 
 <script>
 function completeOrder(id) {
-    if (!confirm('确定手动完成该订单？此操作将激活用户VIP')) return;
-    fetch(adminUrl('/order/complete'), {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: 'id=' + id + '&_token=<?= $csrfToken ?>'
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.code === 0) location.reload();
-        else xpkToast(data.msg, 'error');
+    xpkConfirm('确定手动完成该订单？此操作将激活用户VIP', function() {
+        fetch(adminUrl('/order/complete'), {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'id=' + id + '&_token=<?= $csrfToken ?>'
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.code === 0) location.reload();
+            else xpkToast(data.msg, 'error');
+        });
     });
 }
 
 function cancelOrder(id) {
-    if (!confirm('确定取消该订单？')) return;
-    fetch(adminUrl('/order/cancel'), {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: 'id=' + id + '&_token=<?= $csrfToken ?>'
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.code === 0) location.reload();
-        else xpkToast(data.msg, 'error');
+    xpkConfirm('确定取消该订单？', function() {
+        fetch(adminUrl('/order/cancel'), {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'id=' + id + '&_token=<?= $csrfToken ?>'
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.code === 0) location.reload();
+            else xpkToast(data.msg, 'error');
+        });
     });
 }
 </script>
