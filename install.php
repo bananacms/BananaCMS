@@ -447,7 +447,20 @@ $envPass = !in_array(false, array_column($envChecks, 3));
             </div>
             <div class="flex justify-between pt-4">
                 <a href="install.php?step=2" class="text-gray-500 py-2">上一步</a>
-                <button type="submit" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded font-bold">开始安装</button>
+                <button type="submit" id="installBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded font-bold">开始安装</button>
+            </div>
+            
+            <!-- 安装成功后显示的下载区域 -->
+            <div id="downloadSection" class="hidden mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div class="flex items-center mb-3">
+                    <span class="text-green-500 text-2xl mr-2">✓</span>
+                    <span class="font-bold text-green-700">安装成功！</span>
+                </div>
+                <p class="text-sm text-gray-600 mb-4">请下载并妥善保管账号信息文件，此信息仅显示一次。</p>
+                <div class="flex gap-3">
+                    <button type="button" id="downloadBtn" onclick="downloadCredentials()" class="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded font-bold">📥 下载账号信息 (TXT)</button>
+                    <button type="button" onclick="goToStep4()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded font-bold">继续 →</button>
+                </div>
             </div>
         </form>
         <script>
@@ -460,6 +473,118 @@ $envPass = !in_array(false, array_column($envChecks, 3));
             document.getElementById('admin_pass').value = password;
             document.getElementById('admin_pass_confirm').value = password;
             showToast('已生成随机密码，请牢记或下载保存', 'success');
+        }
+        
+        // 保存安装信息用于下载
+        var installInfo = null;
+        
+        // 拦截表单提交，改用AJAX
+        document.querySelector('form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            var btn = document.getElementById('installBtn');
+            btn.disabled = true;
+            btn.textContent = '安装中...';
+            
+            var formData = new FormData(this);
+            
+            // 保存信息用于下载
+            installInfo = {
+                db_host: formData.get('db_host'),
+                db_port: formData.get('db_port'),
+                db_name: formData.get('db_name'),
+                db_user: formData.get('db_user'),
+                db_pass: formData.get('db_pass'),
+                db_prefix: formData.get('db_prefix'),
+                admin_user: formData.get('admin_user'),
+                admin_pass: formData.get('admin_pass'),
+                admin_entry: formData.get('admin_entry'),
+                site_name: formData.get('site_name'),
+                site_url: formData.get('site_url')
+            };
+            
+            fetch('install.php?step=3', {
+                method: 'POST',
+                body: formData
+            })
+            .then(r => r.text())
+            .then(html => {
+                // 检查是否安装成功（通过检查是否有重定向到step=4的标记）
+                if (html.includes('install.php?step=4') || html.includes('Location: install.php?step=4')) {
+                    // 安装成功，显示下载区域
+                    document.getElementById('downloadSection').classList.remove('hidden');
+                    btn.classList.add('hidden');
+                    showToast('安装成功！请下载账号信息', 'success');
+                } else if (html.includes('bg-red-100')) {
+                    // 有错误，提取错误信息
+                    var match = html.match(/class="bg-red-100[^"]*"[^>]*>([^<]+)/);
+                    var errMsg = match ? match[1] : '安装失败，请检查配置';
+                    showToast(errMsg, 'error');
+                    btn.disabled = false;
+                    btn.textContent = '开始安装';
+                } else {
+                    // 其他情况也认为成功
+                    document.getElementById('downloadSection').classList.remove('hidden');
+                    btn.classList.add('hidden');
+                }
+            })
+            .catch(err => {
+                showToast('请求失败: ' + err.message, 'error');
+                btn.disabled = false;
+                btn.textContent = '开始安装';
+            });
+        });
+        
+        function downloadCredentials() {
+            if (!installInfo) {
+                showToast('没有可下载的信息', 'error');
+                return;
+            }
+            
+            var domain = installInfo.site_url.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
+            var fullAdminUrl = installInfo.site_url + '/' + installInfo.admin_entry;
+            
+            var content = '========================================\n';
+            content += '香蕉CMS 安装信息\n';
+            content += '========================================\n\n';
+            content += '【数据库信息】\n';
+            content += '主机：' + installInfo.db_host + ':' + installInfo.db_port + '\n';
+            content += '数据库名：' + installInfo.db_name + '\n';
+            content += '用户名：' + installInfo.db_user + '\n';
+            content += '密码：' + (installInfo.db_pass || '(空)') + '\n';
+            content += '表前缀：' + installInfo.db_prefix + '\n\n';
+            content += '【后台信息】\n';
+            content += '后台地址：' + fullAdminUrl + '\n';
+            content += '管理员账号：' + installInfo.admin_user + '\n';
+            content += '管理员密码：' + installInfo.admin_pass + '\n\n';
+            content += '【站点信息】\n';
+            content += '站点名称：' + installInfo.site_name + '\n';
+            content += '站点URL：' + installInfo.site_url + '\n\n';
+            content += '========================================\n';
+            content += '⚠️ 重要提示：\n';
+            content += '1. 请妥善保管此文件，切勿泄露给他人\n';
+            content += '2. 建议登录后台后立即修改密码\n';
+            content += '3. 此文件建议阅读后删除\n';
+            content += '========================================\n\n';
+            content += '安装时间：' + new Date().toLocaleString() + '\n';
+            
+            var blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = domain + '_安装信息.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast('账号信息已下载', 'success');
+            document.getElementById('downloadBtn').textContent = '✓ 已下载';
+            document.getElementById('downloadBtn').classList.remove('bg-green-500', 'hover:bg-green-600');
+            document.getElementById('downloadBtn').classList.add('bg-gray-400');
+        }
+        
+        function goToStep4() {
+            location.href = 'install.php?step=4';
         }
         </script>
 

@@ -15,7 +15,12 @@ class AdminVipController extends AdminBaseController
             "SELECT * FROM " . DB_PREFIX . "vip_package ORDER BY package_sort ASC, package_id ASC"
         );
         
+        // 加载VIP配置
+        $configFile = CONFIG_PATH . 'vip.php';
+        $vipConfig = file_exists($configFile) ? require $configFile : [];
+        
         $this->assign('packages', $packages);
+        $this->assign('vipConfig', $vipConfig);
         $this->render('vip/index', 'VIP套餐管理');
     }
     
