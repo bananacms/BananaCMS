@@ -500,7 +500,7 @@ new Chart(document.getElementById('deviceChart'), {
 
 // 切换天数
 function changeDays(days) {
-    location.href = adminUrl('/stats?days=' + days);
+    location.href = adminUrl('/stats&days=' + days);
 }
 
 // 清理统计日志
