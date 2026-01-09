@@ -181,12 +181,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $pdo->exec("REPLACE INTO `{$dbPrefix}config` (config_id, config_name, config_value) VALUES (16, 'user_register_limit', '5')");
                 // 生成配置文件
                 $secret = 'xpk_' . bin2hex(random_bytes(16));
+                
+                // 转义特殊字符，防止配置文件语法错误
+                $escapedDbPass = addslashes($dbPass);
+                $escapedSiteName = addslashes($siteName);
+                $escapedSiteUrl = addslashes($siteUrl);
+                
                 $config = "<?php\ndefine('APP_DEBUG', true);\ndefine('APP_SECRET', '{$secret}');\n";
-                $config .= "define('SITE_NAME', '{$siteName}');\ndefine('SITE_URL', '{$siteUrl}');\n";
+                $config .= "define('SITE_NAME', '{$escapedSiteName}');\ndefine('SITE_URL', '{$escapedSiteUrl}');\n";
                 $config .= "define('SITE_KEYWORDS', '');\ndefine('SITE_DESCRIPTION', '');\n";
                 $config .= "define('DB_HOST', '{$dbHost}');\ndefine('DB_PORT', '{$dbPort}');\n";
                 $config .= "define('DB_NAME', '{$dbName}');\ndefine('DB_USER', '{$dbUser}');\n";
-                $config .= "define('DB_PASS', '{$dbPass}');\ndefine('DB_CHARSET', 'utf8mb4');\n";
+                $config .= "define('DB_PASS', '{$escapedDbPass}');\ndefine('DB_CHARSET', 'utf8mb4');\n";
                 $config .= "define('DB_PREFIX', '{$dbPrefix}');\n";
                 $config .= "define('ROOT_PATH', dirname(__DIR__) . '/');\n";
                 $config .= "define('CONFIG_PATH', ROOT_PATH . 'config/');\n";
@@ -251,7 +257,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 
                 $_SESSION['install_admin'] = $adminUser;
+                $_SESSION['install_admin_pass'] = $adminPass;
                 $_SESSION['install_admin_entry'] = $adminEntry;
+                $_SESSION['install_site_url'] = $siteUrl;
                 header('Location: install.php?step=4');
                 exit;
                 
@@ -360,8 +368,14 @@ $envPass = !in_array(false, array_column($envChecks, 3));
                 <div class="space-y-4">
                     <div><label class="block text-sm mb-1">用户名 * (至少3字符)</label><input type="text" name="admin_user" required minlength="3" class="w-full border rounded px-3 py-2"></div>
                     <div class="grid grid-cols-2 gap-4">
-                        <div><label class="block text-sm mb-1">密码 * (至少6字符)</label><input type="password" name="admin_pass" required minlength="6" class="w-full border rounded px-3 py-2"></div>
-                        <div><label class="block text-sm mb-1">确认密码 *</label><input type="password" name="admin_pass_confirm" required class="w-full border rounded px-3 py-2"></div>
+                        <div>
+                            <label class="block text-sm mb-1">密码 * (至少6字符)</label>
+                            <div class="flex gap-2">
+                                <input type="text" name="admin_pass" id="admin_pass" required minlength="6" class="flex-1 border rounded px-3 py-2">
+                                <button type="button" onclick="generatePassword()" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded text-sm" title="随机生成密码">🎲</button>
+                            </div>
+                        </div>
+                        <div><label class="block text-sm mb-1">确认密码 *</label><input type="text" name="admin_pass_confirm" id="admin_pass_confirm" required class="w-full border rounded px-3 py-2"></div>
                     </div>
                 </div>
             </div>
@@ -387,15 +401,155 @@ $envPass = !in_array(false, array_column($envChecks, 3));
                 <button type="submit" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded font-bold">开始安装</button>
             </div>
         </form>
+        <script>
+        function generatePassword() {
+            const chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefghjkmnpqrstwxyz23456789!@#$%';
+            let password = '';
+            for (let i = 0; i < 12; i++) {
+                password += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('admin_pass').value = password;
+            document.getElementById('admin_pass_confirm').value = password;
+            showToast('已生成随机密码，请牢记或下载保存', 'success');
+        }
+        </script>
 
-        <?php elseif ($step === 4): ?>
+        <?php elseif ($step === 4): 
+            // 检查是否有安装信息（防止直接访问 step 4）
+            if (empty($_SESSION['install_admin']) || empty($_SESSION['install_admin_entry'])) {
+                header('Location: install.php?step=1');
+                exit;
+            }
+            
+            // 检测服务器类型
+            $serverSoftware = strtolower($_SERVER['SERVER_SOFTWARE'] ?? '');
+            $serverType = 'unknown';
+            $serverTypeName = '未知';
+            if (strpos($serverSoftware, 'nginx') !== false) {
+                $serverType = 'nginx';
+                $serverTypeName = 'Nginx';
+            } elseif (strpos($serverSoftware, 'apache') !== false) {
+                $serverType = 'apache';
+                $serverTypeName = 'Apache';
+            } elseif (strpos($serverSoftware, 'litespeed') !== false) {
+                $serverType = 'litespeed';
+                $serverTypeName = 'LiteSpeed (兼容Apache规则)';
+                $serverType = 'apache'; // LiteSpeed 兼容 Apache 规则
+            }
+            $adminEntry = $_SESSION['install_admin_entry'];
+            $adminUser = $_SESSION['install_admin'];
+            $adminPass = $_SESSION['install_admin_pass'] ?? '';
+            $siteUrl = rtrim($_SESSION['install_site_url'] ?? '', '/');
+            
+            // 如果 siteUrl 为空，使用当前请求的域名
+            if (empty($siteUrl)) {
+                $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+                $siteUrl = $protocol . '://' . $_SERVER['HTTP_HOST'];
+            }
+            
+            $fullAdminUrl = $siteUrl . '/' . $adminEntry;
+        ?>
         <div class="text-center">
             <div class="text-6xl mb-4">🎉</div>
             <h2 class="text-2xl font-bold mb-4 text-green-600">安装成功！</h2>
             <div class="bg-gray-50 rounded p-6 mb-6">
-                <p class="mb-2"><strong>管理员：</strong><?= htmlspecialchars($_SESSION['install_admin'] ?? '') ?></p>
-                <p class="mb-2"><strong>后台地址：</strong><a href="/<?= htmlspecialchars($_SESSION['install_admin_entry'] ?? 'admin') ?>" class="text-blue-600 hover:underline">/<?= htmlspecialchars($_SESSION['install_admin_entry'] ?? 'admin') ?></a></p>
+                <p class="mb-2"><strong>管理员：</strong><?= htmlspecialchars($adminUser) ?></p>
+                <p class="mb-2"><strong>后台地址：</strong><a href="/<?= htmlspecialchars($adminEntry) ?>" class="text-blue-600 hover:underline"><?= htmlspecialchars($fullAdminUrl) ?></a></p>
                 <p class="text-sm text-gray-500 mb-4">请牢记您设置的密码和后台访问地址</p>
+                <button onclick="downloadCredentials()" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded text-sm font-medium">
+                    📥 下载账号信息
+                </button>
+            </div>
+
+            <!-- 伪静态配置（重要！） -->
+            <div class="bg-blue-50 border border-blue-200 rounded p-4 mb-6 text-left">
+                <h3 class="font-bold text-blue-800 mb-2 flex items-center">
+                    <span class="text-xl mr-2">⚙️</span>
+                    伪静态配置
+                    <span class="ml-2 px-2 py-0.5 bg-red-500 text-white text-xs rounded">必须配置</span>
+                </h3>
+                <p class="text-sm text-blue-700 mb-3">
+                    检测到您的服务器为 <strong><?= htmlspecialchars($serverTypeName) ?></strong>，
+                    请复制以下规则到您的服务器配置中，否则无法正常访问后台和前台页面。
+                </p>
+                
+                <!-- 服务器类型切换 -->
+                <div class="flex space-x-2 mb-3">
+                    <button type="button" onclick="switchRewriteRules('nginx')" id="btn-nginx" 
+                        class="px-3 py-1 rounded text-sm font-medium <?= $serverType === 'nginx' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
+                        Nginx
+                    </button>
+                    <button type="button" onclick="switchRewriteRules('apache')" id="btn-apache"
+                        class="px-3 py-1 rounded text-sm font-medium <?= $serverType === 'apache' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
+                        Apache
+                    </button>
+                </div>
+
+                <!-- 规则内容 -->
+                <div class="relative">
+                    <pre id="rewrite-rules" class="bg-gray-900 text-green-400 p-3 rounded text-xs font-mono overflow-x-auto max-h-48 whitespace-pre"><?= $serverType === 'nginx' ? htmlspecialchars("# 香蕉CMS Nginx 伪静态配置
+# 后台入口: /{$adminEntry}
+
+location = /sitemap.xml {
+    rewrite ^ /sitemap.php last;
+}
+
+location ~ ^/(config|core|models|controllers|views|runtime)/ {
+    deny all;
+}
+
+location /static/ {
+    try_files \$uri =404;
+}
+
+location /upload/ {
+    try_files \$uri =404;
+}
+
+location / {
+    try_files \$uri \$uri/ /index.php?s=\$uri&\$args;
+}") : htmlspecialchars("# 香蕉CMS Apache 伪静态配置
+# 后台入口: /{$adminEntry}
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+    
+    RewriteRule ^sitemap\\.xml\$ sitemap.php [QSA,L]
+    
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)\$ index.php?s=\$1 [QSA,L]
+</IfModule>
+
+<IfModule mod_negotiation.c>
+    Options -MultiViews
+</IfModule>
+
+AcceptPathInfo On
+
+# 禁止访问敏感目录
+<FilesMatch \"^(config|core|models|controllers|views|runtime)\">
+    Order deny,allow
+    Deny from all
+</FilesMatch>") ?></pre>
+                    <button type="button" onclick="copyRewriteRules()" 
+                        class="absolute top-2 right-2 px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded">
+                        📋 复制
+                    </button>
+                </div>
+
+                <!-- 使用说明 -->
+                <div class="mt-3 text-xs text-blue-600">
+                    <div id="usage-nginx" class="<?= $serverType !== 'nginx' ? 'hidden' : '' ?>">
+                        <p><strong>宝塔面板：</strong>网站设置 → 伪静态 → 粘贴规则 → 保存</p>
+                        <p><strong>其他环境：</strong>将规则添加到 nginx.conf 的 server 块中</p>
+                    </div>
+                    <div id="usage-apache" class="<?= $serverType !== 'apache' ? 'hidden' : '' ?>">
+                        <p><strong>方法1：</strong>将规则保存为 .htaccess 文件，上传到网站根目录</p>
+                        <p><strong>方法2：</strong>宝塔面板 → 网站设置 → 伪静态 → 粘贴规则 → 保存</p>
+                    </div>
+                </div>
             </div>
             
             <!-- 安全提示 -->
@@ -441,11 +595,141 @@ $envPass = !in_array(false, array_column($envChecks, 3));
             
             <div class="flex justify-center space-x-4">
                 <a href="/" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded font-bold">访问首页</a>
-                <a href="/<?= htmlspecialchars($_SESSION['install_admin_entry'] ?? 'admin') ?>" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded font-bold">进入后台</a>
+                <a href="/<?= htmlspecialchars($adminEntry) ?>" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded font-bold">进入后台</a>
             </div>
         </div>
         
+        <?php
+        // 生成文件名用的域名（去掉www）
+        $host = parse_url($siteUrl, PHP_URL_HOST) ?: $_SERVER['HTTP_HOST'];
+        $filenameDomain = preg_replace('/^www\./i', '', $host);
+        
+        // 转义 JS 模板字符串中的特殊字符
+        $jsAdminPass = str_replace(['`', '${', '\\'], ['\\`', '\\${', '\\\\'], $adminPass);
+        ?>
         <script>
+        // 账号信息下载
+        function downloadCredentials() {
+            const content = `========================================
+香蕉CMS 后台账号信息
+========================================
+
+后台地址：<?= htmlspecialchars($fullAdminUrl) ?>
+
+管理员账号：<?= htmlspecialchars($adminUser) ?>
+
+管理员密码：<?= $jsAdminPass ?>
+
+========================================
+⚠️ 重要提示：
+1. 请妥善保管此文件，切勿泄露给他人
+2. 建议登录后台后立即修改密码
+3. 此文件建议阅读后删除
+========================================
+
+安装时间：<?= date('Y-m-d H:i:s') ?>
+`;
+            
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = '<?= htmlspecialchars($filenameDomain) ?>.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('账号信息已下载，请妥善保管', 'success');
+        }
+
+        // 页面加载后自动下载
+        window.addEventListener('load', function() {
+            setTimeout(downloadCredentials, 500);
+        });
+
+        // 伪静态规则
+        const rewriteRules = {
+            nginx: `# 香蕉CMS Nginx 伪静态配置
+# 后台入口: /<?= htmlspecialchars($adminEntry) ?>
+
+location = /sitemap.xml {
+    rewrite ^ /sitemap.php last;
+}
+
+location ~ ^/(config|core|models|controllers|views|runtime)/ {
+    deny all;
+}
+
+location /static/ {
+    try_files $uri =404;
+}
+
+location /upload/ {
+    try_files $uri =404;
+}
+
+location / {
+    try_files $uri $uri/ /index.php?s=$uri&$args;
+}`,
+            apache: `# 香蕉CMS Apache 伪静态配置
+# 后台入口: /<?= htmlspecialchars($adminEntry) ?>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+    
+    RewriteRule ^sitemap\\.xml$ sitemap.php [QSA,L]
+    
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ index.php?s=$1 [QSA,L]
+</IfModule>
+
+<IfModule mod_negotiation.c>
+    Options -MultiViews
+</IfModule>
+
+AcceptPathInfo On
+
+# 禁止访问敏感目录
+<FilesMatch "^(config|core|models|controllers|views|runtime)">
+    Order deny,allow
+    Deny from all
+</FilesMatch>`
+        };
+
+        function switchRewriteRules(type) {
+            document.getElementById('rewrite-rules').textContent = rewriteRules[type];
+            
+            // 切换按钮样式
+            document.getElementById('btn-nginx').className = type === 'nginx' 
+                ? 'px-3 py-1 rounded text-sm font-medium bg-blue-600 text-white'
+                : 'px-3 py-1 rounded text-sm font-medium bg-gray-200 text-gray-700 hover:bg-gray-300';
+            document.getElementById('btn-apache').className = type === 'apache'
+                ? 'px-3 py-1 rounded text-sm font-medium bg-blue-600 text-white'
+                : 'px-3 py-1 rounded text-sm font-medium bg-gray-200 text-gray-700 hover:bg-gray-300';
+            
+            // 切换使用说明
+            document.getElementById('usage-nginx').classList.toggle('hidden', type !== 'nginx');
+            document.getElementById('usage-apache').classList.toggle('hidden', type !== 'apache');
+        }
+
+        function copyRewriteRules() {
+            const rules = document.getElementById('rewrite-rules').textContent;
+            navigator.clipboard.writeText(rules).then(() => {
+                showToast('已复制到剪贴板', 'success');
+            }).catch(() => {
+                // 降级方案
+                const textarea = document.createElement('textarea');
+                textarea.value = rules;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToast('已复制到剪贴板', 'success');
+            });
+        }
+
         function deleteFile(file, id) {
             if (!confirm('确定要删除 ' + file + ' 吗？')) return;
             
@@ -513,7 +797,7 @@ $envPass = !in_array(false, array_column($envChecks, 3));
                                 showToast('部分文件删除失败，请检查权限', 'error');
                             } else {
                                 showToast('所有敏感文件已删除', 'success');
-                                setTimeout(() => location.href = '/' + '<?= htmlspecialchars($_SESSION['install_admin_entry'] ?? 'admin') ?>', 1500);
+                                setTimeout(() => location.href = '/' + '<?= htmlspecialchars($adminEntry) ?>', 1500);
                             }
                         }
                     })

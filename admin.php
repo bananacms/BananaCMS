@@ -96,8 +96,8 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// 获取当前后台入口文件名和路由（不含.php后缀，支持伪静态）
-$adminEntry = pathinfo($_SERVER['SCRIPT_NAME'], PATHINFO_FILENAME);
+// 获取当前后台入口文件名（支持从 index.php 转发）
+$adminEntry = defined('ADMIN_ENTRY') ? ADMIN_ENTRY : pathinfo($_SERVER['SCRIPT_NAME'], PATHINFO_FILENAME);
 $adminRoute = trim($_GET['s'] ?? '', '/');
 $method = $_SERVER['REQUEST_METHOD'];
 

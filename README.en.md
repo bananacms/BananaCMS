@@ -168,6 +168,8 @@ define('R2_PUBLIC_URL', '');        // Public access domain
 
 ## 🌐 URL Rewrite Configuration
 
+> 💡 After installation, the system will automatically generate rewrite rules based on your server type and admin entry path. Just copy and use them.
+
 ### Nginx Configuration (BT Panel)
 
 Add to BT Panel Site Settings → URL Rewrite:
@@ -183,7 +185,16 @@ location ~ ^/(config|core|models|controllers|views|runtime)/ {
     deny all;
 }
 
-# Frontend rewrite
+# Static resources
+location /static/ {
+    try_files $uri =404;
+}
+
+location /upload/ {
+    try_files $uri =404;
+}
+
+# All requests handled by index.php
 location / {
     try_files $uri $uri/ /index.php?s=$uri&$args;
 }
@@ -201,11 +212,17 @@ Create `.htaccess` file:
     # Sitemap
     RewriteRule ^sitemap\.xml$ sitemap.php [QSA,L]
 
-    # Frontend routing
+    # All requests handled by index.php
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^(.*)$ index.php?s=$1 [QSA,L]
 </IfModule>
+
+<IfModule mod_negotiation.c>
+    Options -MultiViews
+</IfModule>
+
+AcceptPathInfo On
 
 # Block sensitive directories
 <FilesMatch "^(config|core|models|controllers|views|runtime)">
@@ -223,8 +240,6 @@ The system supports 5 URL modes, configurable in backend:
 3. **Mode 3**: `/video/123` (Custom prefix)
 4. **Mode 4**: `/video/movie-name` (Slug without suffix)
 5. **Mode 5**: `/video/movie-name.html` (Slug+HTML)
-
-> Complete configuration files in `伪静态/` directory
 
 ## 📱 API Documentation
 

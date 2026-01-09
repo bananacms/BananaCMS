@@ -213,6 +213,8 @@ define('APP_DEBUG', false);
 
 ## 🌐 伪静态配置
 
+> 💡 安装完成后，系统会根据您的服务器类型和后台入口自动生成伪静态规则，直接复制使用即可。
+
 ### Nginx配置（宝塔面板）
 
 在宝塔面板的站点设置 → 伪静态中添加：
@@ -228,7 +230,16 @@ location ~ ^/(config|core|models|controllers|views|runtime)/ {
     deny all;
 }
 
-# 前台伪静态
+# 静态资源直接访问
+location /static/ {
+    try_files $uri =404;
+}
+
+location /upload/ {
+    try_files $uri =404;
+}
+
+# 所有请求统一由 index.php 处理
 location / {
     try_files $uri $uri/ /index.php?s=$uri&$args;
 }
@@ -246,11 +257,17 @@ location / {
     # Sitemap
     RewriteRule ^sitemap\.xml$ sitemap.php [QSA,L]
 
-    # 前台路由
+    # 所有请求统一由 index.php 处理
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^(.*)$ index.php?s=$1 [QSA,L]
 </IfModule>
+
+<IfModule mod_negotiation.c>
+    Options -MultiViews
+</IfModule>
+
+AcceptPathInfo On
 
 # 禁止访问敏感目录
 <FilesMatch "^(config|core|models|controllers|views|runtime)">
@@ -268,8 +285,6 @@ location / {
 3. **模式3**: `/video/123` (自定义前缀)
 4. **模式4**: `/video/movie-name` (Slug无后缀)
 5. **模式5**: `/video/movie-name.html` (Slug+HTML)
-
-> 完整配置文件见 `伪静态/` 目录
 
 ## 📱 API 文档
 

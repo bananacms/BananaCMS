@@ -22,6 +22,49 @@ if (!file_exists(ROOT_PATH . 'config/install.lock')) {
     exit;
 }
 
+// ============================================================
+// 自动识别后台入口并转发（支持自定义后台路径，无需修改伪静态）
+// ============================================================
+// 获取请求路径
+$requestUri = $_SERVER['REQUEST_URI'] ?? '';
+$requestPath = trim(parse_url($requestUri, PHP_URL_PATH), '/');
+
+// 移除 index.php 前缀（如果有）
+$requestPath = preg_replace('#^index\.php/?#', '', $requestPath);
+
+// 如果路径为空，尝试从 $_GET['s'] 获取（兼容无伪静态环境）
+if (empty($requestPath) && isset($_GET['s'])) {
+    $requestPath = trim($_GET['s'], '/');
+}
+
+// 获取第一段路径
+$pathSegments = $requestPath !== '' ? explode('/', $requestPath) : [];
+$firstSegment = $pathSegments[0] ?? '';
+
+// 检查是否为后台入口
+if (defined('ADMIN_ENTRY') && ADMIN_ENTRY !== '' && $firstSegment === ADMIN_ENTRY) {
+    $adminFile = ROOT_PATH . ADMIN_ENTRY . '.php';
+    if (file_exists($adminFile)) {
+        // 解析原始查询参数
+        $queryString = parse_url($requestUri, PHP_URL_QUERY) ?? '';
+        parse_str($queryString, $queryParams);
+        
+        // 设置后台路由
+        // 情况1: /admin?s=dashboard -> s=dashboard
+        // 情况2: /admin/dashboard -> s=dashboard  
+        // 情况3: /admin -> s=''
+        if (isset($queryParams['s']) && $queryParams['s'] !== '' && $queryParams['s'] !== $firstSegment) {
+            $_GET['s'] = $queryParams['s'];
+        } else {
+            // 从路径中提取后台路由（去掉第一段 admin）
+            $_GET['s'] = implode('/', array_slice($pathSegments, 1));
+        }
+        
+        require $adminFile;
+        exit;
+    }
+}
+
 // 加载核心类
 require_once CORE_PATH . 'ErrorHandler.php';
 require_once CORE_PATH . 'Database.php';
