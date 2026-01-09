@@ -1,11 +1,11 @@
 <?php include VIEW_PATH . 'layouts/header.php'; ?>
 
 <!-- 分类标签 -->
-<div class="flex space-x-3 pt-2 mb-6 overflow-x-auto pb-2 scroll-hide">
-    <a href="/" class="bg-gray-100 px-4 py-1.5 rounded-lg text-sm whitespace-nowrap hover:bg-gray-200">全部</a>
+<div class="flex items-center gap-3 pt-2 mb-6 overflow-x-auto pb-2 scroll-hide">
+    <a href="/" class="bg-gray-100 px-4 py-1.5 rounded-lg text-sm whitespace-nowrap hover:bg-gray-200 flex-shrink-0">全部</a>
     <?php foreach ($navTypes as $navType): ?>
         <a href="<?php echo xpk_page_url('type', ['id' => $navType['type_id'], 'slug' => $navType['type_en']]); ?>" 
-           class="<?php echo ($navType['type_id'] == $type['type_id'] || $navType['type_id'] == $type['type_pid']) ? 'bg-white border-2 border-blue-500 text-blue-600' : 'bg-gray-100 hover:bg-gray-200'; ?> px-4 py-1.5 rounded-lg text-sm whitespace-nowrap"><?php echo htmlspecialchars($navType['type_name']); ?></a>
+           class="<?php echo ($navType['type_id'] == $type['type_id'] || $navType['type_id'] == $type['type_pid']) ? 'bg-white border-2 border-blue-500 text-blue-600' : 'bg-gray-100 hover:bg-gray-200'; ?> px-4 py-1.5 rounded-lg text-sm whitespace-nowrap flex-shrink-0"><?php echo htmlspecialchars($navType['type_name']); ?></a>
     <?php endforeach; ?>
 </div>
 

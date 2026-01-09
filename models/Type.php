@@ -238,11 +238,15 @@ class XpkType extends XpkModel
      */
     public function getNav(int $limit = 10): array
     {
-        // 优先获取一级分类（有资源的）
+        // 获取一级分类（有资源的）
         $sql = "SELECT t.* FROM {$this->table} t 
                 WHERE t.type_pid = 0 AND t.type_status = 1 
-                AND EXISTS (SELECT 1 FROM " . DB_PREFIX . "vod v WHERE v.vod_type_id = t.type_id OR v.vod_type_id_1 = t.type_id)
-                ORDER BY t.type_sort ASC";
+                AND (
+                    EXISTS (SELECT 1 FROM " . DB_PREFIX . "vod v WHERE v.vod_type_id = t.type_id AND v.vod_status = 1)
+                    OR EXISTS (SELECT 1 FROM " . DB_PREFIX . "vod v WHERE v.vod_type_id_1 = t.type_id AND v.vod_status = 1)
+                    OR EXISTS (SELECT 1 FROM {$this->table} sub WHERE sub.type_pid = t.type_id AND EXISTS (SELECT 1 FROM " . DB_PREFIX . "vod v WHERE v.vod_type_id = sub.type_id AND v.vod_status = 1))
+                )
+                ORDER BY t.type_sort ASC, t.type_id ASC";
         if ($limit > 0) {
             $sql .= " LIMIT {$limit}";
         }
@@ -252,7 +256,7 @@ class XpkType extends XpkModel
         if (empty($result)) {
             $sql = "SELECT t.* FROM {$this->table} t 
                     WHERE t.type_status = 1 
-                    AND EXISTS (SELECT 1 FROM " . DB_PREFIX . "vod v WHERE v.vod_type_id = t.type_id)
+                    AND EXISTS (SELECT 1 FROM " . DB_PREFIX . "vod v WHERE v.vod_type_id = t.type_id AND v.vod_status = 1)
                     ORDER BY t.type_sort ASC, t.type_id ASC";
             if ($limit > 0) {
                 $sql .= " LIMIT {$limit}";
