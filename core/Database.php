@@ -66,6 +66,38 @@ class XpkDatabase
     }
 
     /**
+     * 插入数据
+     */
+    public function insert(string $table, array $data): int
+    {
+        $columns = array_keys($data);
+        $placeholders = array_fill(0, count($columns), '?');
+        $sql = "INSERT INTO `{$table}` (`" . implode('`, `', $columns) . "`) VALUES (" . implode(', ', $placeholders) . ")";
+        $this->execute($sql, array_values($data));
+        return (int)$this->lastInsertId();
+    }
+
+    /**
+     * 更新数据
+     */
+    public function update(string $table, array $data, array $where): int
+    {
+        $sets = [];
+        $params = [];
+        foreach ($data as $key => $value) {
+            $sets[] = "`{$key}` = ?";
+            $params[] = $value;
+        }
+        $wheres = [];
+        foreach ($where as $key => $value) {
+            $wheres[] = "`{$key}` = ?";
+            $params[] = $value;
+        }
+        $sql = "UPDATE `{$table}` SET " . implode(', ', $sets) . " WHERE " . implode(' AND ', $wheres);
+        return $this->execute($sql, $params);
+    }
+
+    /**
      * 获取最后插入ID
      */
     public function lastInsertId(): string

@@ -103,24 +103,11 @@ class AdminVipController extends AdminBaseController
         }
         
         if ($id > 0) {
-            // Build UPDATE SQL
-            $sets = [];
-            $params = [];
-            foreach ($data as $key => $value) {
-                $sets[] = "`{$key}` = ?";
-                $params[] = $value;
-            }
-            $params[] = $id;
-            $sql = "UPDATE " . DB_PREFIX . "vip_package SET " . implode(', ', $sets) . " WHERE package_id = ?";
-            $this->db->execute($sql, $params);
+            $this->db->update(DB_PREFIX . 'vip_package', $data, ['package_id' => $id]);
             $this->log('edit', 'vip', "编辑VIP套餐: {$data['package_name']}");
             $this->success('更新成功');
         } else {
-            // Build INSERT SQL
-            $columns = array_keys($data);
-            $placeholders = array_fill(0, count($columns), '?');
-            $sql = "INSERT INTO " . DB_PREFIX . "vip_package (`" . implode('`, `', $columns) . "`) VALUES (" . implode(', ', $placeholders) . ")";
-            $this->db->execute($sql, array_values($data));
+            $this->db->insert(DB_PREFIX . 'vip_package', $data);
             $this->log('add', 'vip', "添加VIP套餐: {$data['package_name']}");
             $this->success('添加成功');
         }
