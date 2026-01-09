@@ -100,18 +100,40 @@ document.querySelector('form').addEventListener('submit', function(e) {
     e.preventDefault();
     var formData = new FormData(this);
     
+    // Debug: log form data
+    console.log('=== Form Submit Debug ===');
+    console.log('URL:', location.href);
+    for (var pair of formData.entries()) {
+        console.log(pair[0] + ': ' + pair[1]);
+    }
+    
     fetch(location.href, {
         method: 'POST',
         body: formData
     })
-    .then(r => r.json())
-    .then(data => {
-        if (data.code === 0) {
-            xpkToast(data.msg, 'success');
-            setTimeout(() => location.href = adminUrl('/vip'), 1000);
-        } else {
-            xpkToast(data.msg, 'error');
+    .then(r => {
+        console.log('Response status:', r.status);
+        console.log('Response headers:', r.headers.get('content-type'));
+        return r.text();
+    })
+    .then(text => {
+        console.log('Raw response:', text);
+        try {
+            var data = JSON.parse(text);
+            if (data.code === 0) {
+                xpkToast(data.msg, 'success');
+                setTimeout(() => location.href = adminUrl('/vip'), 1000);
+            } else {
+                xpkToast(data.msg, 'error');
+            }
+        } catch(e) {
+            console.error('JSON parse error:', e);
+            xpkToast('服务器响应异常，请查看控制台', 'error');
         }
+    })
+    .catch(err => {
+        console.error('Fetch error:', err);
+        xpkToast('请求失败: ' + err.message, 'error');
     });
 });
 </script>
