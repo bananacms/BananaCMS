@@ -1,0 +1,119 @@
+<?php include TPL_PATH . 'douban/layouts/header.php'; ?>
+
+<div class="max-w-lg mx-auto px-4 py-8">
+    <div class="bg-white rounded shadow-md overflow-hidden">
+        <?php if ($order['order_status'] == 1): ?>
+        <!-- 支付成功 -->
+        <div class="bg-green-700 p-8 text-white text-center">
+            <div class="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+            </div>
+            <h1 class="text-2xl font-bold mb-2">支付成功</h1>
+            <p class="opacity-90">恭喜您成为豆瓣会员</p>
+        </div>
+        
+        <div class="p-6">
+            <div class="border-b pb-4 mb-4">
+                <div class="flex justify-between py-2">
+                    <span class="text-gray-500">订单号</span>
+                    <span class="font-mono text-sm"><?= htmlspecialchars($order['order_no']) ?></span>
+                </div>
+                <div class="flex justify-between py-2">
+                    <span class="text-gray-500">商品</span>
+                    <span><?= htmlspecialchars($order['product_name']) ?></span>
+                </div>
+                <div class="flex justify-between py-2">
+                    <span class="text-gray-500">支付金额</span>
+                    <span class="text-green-700 font-medium">
+                        <?php if ($order['pay_method'] === 'usdt'): ?>
+                        $<?= $order['usdt_amount'] ?> USDT
+                        <?php else: ?>
+                        ¥<?= number_format($order['pay_amount'], 2) ?>
+                        <?php endif; ?>
+                    </span>
+                </div>
+                <div class="flex justify-between py-2">
+                    <span class="text-gray-500">支付时间</span>
+                    <span><?= date('Y-m-d H:i:s', $order['pay_time']) ?></span>
+                </div>
+            </div>
+            
+            <?php if (!empty($package)): ?>
+            <div class="bg-green-50 border border-green-200 rounded p-4 mb-6 text-center">
+                <p class="text-green-700 flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                    </svg>
+                    您已获得 <strong><?= $package['days'] ?>天</strong> 豆瓣会员
+                    <?php if ($package['bonus_points']): ?>
+                    + <strong><?= $package['bonus_points'] ?>积分</strong>
+                    <?php endif; ?>
+                </p>
+            </div>
+            <?php endif; ?>
+            
+            <div class="flex gap-4">
+                <a href="/" class="flex-1 py-3 border rounded text-center hover:bg-gray-50">返回首页</a>
+                <a href="/user/center" class="flex-1 py-3 bg-green-700 text-white rounded text-center hover:bg-green-800">个人中心</a>
+            </div>
+        </div>
+        
+        <?php elseif ($order['order_status'] == 0): ?>
+        <!-- 待支付 -->
+        <div class="bg-yellow-500 p-8 text-white text-center">
+            <div class="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <h1 class="text-2xl font-bold mb-2">等待支付</h1>
+            <p class="opacity-90">订单尚未支付，请完成支付</p>
+        </div>
+        
+        <div class="p-6">
+            <div class="border-b pb-4 mb-4">
+                <div class="flex justify-between py-2">
+                    <span class="text-gray-500">订单号</span>
+                    <span class="font-mono text-sm"><?= htmlspecialchars($order['order_no']) ?></span>
+                </div>
+                <div class="flex justify-between py-2">
+                    <span class="text-gray-500">商品</span>
+                    <span><?= htmlspecialchars($order['product_name']) ?></span>
+                </div>
+                <div class="flex justify-between py-2">
+                    <span class="text-gray-500">支付金额</span>
+                    <span class="text-green-700 font-medium">¥<?= number_format($order['pay_amount'], 2) ?></span>
+                </div>
+            </div>
+            
+            <div class="flex gap-4">
+                <a href="/user/vip" class="flex-1 py-3 border rounded text-center hover:bg-gray-50">重新支付</a>
+                <a href="/" class="flex-1 py-3 bg-gray-500 text-white rounded text-center hover:bg-gray-600">返回首页</a>
+            </div>
+        </div>
+        
+        <?php else: ?>
+        <!-- 其他状态 -->
+        <div class="bg-gray-500 p-8 text-white text-center">
+            <div class="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </div>
+            <h1 class="text-2xl font-bold mb-2"><?= $order['order_status'] == 2 ? '订单已取消' : '订单已退款' ?></h1>
+            <p class="opacity-90">如有疑问请联系客服</p>
+        </div>
+        
+        <div class="p-6">
+            <div class="flex gap-4">
+                <a href="/user/vip" class="flex-1 py-3 border rounded text-center hover:bg-gray-50">重新购买</a>
+                <a href="/" class="flex-1 py-3 bg-gray-500 text-white rounded text-center hover:bg-gray-600">返回首页</a>
+            </div>
+        </div>
+        <?php endif; ?>
+    </div>
+</div>
+
+<?php include TPL_PATH . 'douban/layouts/footer.php'; ?>

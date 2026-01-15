@@ -1,0 +1,22 @@
+<?php 
+$netflixLayoutPath = TPL_PATH . 'netflix/layouts/';
+include $netflixLayoutPath . 'header.php'; 
+?>
+
+<!-- 404页面 -->
+<div class="min-h-screen flex items-center justify-center px-4">
+    <div class="text-center">
+        <h1 class="text-8xl md:text-9xl font-bold text-red-600 mb-4">404</h1>
+        <p class="text-xl md:text-2xl text-gray-400 mb-8">页面不存在或已被删除</p>
+        <div class="flex flex-col sm:flex-row justify-center gap-4">
+            <a href="/" class="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded font-semibold transition">
+                返回首页
+            </a>
+            <a href="javascript:history.back()" class="bg-gray-800 hover:bg-gray-700 text-white px-8 py-3 rounded font-semibold transition">
+                返回上页
+            </a>
+        </div>
+    </div>
+</div>
+
+<?php include $netflixLayoutPath . 'footer.php'; ?>

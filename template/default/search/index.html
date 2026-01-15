@@ -1,0 +1,81 @@
+<?php include VIEW_PATH . 'layouts/header.php'; ?>
+
+<div class="mb-6">
+    <h1 class="text-2xl font-bold">
+        <?php if (!empty($keyword)): ?>
+            搜索：<?php echo htmlspecialchars($keyword); ?>
+        <?php else: ?>
+            搜索
+        <?php endif; ?>
+    </h1>
+    <?php if (!empty($keyword)): ?>
+        <p class="text-gray-500 text-sm mt-1">找到 <?php echo $total; ?> 个结果</p>
+    <?php endif; ?>
+</div>
+
+<!-- 热门搜索词 -->
+<?php if (empty($keyword) && (!empty($hotKeywords) || !empty($recentKeywords))): ?>
+<div class="mb-8 space-y-6">
+    <?php if (!empty($hotKeywords)): ?>
+    <div>
+        <h2 class="text-lg font-bold mb-3">🔥 热门搜索</h2>
+        <div class="flex flex-wrap gap-2">
+            <?php foreach ($hotKeywords as $index => $item): ?>
+            <a href="/search/<?= urlencode($item['keyword']) ?>" 
+               class="inline-flex items-center px-3 py-1 text-sm bg-red-100 hover:bg-red-200 text-red-700 rounded-full transition-colors">
+                <span class="w-4 h-4 text-xs bg-red-500 text-white rounded-full flex items-center justify-center mr-1">
+                    <?= $index + 1 ?>
+                </span>
+                <?= htmlspecialchars($item['keyword']) ?>
+                <span class="ml-1 text-xs opacity-75"><?= $item['search_count'] ?></span>
+            </a>
+            <?php endforeach; ?>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <?php if (!empty($recentKeywords)): ?>
+    <div>
+        <h2 class="text-lg font-bold mb-3">🕒 最新搜索</h2>
+        <div class="flex flex-wrap gap-2">
+            <?php foreach ($recentKeywords as $item): ?>
+            <a href="/search/<?= urlencode($item['keyword']) ?>" 
+               class="inline-block px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors">
+                <?= htmlspecialchars($item['keyword']) ?>
+            </a>
+            <?php endforeach; ?>
+        </div>
+    </div>
+    <?php endif; ?>
+</div>
+<?php endif; ?>
+
+<!-- 搜索结果 -->
+<?php if (!empty($vodList)): ?>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-8">
+        <?php foreach ($vodList as $vod): ?>
+            <a href="<?php echo xpk_page_url('vod_detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="group cursor-pointer card-hover">
+                <div class="relative">
+                    <img src="<?php echo $vod['vod_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full aspect-[2/3] object-cover rounded-lg bg-gray-100">
+                    <div class="absolute bottom-1 right-1 bg-black/80 text-white text-xs px-1 rounded"><?php echo $vod['vod_remarks'] ?: '更新中'; ?></div>
+                </div>
+                <h3 class="mt-2 text-sm truncate group-hover:text-red-600"><?php echo htmlspecialchars($vod['vod_name']); ?></h3>
+                <p class="text-gray-400 text-xs"><?php echo $vod['vod_hits']; ?>次播放</p>
+            </a>
+        <?php endforeach; ?>
+    </div>
+
+    <!-- 分页 -->
+    <?php include TPL_PATH . 'default/components/pagination.php'; ?>
+<?php elseif (!empty($keyword)): ?>
+    <div class="text-center py-12 text-gray-500">
+        <p>没有找到相关视频</p>
+        <p class="text-sm mt-2">换个关键词试试？</p>
+    </div>
+<?php else: ?>
+    <div class="text-center py-12 text-gray-500">
+        <p>输入关键词开始搜索</p>
+    </div>
+<?php endif; ?>
+
+<?php include VIEW_PATH . 'layouts/footer.php'; ?>

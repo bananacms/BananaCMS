@@ -1,0 +1,71 @@
+<?php include TPL_PATH . 'douban/layouts/header.php'; ?>
+
+<div class="max-w-5xl mx-auto px-4 py-8">
+    <!-- 页面标题 -->
+    <div class="mb-6 border-b pb-2">
+        <h1 class="text-lg font-bold text-gray-800"><?php echo htmlspecialchars($type['type_name']); ?></h1>
+    </div>
+
+    <!-- 筛选条件 -->
+    <?php if (!empty($filters)): ?>
+        <div class="mb-6 space-y-3">
+            <?php foreach ($filters as $filterKey => $filterOptions): ?>
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-gray-500 text-sm w-14"><?php echo htmlspecialchars($filterOptions['name']); ?>：</span>
+                    <div class="flex flex-wrap gap-2">
+                        <?php foreach ($filterOptions['options'] as $option): ?>
+                            <?php $isActive = ($currentFilters[$filterKey] ?? '') == $option['value']; ?>
+                            <a href="<?php echo $option['url']; ?>" class="px-3 py-1 <?php echo $isActive ? 'bg-green-700 text-white' : 'bg-gray-100 hover:bg-green-100 hover:text-green-700'; ?> rounded text-sm"><?php echo htmlspecialchars($option['label']); ?></a>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('type_top') ?>
+
+    <!-- 视频列表 -->
+    <?php if (!empty($vodList)): ?>
+        <div class="space-y-4 mb-6">
+            <?php foreach ($vodList as $vod): ?>
+                <a href="<?php echo xpk_page_url('detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="flex cursor-pointer group p-3 md:p-4 hover:bg-gray-50 rounded -mx-3 md:-mx-4 border-b">
+                    <div class="w-20 md:w-24 h-28 md:h-32 flex-shrink-0">
+                        <img src="<?php echo htmlspecialchars($vod['vod_pic']); ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full h-full object-cover rounded" loading="lazy">
+                    </div>
+                    <div class="ml-3 md:ml-4 flex-1 min-w-0">
+                        <h3 class="font-medium group-hover:text-green-700 truncate"><?php echo htmlspecialchars($vod['vod_name']); ?></h3>
+                        <div class="flex items-center mt-1 flex-wrap">
+                            <?php $score = $vod['vod_score'] ?? 0; include TPL_PATH . 'douban/components/rating.php'; ?>
+                        </div>
+                        <p class="text-gray-500 text-sm mt-2 truncate">
+                            <?php if (!empty($vod['vod_director'])): ?>导演: <?php echo htmlspecialchars($vod['vod_director']); ?> / <?php endif; ?>
+                            <?php if (!empty($vod['vod_actor'])): ?>主演: <?php echo htmlspecialchars(mb_substr($vod['vod_actor'], 0, 30)); ?><?php endif; ?>
+                        </p>
+                        <p class="text-gray-500 text-sm truncate">
+                            <?php echo htmlspecialchars($vod['vod_year'] ?? ''); ?> 
+                            <?php if (!empty($vod['vod_area'])): ?>/ <?php echo htmlspecialchars($vod['vod_area']); ?><?php endif; ?>
+                            <?php if (!empty($vod['vod_class'])): ?>/ <?php echo htmlspecialchars($vod['vod_class']); ?><?php endif; ?>
+                        </p>
+                        <?php if (!empty($vod['vod_remarks'])): ?>
+                            <p class="text-green-700 text-sm mt-1"><?php echo htmlspecialchars($vod['vod_remarks']); ?></p>
+                        <?php endif; ?>
+                    </div>
+                </a>
+            <?php endforeach; ?>
+        </div>
+
+        <!-- 分页 -->
+        <?php include TPL_PATH . 'douban/components/pagination.php'; ?>
+    <?php else: ?>
+        <div class="text-center text-gray-500 py-12">
+            暂无相关视频
+        </div>
+    <?php endif; ?>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('type_bottom') ?>
+</div>
+
+<?php include TPL_PATH . 'douban/layouts/footer.php'; ?>

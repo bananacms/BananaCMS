@@ -1,0 +1,75 @@
+<?php include TPL_PATH . 'bilibili/layouts/header.php'; ?>
+
+<div class="max-w-7xl mx-auto px-4 py-6">
+    <!-- 搜索结果 -->
+    <?php if (!empty($keyword)): ?>
+        <div class="mb-4">
+            <h1 class="text-lg text-gray-800">
+                搜索 "<span class="text-pink-500"><?php echo htmlspecialchars($keyword); ?></span>" 的结果
+                <?php if (isset($total)): ?>
+                    <span class="text-gray-400 text-sm ml-2">共 <?php echo $total; ?> 条</span>
+                <?php endif; ?>
+            </h1>
+        </div>
+
+        <!-- 广告位 -->
+        <?= xpk_ad('search_top') ?>
+
+        <?php if (!empty($vodList)): ?>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6">
+                <?php foreach ($vodList as $vod): ?>
+                    <a href="<?php echo xpk_page_url('detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="card bg-white rounded-lg overflow-hidden cursor-pointer">
+                        <div class="relative">
+                            <img src="<?php echo htmlspecialchars($vod['vod_pic']); ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full aspect-video object-cover" loading="lazy">
+                            <?php if (!empty($vod['vod_remarks'])): ?>
+                                <div class="absolute bottom-1 right-1 bg-black/70 text-white text-xs px-1 rounded"><?php echo htmlspecialchars($vod['vod_remarks']); ?></div>
+                            <?php endif; ?>
+                            <div class="absolute bottom-1 left-1 text-white text-xs flex items-center">
+                                <span class="mr-2">▶ <?php echo xpk_format_number($vod['vod_hits'] ?? 0); ?></span>
+                            </div>
+                        </div>
+                        <div class="p-2">
+                            <h3 class="text-sm line-clamp-2 hover:text-pink-500"><?php echo htmlspecialchars($vod['vod_name']); ?></h3>
+                            <p class="text-gray-400 text-xs mt-1"><?php echo htmlspecialchars($vod['vod_year'] ?? ''); ?></p>
+                        </div>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+
+            <!-- 分页 -->
+            <?php include TPL_PATH . 'bilibili/components/pagination.php'; ?>
+        <?php else: ?>
+            <div class="bg-white rounded-lg shadow-sm p-8 text-center">
+                <div class="text-6xl mb-4">😢</div>
+                <p class="text-gray-500">没有找到相关视频</p>
+                <p class="text-gray-400 text-sm mt-2">换个关键词试试吧</p>
+            </div>
+        <?php endif; ?>
+    <?php else: ?>
+        <!-- 搜索框（无关键词时显示） -->
+        <div class="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-6">
+            <form action="/search" method="get" class="flex">
+                <input type="text" name="wd" placeholder="搜索视频..." class="flex-1 bg-gray-100 rounded-l-full px-6 py-3 focus:outline-none focus:ring-2 focus:ring-pink-500">
+                <button type="submit" class="bg-pink-500 text-white px-8 py-3 rounded-r-full hover:bg-pink-600 transition">搜索</button>
+            </form>
+        </div>
+        <!-- 热门搜索 -->
+        <?php if (!empty($hotKeywords)): ?>
+            <div class="bg-white rounded-lg shadow-sm p-4 md:p-6">
+                <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                    <span class="text-pink-500 mr-2">🔥</span>热门搜索
+                </h2>
+                <div class="flex flex-wrap gap-2">
+                    <?php foreach ($hotKeywords as $kw): ?>
+                        <a href="/search?wd=<?php echo urlencode($kw); ?>" class="bg-gray-100 hover:bg-pink-100 hover:text-pink-500 px-4 py-2 rounded-full text-sm"><?php echo htmlspecialchars($kw); ?></a>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        <?php endif; ?>
+    <?php endif; ?>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('search_bottom') ?>
+</div>
+
+<?php include TPL_PATH . 'bilibili/layouts/footer.php'; ?>

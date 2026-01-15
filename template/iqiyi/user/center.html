@@ -1,0 +1,133 @@
+<?php include TPL_PATH . 'iqiyi/layouts/header.php'; ?>
+
+<?php
+require_once CORE_PATH . 'Vip.php';
+$vipHelper = new XpkVip();
+$isVip = $vipHelper->isVip($user);
+$vipExpire = $user['user_vip_expire'] ?? null;
+?>
+
+<div class="max-w-7xl mx-auto px-4 py-6">
+    <!-- 用户信息卡片 -->
+    <div class="bg-gradient-to-r from-green-500 to-teal-500 rounded-lg shadow-lg p-6 mb-6 text-white">
+        <div class="flex items-center space-x-4">
+            <div class="w-16 h-16 md:w-20 md:h-20 bg-white/20 rounded-full flex items-center justify-center text-2xl md:text-3xl font-bold">
+                <?php echo mb_substr($user['user_nick_name'] ?? $user['user_name'], 0, 1); ?>
+            </div>
+            <div class="flex-1">
+                <div class="flex items-center">
+                    <h1 class="text-xl md:text-2xl font-bold"><?php echo htmlspecialchars($user['user_nick_name'] ?? $user['user_name']); ?></h1>
+                    <?php if ($isVip): ?>
+                    <span class="ml-2 px-2 py-0.5 bg-yellow-400 text-yellow-900 text-xs rounded-full font-medium">VIP</span>
+                    <?php endif; ?>
+                </div>
+                <p class="opacity-80 text-sm mt-1">ID: <?php echo $user['user_id']; ?> · 注册于 <?php echo date('Y-m-d', $user['user_reg_time']); ?></p>
+                <?php if ($isVip && $vipExpire): ?>
+                <p class="text-yellow-200 text-sm mt-1">VIP到期：<?php echo date('Y-m-d', $vipExpire); ?></p>
+                <?php endif; ?>
+            </div>
+            <div class="flex flex-col items-end space-y-2">
+                <a href="<?= xpk_url('user/vip') ?>" class="bg-yellow-400 text-yellow-900 px-4 py-2 rounded-lg text-sm font-medium hover:bg-yellow-300">
+                    <?php echo $isVip ? '续费VIP' : '开通VIP'; ?>
+                </a>
+                <a href="<?= xpk_url('user/logout') ?>" class="text-white/70 hover:text-white text-sm">退出登录</a>
+            </div>
+        </div>
+        <div class="mt-4 pt-4 border-t border-white/20 flex items-center justify-between text-sm">
+            <div class="flex items-center space-x-6">
+                <div><span class="opacity-70">积分：</span><span class="font-medium"><?php echo $user['user_points'] ?? 0; ?></span></div>
+                <div><span class="opacity-70">今日观看：</span><span class="font-medium"><?php echo $user['user_daily_views'] ?? 0; ?></span><span class="opacity-50">/<?php echo $isVip ? '无限' : $vipHelper->getDailyLimit($user); ?></span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 统计数据 -->
+    <div class="grid grid-cols-3 gap-4 mb-6">
+        <a href="?tab=favorite" class="bg-white rounded-lg shadow p-4 text-center hover:shadow-md transition <?php echo $tab === 'favorite' ? 'ring-2 ring-green-500' : ''; ?>">
+            <div class="text-2xl font-bold text-green-500"><?php echo $favCount; ?></div>
+            <div class="text-gray-500 text-sm mt-1">收藏</div>
+        </a>
+        <a href="?tab=history" class="bg-white rounded-lg shadow p-4 text-center hover:shadow-md transition <?php echo $tab === 'history' ? 'ring-2 ring-green-500' : ''; ?>">
+            <div class="text-2xl font-bold text-blue-500"><?php echo $historyCount; ?></div>
+            <div class="text-gray-500 text-sm mt-1">历史</div>
+        </a>
+        <a href="?tab=comment" class="bg-white rounded-lg shadow p-4 text-center hover:shadow-md transition <?php echo $tab === 'comment' ? 'ring-2 ring-green-500' : ''; ?>">
+            <div class="text-2xl font-bold text-orange-500"><?php echo $commentCount; ?></div>
+            <div class="text-gray-500 text-sm mt-1">评论</div>
+        </a>
+    </div>
+
+    <!-- 内容区域 -->
+    <div class="bg-white rounded-lg shadow p-4 md:p-6">
+        <h2 class="text-lg font-bold text-gray-800 mb-4">
+            <?php echo $tab === 'favorite' ? '我的收藏' : ($tab === 'history' ? '观看历史' : '我的评论'); ?>
+            <span class="text-sm font-normal text-gray-400 ml-2">共 <?php echo $total; ?> 条</span>
+        </h2>
+
+        <?php if ($tab === 'comment'): ?>
+            <?php if (!empty($list)): ?>
+            <div class="space-y-4">
+                <?php foreach ($list as $item): ?>
+                <div class="border-b pb-4 last:border-0">
+                    <div class="flex items-center justify-between mb-2">
+                        <a href="<?php echo xpk_page_url('vod_detail', ['id' => $item['target_id'], 'slug' => $item['vod_slug'] ?? '']); ?>" class="text-sm text-green-500 hover:underline">
+                            <?php echo htmlspecialchars($item['vod_name'] ?? '视频'); ?>
+                        </a>
+                        <span class="text-xs text-gray-400"><?php echo date('Y-m-d H:i', $item['comment_time']); ?></span>
+                    </div>
+                    <p class="text-gray-600 text-sm"><?php echo htmlspecialchars($item['comment_content']); ?></p>
+                    <div class="mt-2 text-xs text-gray-400">
+                        <span class="mr-3">👍 <?php echo $item['comment_up'] ?? 0; ?></span>
+                        <span>👎 <?php echo $item['comment_down'] ?? 0; ?></span>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            </div>
+            <?php else: ?>
+            <div class="text-center text-gray-400 py-8">暂无评论</div>
+            <?php endif; ?>
+        <?php else: ?>
+            <?php if (!empty($list)): ?>
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
+                <?php foreach ($list as $item): ?>
+                <?php 
+                    $url = $tab === 'history' 
+                        ? xpk_page_url('vod_play', ['id' => $item['vod_id'], 'slug' => $item['vod_slug'] ?? '', 'sid' => $item['sid'] ?? 1, 'nid' => $item['nid'] ?? 1])
+                        : xpk_page_url('vod_detail', ['id' => $item['vod_id'], 'slug' => $item['vod_slug'] ?? '']);
+                ?>
+                <a href="<?php echo $url; ?>" class="card group">
+                    <div class="relative">
+                        <img src="<?php echo $item['vod_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($item['vod_name'] ?? ''); ?>" class="w-full aspect-[3/4] object-cover rounded-lg bg-gray-100" loading="lazy">
+                        <?php if ($tab === 'history' && !empty($item['nid'])): ?>
+                        <span class="absolute bottom-1 right-1 bg-black/70 text-white text-xs px-1 rounded">第<?php echo $item['nid']; ?>集</span>
+                        <?php elseif (!empty($item['vod_remarks'])): ?>
+                        <span class="absolute bottom-1 right-1 bg-black/70 text-white text-xs px-1 rounded"><?php echo htmlspecialchars($item['vod_remarks']); ?></span>
+                        <?php endif; ?>
+                    </div>
+                    <h3 class="text-sm mt-2 truncate group-hover:text-green-500"><?php echo htmlspecialchars($item['vod_name'] ?? '已删除'); ?></h3>
+                </a>
+                <?php endforeach; ?>
+            </div>
+            <?php else: ?>
+            <div class="text-center text-gray-400 py-8"><?php echo $tab === 'history' ? '暂无观看记录' : '暂无收藏'; ?></div>
+            <?php endif; ?>
+        <?php endif; ?>
+
+        <!-- 分页 -->
+        <?php if ($totalPages > 1): ?>
+        <div class="flex justify-center mt-6 gap-2">
+            <?php if ($page > 1): ?>
+            <a href="?tab=<?php echo $tab; ?>&page=<?php echo $page - 1; ?>" class="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200">上一页</a>
+            <?php endif; ?>
+            <?php for ($i = max(1, $page - 2); $i <= min($totalPages, $page + 2); $i++): ?>
+            <a href="?tab=<?php echo $tab; ?>&page=<?php echo $i; ?>" class="px-3 py-1 rounded <?php echo $i === $page ? 'bg-green-500 text-white' : 'bg-gray-100 hover:bg-gray-200'; ?>"><?php echo $i; ?></a>
+            <?php endfor; ?>
+            <?php if ($page < $totalPages): ?>
+            <a href="?tab=<?php echo $tab; ?>&page=<?php echo $page + 1; ?>" class="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200">下一页</a>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
+    </div>
+</div>
+
+<?php include TPL_PATH . 'iqiyi/layouts/footer.php'; ?>

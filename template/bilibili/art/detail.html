@@ -1,0 +1,60 @@
+<?php include TPL_PATH . 'bilibili/layouts/header.php'; ?>
+
+<div class="max-w-4xl mx-auto px-4 py-6">
+    <!-- 面包屑 -->
+    <div class="text-sm text-gray-500 mb-4">
+        <a href="/" class="hover:text-pink-500">首页</a>
+        <span class="mx-2">/</span>
+        <a href="/art" class="hover:text-pink-500">资讯</a>
+        <span class="mx-2">/</span>
+        <span class="text-gray-700"><?php echo htmlspecialchars($art['art_title']); ?></span>
+    </div>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('art_top') ?>
+
+    <!-- 文章内容 -->
+    <article class="bg-white rounded-lg shadow-sm p-6 md:p-8 mb-6">
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4"><?php echo htmlspecialchars($art['art_title']); ?></h1>
+        
+        <div class="flex items-center text-sm text-gray-400 mb-6 pb-6 border-b border-gray-100">
+            <span><?php echo date('Y-m-d H:i', strtotime($art['art_time'])); ?></span>
+            <span class="mx-3">·</span>
+            <span>阅读 <?php echo $art['art_hits'] ?? 0; ?></span>
+        </div>
+
+        <?php if (!empty($art['art_pic'])): ?>
+            <div class="mb-6">
+                <img src="<?php echo htmlspecialchars($art['art_pic']); ?>" alt="<?php echo htmlspecialchars($art['art_title']); ?>" class="w-full rounded-lg">
+            </div>
+        <?php endif; ?>
+
+        <div class="prose prose-pink max-w-none text-gray-600 leading-relaxed">
+            <?php echo $art['art_content']; ?>
+        </div>
+    </article>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('art_middle') ?>
+
+    <!-- 相关文章 -->
+    <?php if (!empty($relatedArts)): ?>
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                <span class="text-pink-500 mr-2">📰</span>相关文章
+            </h2>
+            <div class="space-y-3">
+                <?php foreach (array_slice($relatedArts, 0, 5) as $related): ?>
+                    <a href="<?php echo xpk_page_url('art_detail', ['id' => $related['art_id'], 'slug' => $related['art_slug']]); ?>" class="block text-gray-600 hover:text-pink-500 line-clamp-1">
+                        <?php echo htmlspecialchars($related['art_title']); ?>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('art_bottom') ?>
+</div>
+
+<?php include TPL_PATH . 'bilibili/layouts/footer.php'; ?>

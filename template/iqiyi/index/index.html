@@ -1,0 +1,119 @@
+<?php include TPL_PATH . 'iqiyi/layouts/header.php'; ?>
+
+<div class="max-w-7xl mx-auto px-4 py-6">
+    <!-- 大横幅轮播 -->
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-8">
+        <div class="lg:col-span-3 bg-gradient-to-r from-green-600 to-green-400 rounded-lg h-48 md:h-80 flex items-center justify-center overflow-hidden relative">
+            <?php if (!empty($slides) && count($slides) > 0): ?>
+                <?php $slide = $slides[0]; ?>
+                <a href="<?php echo xpk_page_url('detail', ['id' => $slide['vod_id'], 'slug' => $slide['vod_slug']]); ?>" class="block w-full h-full relative">
+                    <img src="<?php echo htmlspecialchars($slide['vod_pic']); ?>" alt="<?php echo htmlspecialchars($slide['vod_name']); ?>" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+                    <div class="absolute bottom-0 left-0 right-0 p-4 md:p-6 text-white">
+                        <h2 class="text-xl md:text-3xl font-bold mb-2"><?php echo htmlspecialchars($slide['vod_name']); ?></h2>
+                        <?php if (!empty($slide['vod_remarks'])): ?>
+                            <p class="text-green-200 text-sm"><?php echo htmlspecialchars($slide['vod_remarks']); ?></p>
+                        <?php endif; ?>
+                    </div>
+                </a>
+            <?php else: ?>
+                <div class="text-center text-white">
+                    <h2 class="text-2xl md:text-3xl font-bold mb-2">热播大剧</h2>
+                    <p class="text-green-100">精彩内容等你发现</p>
+                </div>
+            <?php endif; ?>
+        </div>
+        <div class="hidden lg:flex flex-col space-y-4">
+            <?php if (!empty($navTypes) && count($navTypes) >= 3): ?>
+                <?php 
+                $colors = [
+                    'from-purple-500 to-pink-500',
+                    'from-blue-500 to-cyan-500', 
+                    'from-orange-500 to-red-500'
+                ];
+                foreach (array_slice($navTypes, 0, 3) as $i => $type): 
+                ?>
+                <a href="<?php echo xpk_page_url('type', ['id' => $type['type_id'], 'slug' => $type['type_en']]); ?>" class="bg-gradient-to-r <?php echo $colors[$i]; ?> rounded-lg h-[88px] flex items-center px-4 text-white hover:opacity-90 transition">
+                    <div>
+                        <p class="text-sm opacity-80">热门</p>
+                        <p class="font-bold"><?php echo htmlspecialchars($type['type_name']); ?></p>
+                    </div>
+                </a>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('home_top') ?>
+
+    <!-- 热门推荐 -->
+    <section class="mb-8">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center space-x-4">
+                <h2 class="text-xl font-bold">热门推荐</h2>
+            </div>
+            <a href="/hot" class="text-gray-500 text-sm hover:text-green-500">更多 &gt;</a>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            <?php if (!empty($recommendList)): ?>
+                <?php foreach (array_slice($recommendList, 0, 12) as $vod): ?>
+                    <a href="<?php echo xpk_page_url('detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="card cursor-pointer group">
+                        <div class="relative">
+                            <img src="<?php echo htmlspecialchars($vod['vod_pic']); ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full aspect-[3/4] object-cover rounded-lg" loading="lazy">
+                            <?php if (!empty($vod['vod_remarks'])): ?>
+                                <span class="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-1 rounded"><?php echo htmlspecialchars($vod['vod_remarks']); ?></span>
+                            <?php endif; ?>
+                            <div class="card-overlay absolute inset-0 bg-black/30 opacity-0 rounded-lg flex items-center justify-center">
+                                <span class="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center text-green-500 text-xl">▶</span>
+                            </div>
+                        </div>
+                        <h3 class="mt-2 text-sm truncate group-hover:text-green-500"><?php echo htmlspecialchars($vod['vod_name']); ?></h3>
+                        <p class="text-gray-400 text-xs"><?php echo htmlspecialchars($vod['vod_year'] ?? ''); ?> · <?php echo htmlspecialchars($vod['vod_class'] ?? ''); ?></p>
+                    </a>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+    </section>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('home_middle') ?>
+
+    <!-- 分类内容 -->
+    <?php if (!empty($navTypes)): ?>
+        <?php foreach (array_slice($navTypes, 0, 4) as $type): ?>
+            <?php 
+            $typeVods = $typeVideos[$type['type_id']] ?? [];
+            if (empty($typeVods)) continue;
+            ?>
+            <section class="mb-8">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold"><?php echo htmlspecialchars($type['type_name']); ?></h2>
+                    <a href="<?php echo xpk_page_url('type', ['id' => $type['type_id'], 'slug' => $type['type_en']]); ?>" class="text-gray-500 text-sm hover:text-green-500">更多 &gt;</a>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                    <?php foreach (array_slice($typeVods, 0, 12) as $vod): ?>
+                        <a href="<?php echo xpk_page_url('detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="card cursor-pointer group">
+                            <div class="relative">
+                                <img src="<?php echo htmlspecialchars($vod['vod_pic']); ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full aspect-[3/4] object-cover rounded-lg" loading="lazy">
+                                <?php if (!empty($vod['vod_remarks'])): ?>
+                                    <span class="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-1 rounded"><?php echo htmlspecialchars($vod['vod_remarks']); ?></span>
+                                <?php endif; ?>
+                                <div class="card-overlay absolute inset-0 bg-black/30 opacity-0 rounded-lg flex items-center justify-center">
+                                    <span class="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center text-green-500 text-xl">▶</span>
+                                </div>
+                            </div>
+                            <h3 class="mt-2 text-sm truncate group-hover:text-green-500"><?php echo htmlspecialchars($vod['vod_name']); ?></h3>
+                            <p class="text-gray-400 text-xs"><?php echo htmlspecialchars($vod['vod_year'] ?? ''); ?></p>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
+            </section>
+        <?php endforeach; ?>
+    <?php endif; ?>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('home_bottom') ?>
+</div>
+
+<?php include TPL_PATH . 'iqiyi/layouts/footer.php'; ?>

@@ -1,0 +1,23 @@
+<?php 
+$netflixLayoutPath = TPL_PATH . 'netflix/layouts/';
+include $netflixLayoutPath . 'header.php'; 
+?>
+
+<!-- 全部分类页 -->
+<div class="pt-20 md:pt-24 px-4 md:px-12 pb-10">
+    <h1 class="text-2xl md:text-3xl font-bold mb-8">全部分类</h1>
+
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <?php foreach ($types as $type): ?>
+        <a href="<?php echo xpk_page_url('type', ['id' => $type['type_id'], 'slug' => $type['type_en']]); ?>" 
+           class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg p-6 hover:from-red-900 hover:to-red-800 transition group">
+            <h3 class="text-xl font-bold mb-2 group-hover:text-white"><?php echo htmlspecialchars($type['type_name']); ?></h3>
+            <?php if ($type['type_des']): ?>
+            <p class="text-gray-400 text-sm line-clamp-2"><?php echo htmlspecialchars($type['type_des']); ?></p>
+            <?php endif; ?>
+        </a>
+        <?php endforeach; ?>
+    </div>
+</div>
+
+<?php include $netflixLayoutPath . 'footer.php'; ?>

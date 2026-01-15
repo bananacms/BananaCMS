@@ -1,0 +1,52 @@
+<?php include TPL_PATH . 'douban/layouts/header.php'; ?>
+
+<div class="max-w-5xl mx-auto px-4 py-8">
+    <!-- 页面标题 -->
+    <div class="mb-6 border-b pb-2">
+        <h1 class="text-lg font-bold text-gray-800">短剧</h1>
+    </div>
+
+    <!-- 分类标签 -->
+    <?php if (!empty($shortTypes)): ?>
+        <div class="mb-6">
+            <div class="flex flex-wrap gap-3">
+                <a href="/short" class="px-4 py-2 <?php echo empty($currentType) ? 'bg-green-700 text-white' : 'bg-gray-100 hover:bg-green-100 hover:text-green-700'; ?> rounded text-sm">全部</a>
+                <?php foreach ($shortTypes as $stype): ?>
+                    <a href="/short?type=<?php echo $stype['type_id']; ?>" class="px-4 py-2 <?php echo ($currentType ?? '') == $stype['type_id'] ? 'bg-green-700 text-white' : 'bg-gray-100 hover:bg-green-100 hover:text-green-700'; ?> rounded text-sm"><?php echo htmlspecialchars($stype['type_name']); ?></a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('short_top') ?>
+
+    <!-- 短剧列表 -->
+    <?php if (!empty($shortList)): ?>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6 mb-6">
+            <?php foreach ($shortList as $short): ?>
+                <a href="<?php echo xpk_page_url('short_detail', ['id' => $short['vod_id'], 'slug' => $short['vod_slug']]); ?>" class="cursor-pointer group">
+                    <div class="relative">
+                        <img src="<?php echo htmlspecialchars($short['vod_pic']); ?>" alt="<?php echo htmlspecialchars($short['vod_name']); ?>" class="w-full aspect-[2/3] object-cover rounded shadow-md" loading="lazy">
+                        <?php if (!empty($short['vod_remarks'])): ?>
+                            <span class="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-1 rounded"><?php echo htmlspecialchars($short['vod_remarks']); ?></span>
+                        <?php endif; ?>
+                    </div>
+                    <h3 class="mt-3 text-sm font-medium group-hover:text-green-700 line-clamp-1"><?php echo htmlspecialchars($short['vod_name']); ?></h3>
+                </a>
+            <?php endforeach; ?>
+        </div>
+
+        <!-- 分页 -->
+        <?php include TPL_PATH . 'douban/components/pagination.php'; ?>
+    <?php else: ?>
+        <div class="text-center text-gray-500 py-12">
+            暂无短剧
+        </div>
+    <?php endif; ?>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('short_bottom') ?>
+</div>
+
+<?php include TPL_PATH . 'douban/layouts/footer.php'; ?>

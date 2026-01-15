@@ -1,0 +1,22 @@
+{
+    "name": "xpornkit/bananacms",
+    "description": "香蕉CMS - 轻量级影视内容管理系统",
+    "type": "project",
+    "license": "MIT",
+    "autoload": {
+        "classmap": [
+            "core/",
+            "models/",
+            "controllers/"
+        ],
+        "files": [
+            "config/config.php"
+        ]
+    },
+    "require": {
+        "php": ">=8.0"
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}

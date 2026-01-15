@@ -1,0 +1,127 @@
+<?php include TPL_PATH . 'douban/layouts/header.php'; ?>
+
+<div class="max-w-5xl mx-auto px-4 py-8">
+    <!-- 面包屑 -->
+    <div class="text-sm text-gray-500 mb-6">
+        <a href="/" class="hover:text-green-700">首页</a>
+        <span class="mx-2">/</span>
+        <?php if (!empty($vod['type_name'])): ?>
+            <a href="<?php echo xpk_page_url('type', ['id' => $vod['type_id']]); ?>" class="hover:text-green-700"><?php echo htmlspecialchars($vod['type_name']); ?></a>
+            <span class="mx-2">/</span>
+        <?php endif; ?>
+        <span class="text-gray-700"><?php echo htmlspecialchars($vod['vod_name']); ?></span>
+    </div>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('detail_top') ?>
+
+    <!-- 视频信息 -->
+    <div class="flex flex-col md:flex-row mb-8">
+        <div class="w-full md:w-48 lg:w-56 flex-shrink-0 mb-4 md:mb-0">
+            <img src="<?php echo htmlspecialchars($vod['vod_pic']); ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full aspect-[2/3] object-cover rounded shadow-lg">
+        </div>
+        <div class="md:ml-6 flex-1">
+            <h1 class="text-xl md:text-2xl font-bold text-gray-800 mb-2"><?php echo htmlspecialchars($vod['vod_name']); ?></h1>
+            
+            <!-- 评分 -->
+            <div class="flex items-center mb-4">
+                <div class="text-center mr-4">
+                    <?php if (!empty($vod['vod_score'])): ?>
+                        <div class="text-3xl font-bold text-orange-500"><?php echo number_format($vod['vod_score'], 1); ?></div>
+                        <div class="text-yellow-500">
+                            <?php 
+                            $stars = round($vod['vod_score'] / 2);
+                            for ($i = 0; $i < $stars; $i++) echo '★';
+                            for ($i = $stars; $i < 5; $i++) echo '☆';
+                            ?>
+                        </div>
+                    <?php else: ?>
+                        <div class="text-gray-400 text-sm">暂无评分</div>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <div class="space-y-2 text-sm text-gray-600">
+                <?php if (!empty($vod['vod_director'])): ?>
+                    <p><span class="text-gray-400 w-14 inline-block">导演</span><?php echo htmlspecialchars($vod['vod_director']); ?></p>
+                <?php endif; ?>
+                <?php if (!empty($vod['vod_actor'])): ?>
+                    <p><span class="text-gray-400 w-14 inline-block">主演</span><?php echo htmlspecialchars($vod['vod_actor']); ?></p>
+                <?php endif; ?>
+                <?php if (!empty($vod['vod_class'])): ?>
+                    <p><span class="text-gray-400 w-14 inline-block">类型</span><?php echo htmlspecialchars($vod['vod_class']); ?></p>
+                <?php endif; ?>
+                <?php if (!empty($vod['vod_area'])): ?>
+                    <p><span class="text-gray-400 w-14 inline-block">地区</span><?php echo htmlspecialchars($vod['vod_area']); ?></p>
+                <?php endif; ?>
+                <?php if (!empty($vod['vod_year'])): ?>
+                    <p><span class="text-gray-400 w-14 inline-block">年份</span><?php echo htmlspecialchars($vod['vod_year']); ?></p>
+                <?php endif; ?>
+                <?php if (!empty($vod['vod_remarks'])): ?>
+                    <p><span class="text-gray-400 w-14 inline-block">状态</span><span class="text-green-700"><?php echo htmlspecialchars($vod['vod_remarks']); ?></span></p>
+                <?php endif; ?>
+                <p><span class="text-gray-400 w-14 inline-block">更新</span><?php echo date('Y-m-d', strtotime($vod['vod_time'])); ?></p>
+            </div>
+
+            <?php if (!empty($playUrls)): ?>
+                <a href="<?php echo xpk_page_url('play', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug'], 'sid' => 1, 'nid' => 1]); ?>" class="inline-block mt-4 bg-green-700 text-white px-6 py-2 rounded hover:bg-green-800 transition text-sm">
+                    立即播放
+                </a>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- 剧情简介 -->
+    <?php if (!empty($vod['vod_content'])): ?>
+        <div class="mb-8">
+            <h2 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2">剧情简介</h2>
+            <p class="text-gray-600 text-sm leading-relaxed"><?php echo nl2br(htmlspecialchars($vod['vod_content'])); ?></p>
+        </div>
+    <?php endif; ?>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('detail_middle') ?>
+
+    <!-- 播放列表 -->
+    <?php if (!empty($playUrls)): ?>
+        <div class="mb-8">
+            <h2 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2">播放列表</h2>
+            <?php $sourceCount = count($playUrls); ?>
+            <?php foreach ($playUrls as $sidIdx => $source): ?>
+                <div class="mb-4">
+                    <?php if ($sourceCount > 1): ?>
+                    <h3 class="text-sm text-gray-500 mb-2"><?php echo htmlspecialchars($source['name']); ?></h3>
+                    <?php endif; ?>
+                    <div class="flex flex-wrap gap-2">
+                        <?php foreach ($source['urls'] as $nidIdx => $ep): ?>
+                            <a href="<?php echo xpk_page_url('play', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug'], 'sid' => $sidIdx + 1, 'nid' => $nidIdx + 1]); ?>" class="px-3 py-1 border border-gray-300 rounded text-sm hover:border-green-700 hover:text-green-700"><?php echo htmlspecialchars($ep['name']); ?></a>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+
+    <!-- 相关推荐 -->
+    <?php if (!empty($relatedList)): ?>
+        <div class="mb-8">
+            <h2 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2">相关推荐</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                <?php foreach (array_slice($relatedList, 0, 10) as $related): ?>
+                    <a href="<?php echo xpk_page_url('detail', ['id' => $related['vod_id'], 'slug' => $related['vod_slug']]); ?>" class="cursor-pointer group">
+                        <img src="<?php echo htmlspecialchars($related['vod_pic']); ?>" alt="<?php echo htmlspecialchars($related['vod_name']); ?>" class="w-full aspect-[2/3] object-cover rounded shadow-md" loading="lazy">
+                        <h3 class="mt-2 text-sm font-medium group-hover:text-green-700 line-clamp-1"><?php echo htmlspecialchars($related['vod_name']); ?></h3>
+                        <div class="flex items-center mt-1">
+                            <?php $score = $related['vod_score'] ?? 0; include TPL_PATH . 'douban/components/rating.php'; ?>
+                        </div>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('detail_bottom') ?>
+</div>
+
+<?php include TPL_PATH . 'douban/layouts/footer.php'; ?>

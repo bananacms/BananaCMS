@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>播放器</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dplayer@1.27.1/dist/DPlayer.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+        #dplayer { width: 100%; height: 100%; }
+        .error-msg { 
+            color: #fff; 
+            text-align: center; 
+            padding: 50px 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        .error-msg h2 { margin-bottom: 10px; color: #f59e0b; }
+        .error-msg p { color: #9ca3af; font-size: 14px; }
+        
+        /* 暂停广告样式 */
+        #pauseAd {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            cursor: pointer;
+        }
+        #pauseAd.show { display: flex; }
+        #pauseAd .ad-content {
+            position: relative;
+            max-width: 80%;
+            max-height: 70%;
+        }
+        #pauseAd .ad-content img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        #pauseAd .ad-close {
+            position: absolute;
+            top: -12px;
+            right: -12px;
+            width: 28px;
+            height: 28px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            color: #333;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        #pauseAd .ad-close:hover { background: #fff; }
+        #pauseAd .ad-label {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        #pauseAd .ad-tip {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255,255,255,0.7);
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div id="dplayer"></div>
+    
+    <!-- 暂停广告容器 -->
+    <div id="pauseAd">
+        <div class="ad-content">
+            <span class="ad-label">广告</span>
+            <a id="pauseAdLink" href="#" target="_blank" rel="nofollow">
+                <img id="pauseAdImg" src="" alt="广告">
+            </a>
+            <span class="ad-close" onclick="closePauseAd(event)">×</span>
+        </div>
+        <div class="ad-tip">点击任意位置继续播放</div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dplayer@1.27.1/dist/DPlayer.min.js"></script>
+    <script>
+    (function() {
+        // 获取URL参数
+        var params = new URLSearchParams(window.location.search);
+        var url = params.get('url');
+        var type = params.get('type') || 'auto';
+        var pic = params.get('pic') || '';
+        var title = params.get('title') || '';
+        
+        // 暂停广告参数
+        var pauseAdImage = params.get('pause_ad_image') || '';
+        var pauseAdLink = params.get('pause_ad_link') || '';
+        var pauseAdId = params.get('pause_ad_id') || '';
+
+        if (!url) {
+            document.getElementById('dplayer').innerHTML = '<div class="error-msg"><h2>⚠️ 播放失败</h2><p>未提供视频地址</p></div>';
+            return;
+        }
+
+        // 自动检测视频类型
+        if (type === 'auto') {
+            if (url.includes('.m3u8') || url.includes('m3u8')) {
+                type = 'hls';
+            } else if (url.includes('.flv')) {
+                type = 'flv';
+            } else {
+                type = 'normal';
+            }
+        }
+
+        // 初始化播放器
+        var options = {
+            container: document.getElementById('dplayer'),
+            autoplay: true,
+            theme: '#EF4444',
+            lang: 'zh-cn',
+            hotkey: true,
+            preload: 'auto',
+            screenshot: true,
+            video: {
+                url: url,
+                pic: pic,
+                type: type
+            }
+        };
+
+        // HLS 支持
+        if (type === 'hls') {
+            options.video.type = 'customHls';
+            options.video.customType = {
+                customHls: function(video, player) {
+                    if (Hls.isSupported()) {
+                        var hls = new Hls({
+                            maxBufferLength: 30,
+                            maxMaxBufferLength: 60
+                        });
+                        hls.loadSource(video.src);
+                        hls.attachMedia(video);
+                        hls.on(Hls.Events.ERROR, function(event, data) {
+                            if (data.fatal) {
+                                switch(data.type) {
+                                    case Hls.ErrorTypes.NETWORK_ERROR:
+                                        console.log('网络错误，尝试恢复...');
+                                        hls.startLoad();
+                                        break;
+                                    case Hls.ErrorTypes.MEDIA_ERROR:
+                                        console.log('媒体错误，尝试恢复...');
+                                        hls.recoverMediaError();
+                                        break;
+                                    default:
+                                        hls.destroy();
+                                        break;
+                                }
+                            }
+                        });
+                    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                        video.src = video.src;
+                    }
+                }
+            };
+        }
+
+        try {
+            var dp = new DPlayer(options);
+            var pauseAdEl = document.getElementById('pauseAd');
+            var pauseAdShown = false;
+            var isUserPause = false;
+            
+            // 初始化暂停广告
+            if (pauseAdImage) {
+                document.getElementById('pauseAdImg').src = pauseAdImage;
+                document.getElementById('pauseAdLink').href = pauseAdLink || '#';
+                if (!pauseAdLink) {
+                    document.getElementById('pauseAdLink').removeAttribute('target');
+                }
+            }
+            
+            // 暂停时显示广告
+            dp.on('pause', function() {
+                // 只有用户主动暂停且有广告时才显示
+                if (pauseAdImage && dp.video.currentTime > 3) {
+                    setTimeout(function() {
+                        if (dp.video.paused) {
+                            pauseAdEl.classList.add('show');
+                            pauseAdShown = true;
+                            // 记录广告展示
+                            if (pauseAdId) {
+                                recordAdShow(pauseAdId);
+                            }
+                        }
+                    }, 300);
+                }
+            });
+            
+            // 播放时隐藏广告
+            dp.on('play', function() {
+                pauseAdEl.classList.remove('show');
+                pauseAdShown = false;
+            });
+            
+            // 点击广告区域（非广告图片）继续播放
+            pauseAdEl.addEventListener('click', function(e) {
+                if (e.target === pauseAdEl || e.target.classList.contains('ad-tip')) {
+                    closePauseAd(e);
+                }
+            });
+            
+            // 关闭暂停广告并继续播放
+            window.closePauseAd = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                pauseAdEl.classList.remove('show');
+                dp.play();
+            };
+            
+            // 记录广告展示
+            function recordAdShow(adId) {
+                try {
+                    // 向父页面发送消息记录展示
+                    if (window.parent !== window) {
+                        window.parent.postMessage({ type: 'ad_show', id: adId }, '*');
+                    }
+                } catch(e) {}
+            }
+            
+            // 广告点击记录
+            document.getElementById('pauseAdLink').addEventListener('click', function() {
+                if (pauseAdId) {
+                    try {
+                        if (window.parent !== window) {
+                            window.parent.postMessage({ type: 'ad_click', id: pauseAdId }, '*');
+                        }
+                    } catch(e) {}
+                }
+            });
+            
+            // 播放结束通知父页面
+            dp.on('ended', function() {
+                if (window.parent !== window) {
+                    window.parent.postMessage('ended', '*');
+                }
+            });
+
+            // 错误处理
+            dp.on('error', function() {
+                console.log('播放器错误');
+            });
+        } catch (e) {
+            document.getElementById('dplayer').innerHTML = '<div class="error-msg"><h2>⚠️ 播放器初始化失败</h2><p>' + e.message + '</p></div>';
+        }
+    })();
+    </script>
+</body>
+</html>

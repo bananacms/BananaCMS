@@ -1,0 +1,61 @@
+<?php include TPL_PATH . 'douban/layouts/header.php'; ?>
+
+<div class="max-w-5xl mx-auto px-4 py-8">
+    <!-- 页面标题 -->
+    <div class="mb-6 border-b pb-2">
+        <h1 class="text-lg font-bold text-gray-800">短剧剧场</h1>
+    </div>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('drama_top') ?>
+
+    <!-- 热门短剧 -->
+    <?php if (!empty($hotShorts)): ?>
+        <section class="mb-10">
+            <div class="flex items-center justify-between mb-4 border-b pb-2">
+                <h2 class="text-lg font-bold text-gray-800">热门短剧</h2>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                <?php foreach (array_slice($hotShorts, 0, 10) as $short): ?>
+                    <a href="<?php echo xpk_page_url('short_detail', ['id' => $short['vod_id'], 'slug' => $short['vod_slug']]); ?>" class="cursor-pointer group">
+                        <div class="relative">
+                            <img src="<?php echo htmlspecialchars($short['vod_pic']); ?>" alt="<?php echo htmlspecialchars($short['vod_name']); ?>" class="w-full aspect-[2/3] object-cover rounded shadow-md" loading="lazy">
+                            <?php if (!empty($short['vod_remarks'])): ?>
+                                <span class="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-1 rounded"><?php echo htmlspecialchars($short['vod_remarks']); ?></span>
+                            <?php endif; ?>
+                        </div>
+                        <h3 class="mt-3 text-sm font-medium group-hover:text-green-700 line-clamp-1"><?php echo htmlspecialchars($short['vod_name']); ?></h3>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        </section>
+    <?php endif; ?>
+
+    <!-- 最新更新 -->
+    <?php if (!empty($newShorts)): ?>
+        <section class="mb-10">
+            <div class="flex items-center justify-between mb-4 border-b pb-2">
+                <h2 class="text-lg font-bold text-gray-800">最新更新</h2>
+                <a href="/short" class="text-green-700 text-sm">全部 &gt;</a>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                <?php foreach (array_slice($newShorts, 0, 10) as $short): ?>
+                    <a href="<?php echo xpk_page_url('short_detail', ['id' => $short['vod_id'], 'slug' => $short['vod_slug']]); ?>" class="cursor-pointer group">
+                        <div class="relative">
+                            <img src="<?php echo htmlspecialchars($short['vod_pic']); ?>" alt="<?php echo htmlspecialchars($short['vod_name']); ?>" class="w-full aspect-[2/3] object-cover rounded shadow-md" loading="lazy">
+                            <?php if (!empty($short['vod_remarks'])): ?>
+                                <span class="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-1 rounded"><?php echo htmlspecialchars($short['vod_remarks']); ?></span>
+                            <?php endif; ?>
+                        </div>
+                        <h3 class="mt-3 text-sm font-medium group-hover:text-green-700 line-clamp-1"><?php echo htmlspecialchars($short['vod_name']); ?></h3>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        </section>
+    <?php endif; ?>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('drama_bottom') ?>
+</div>
+
+<?php include TPL_PATH . 'douban/layouts/footer.php'; ?>

@@ -1,0 +1,83 @@
+<?php include TPL_PATH . 'douban/layouts/header.php'; ?>
+
+<div class="max-w-5xl mx-auto px-4 py-8">
+    <!-- 面包屑 -->
+    <div class="text-sm text-gray-500 mb-6">
+        <a href="/" class="hover:text-green-700">首页</a>
+        <span class="mx-2">/</span>
+        <a href="/short" class="hover:text-green-700">短剧</a>
+        <span class="mx-2">/</span>
+        <span class="text-gray-700"><?php echo htmlspecialchars($vod['vod_name']); ?></span>
+    </div>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('short_top') ?>
+
+    <!-- 短剧信息 -->
+    <div class="flex flex-col md:flex-row mb-8">
+        <div class="w-full md:w-40 lg:w-48 flex-shrink-0 mb-4 md:mb-0">
+            <img src="<?php echo htmlspecialchars($vod['vod_pic']); ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full aspect-[2/3] object-cover rounded shadow-lg">
+        </div>
+        <div class="md:ml-6 flex-1">
+            <h1 class="text-xl md:text-2xl font-bold text-gray-800 mb-3"><?php echo htmlspecialchars($vod['vod_name']); ?></h1>
+            
+            <div class="space-y-2 text-sm text-gray-600">
+                <?php if (!empty($vod['vod_year'])): ?>
+                    <p><span class="text-gray-400 w-14 inline-block">年份</span><?php echo htmlspecialchars($vod['vod_year']); ?></p>
+                <?php endif; ?>
+                <?php if (!empty($vod['vod_remarks'])): ?>
+                    <p><span class="text-gray-400 w-14 inline-block">状态</span><span class="text-green-700"><?php echo htmlspecialchars($vod['vod_remarks']); ?></span></p>
+                <?php endif; ?>
+                <p><span class="text-gray-400 w-14 inline-block">播放</span><?php echo xpk_format_number($vod['vod_hits'] ?? 0); ?>次</p>
+                <p><span class="text-gray-400 w-14 inline-block">更新</span><?php echo date('Y-m-d', strtotime($vod['vod_time'])); ?></p>
+            </div>
+
+            <?php if (!empty($vod['vod_content'])): ?>
+                <p class="text-gray-600 text-sm mt-4 line-clamp-3"><?php echo htmlspecialchars($vod['vod_content']); ?></p>
+            <?php endif; ?>
+
+            <?php if (!empty($playUrls)): ?>
+                <a href="<?php echo xpk_page_url('short_play', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug'], 'sid' => 1, 'nid' => 1]); ?>" class="inline-block mt-4 bg-green-700 text-white px-6 py-2 rounded hover:bg-green-800 transition text-sm">
+                    立即观看
+                </a>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- 选集列表 -->
+    <?php if (!empty($playUrls)): ?>
+        <div class="mb-8">
+            <h2 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2">选集列表</h2>
+            <?php foreach ($playUrls as $sid => $source): ?>
+                <div class="mb-4">
+                    <h3 class="text-sm text-gray-500 mb-2"><?php echo htmlspecialchars($source['name']); ?></h3>
+                    <div class="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-2">
+                        <?php foreach ($source['urls'] as $nid => $ep): ?>
+                            <a href="<?php echo xpk_page_url('short_play', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug'], 'sid' => $sid, 'nid' => $nid]); ?>" class="px-2 py-1 border border-gray-300 rounded text-sm text-center hover:border-green-700 hover:text-green-700"><?php echo htmlspecialchars($ep['name']); ?></a>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+
+    <!-- 相关推荐 -->
+    <?php if (!empty($relatedList)): ?>
+        <div>
+            <h2 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2">相关推荐</h2>
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
+                <?php foreach (array_slice($relatedList, 0, 6) as $related): ?>
+                    <a href="<?php echo xpk_page_url('short_detail', ['id' => $related['vod_id'], 'slug' => $related['vod_slug']]); ?>" class="cursor-pointer group">
+                        <img src="<?php echo htmlspecialchars($related['vod_pic']); ?>" alt="<?php echo htmlspecialchars($related['vod_name']); ?>" class="w-full aspect-[2/3] object-cover rounded shadow-md" loading="lazy">
+                        <h3 class="mt-2 text-sm font-medium group-hover:text-green-700 line-clamp-1"><?php echo htmlspecialchars($related['vod_name']); ?></h3>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('short_bottom') ?>
+</div>
+
+<?php include TPL_PATH . 'douban/layouts/footer.php'; ?>

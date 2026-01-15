@@ -1,0 +1,307 @@
+<?php include VIEW_PATH . 'layouts/header.php'; ?>
+
+<!-- 面包屑导航 -->
+<nav class="text-sm text-gray-500 mb-4 max-w-5xl mx-auto">
+    <a href="/" class="hover:text-red-600">首页</a>
+    <span class="mx-2">/</span>
+    <?php if (!empty($vod['type_id'])): ?>
+    <a href="<?php echo xpk_page_url('type', ['id' => $vod['type_id'], 'slug' => $vod['type_en'] ?? '']); ?>" class="hover:text-red-600"><?php echo htmlspecialchars($vod['type_name'] ?? '分类'); ?></a>
+    <span class="mx-2">/</span>
+    <?php endif; ?>
+    <a href="<?php echo xpk_page_url('vod_detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="hover:text-red-600"><?php echo htmlspecialchars($vod['vod_name']); ?></a>
+    <span class="mx-2">/</span>
+    <span class="text-gray-700">播放</span>
+</nav>
+
+<div class="max-w-5xl mx-auto">
+    <!-- 播放器 -->
+    <div class="mb-6 relative z-10">
+        <div class="player-container rounded-lg overflow-hidden relative">
+            <?php if (!$canWatch): ?>
+            <!-- VIP限制遮罩 -->
+            <div class="absolute inset-0 z-50 bg-gray-900/95 flex flex-col items-center justify-center text-white p-6">
+                <svg class="w-20 h-20 mb-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+                <?php if (empty($user)): ?>
+                <h3 class="text-xl font-bold mb-2">请先登录</h3>
+                <p class="text-gray-400 mb-4">登录后即可观看视频</p>
+                <a href="/user/login?redirect=<?= urlencode($_SERVER['REQUEST_URI']) ?>" class="bg-red-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-red-700">立即登录</a>
+                <?php elseif ($vipCheck['reason'] === 'limit_exceeded'): ?>
+                <h3 class="text-xl font-bold mb-2">今日免费次数已用完</h3>
+                <p class="text-gray-400 mb-4">开通VIP会员，享受无限观看特权</p>
+                <div class="flex gap-4">
+                    <a href="/user/vip" class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-8 py-3 rounded-lg font-medium hover:opacity-90">开通VIP</a>
+                    <?php if (!empty($vipCheck['have_points']) && $vipCheck['have_points'] >= ($vipCheck['need_points'] ?? 10)): ?>
+                    <button onclick="unlockWithPoints()" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-700">
+                        积分解锁 (<?= $vipCheck['need_points'] ?? 10 ?>积分)
+                    </button>
+                    <?php endif; ?>
+                </div>
+                <p class="text-sm text-gray-500 mt-4">当前积分: <?= $vipCheck['have_points'] ?? 0 ?></p>
+                <?php else: ?>
+                <h3 class="text-xl font-bold mb-2"><?= htmlspecialchars($vipCheck['message'] ?? '无法观看') ?></h3>
+                <a href="/user/vip" class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-8 py-3 rounded-lg font-medium hover:opacity-90 mt-4">开通VIP</a>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
+            
+            <!-- 片头广告（覆盖在播放器上方） -->
+            <?php 
+            $playBeforeAd = xpk_ads('play_before');
+            if (!empty($playBeforeAd)): 
+                $adItem = $playBeforeAd[0];
+            ?>
+            <div id="playBeforeAd" class="absolute inset-0 z-50 bg-black flex items-center justify-center">
+                <?php if ($adItem['ad_type'] === 'video' && !empty($adItem['ad_video'])): ?>
+                <video id="adVideo" src="<?= htmlspecialchars($adItem['ad_video']) ?>" autoplay playsinline class="w-full h-full object-contain"></video>
+                <?php elseif ($adItem['ad_type'] === 'image' && !empty($adItem['ad_image'])): ?>
+                <a href="<?= htmlspecialchars($adItem['ad_link']) ?>" target="_blank" rel="nofollow" class="flex items-center justify-center w-full h-full">
+                    <img src="<?= htmlspecialchars($adItem['ad_image']) ?>" class="max-w-full max-h-full object-contain" alt="广告">
+                </a>
+                <?php endif; ?>
+                <div class="absolute top-2 right-2 bg-black/70 text-white px-3 py-1 rounded text-sm">
+                    广告 <span id="adCountdown"><?= (int)($adItem['ad_skip_time'] ?: 5) ?></span>s
+                </div>
+                <button id="skipAdBtn" onclick="skipAd()" class="absolute bottom-4 right-4 bg-white/90 text-gray-800 px-4 py-2 rounded hover:bg-white hidden">
+                    跳过广告
+                </button>
+            </div>
+            <script>
+            (function() {
+                var countdown = <?= (int)($adItem['ad_skip_time'] ?: 5) ?>;
+                var countdownEl = document.getElementById('adCountdown');
+                var skipBtn = document.getElementById('skipAdBtn');
+                var adContainer = document.getElementById('playBeforeAd');
+                var timer = setInterval(function() {
+                    countdown--;
+                    if (countdown <= 0) {
+                        clearInterval(timer);
+                        skipBtn.classList.remove('hidden');
+                        countdownEl.parentElement.innerHTML = '广告';
+                    } else {
+                        countdownEl.textContent = countdown;
+                    }
+                }, 1000);
+                
+                window.skipAd = function() {
+                    adContainer.style.display = 'none';
+                };
+                
+                // 视频广告结束后自动隐藏
+                var adVideo = document.getElementById('adVideo');
+                if (adVideo) {
+                    adVideo.addEventListener('ended', function() {
+                        adContainer.style.display = 'none';
+                    });
+                }
+            })();
+            </script>
+            <?php endif; ?>
+            <?php if (!empty($currentUrl)): ?>
+                <?php if (strpos($currentUrl, 'http://') === 0 || strpos($currentUrl, 'https://') === 0 || strpos($currentUrl, '//') === 0 || strpos($currentUrl, '/static/player.html') === 0): ?>
+                    <iframe src="<?php echo htmlspecialchars($currentUrl); ?>" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"></iframe>
+                <?php else: ?>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 text-white p-4">
+                        <svg class="w-16 h-16 mb-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                        <p class="text-lg mb-2">播放地址格式不正确</p>
+                        <p class="text-sm text-gray-400">当前地址: <?php echo htmlspecialchars(mb_substr($currentUrl, 0, 50)); ?>...</p>
+                    </div>
+                <?php endif; ?>
+            <?php else: ?>
+                <div class="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 text-white p-4">
+                    <svg class="w-16 h-16 mb-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                    <p class="text-lg mb-2">暂无播放源</p>
+                    <?php if (!empty($currentFrom)): ?>
+                        <p class="text-sm text-gray-400 mb-2">播放器: <?php echo htmlspecialchars($currentFrom); ?></p>
+                        <?php if (empty($playerInfo)): ?>
+                            <p class="text-xs text-yellow-500 flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                </svg>
+                                未配置该播放器，请在后台"播放器管理"中添加
+                            </p>
+                        <?php endif; ?>
+                    <?php else: ?>
+                        <p class="text-sm text-gray-400">该视频没有可用的播放地址</p>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+        <?php if (!empty($currentFrom) && !empty($playUrls) && count($playUrls) > 1): ?>
+        <div class="mt-2 text-xs text-gray-500 flex items-center gap-2">
+            <span>播放源: <?php echo htmlspecialchars($currentFrom); ?></span>
+            <?php if (!empty($playerInfo)): ?>
+                <span class="text-green-600 flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    已配置
+                </span>
+            <?php else: ?>
+                <span class="text-yellow-600 flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    未配置播放器
+                </span>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
+    </div>
+
+    <!-- 视频标题 -->
+    <div class="mb-6">
+        <h1 class="text-xl font-bold"><?php echo htmlspecialchars($vod['vod_name']); ?></h1>
+        <p class="text-gray-500 text-sm mt-1"><?php echo $vod['vod_hits']; ?>次播放 · <?php echo $vod['vod_remarks'] ?: '更新中'; ?></p>
+    </div>
+
+    <!-- 播放列表 -->
+    <?php if (!empty($playUrls)): ?>
+        <div class="mb-6">
+            <h2 class="text-lg font-bold mb-3">播放列表</h2>
+            <?php $sourceCount = count($playUrls); ?>
+            <?php foreach ($playUrls as $sIndex => $source): ?>
+                <div class="mb-4">
+                    <p class="text-sm text-gray-500 mb-2">
+                        <?php if ($sourceCount > 1): ?>
+                            <span class="<?php echo (($sIndex + 1) == $sid) ? 'bg-red-600 text-white' : 'bg-gray-200'; ?> px-2 py-1 rounded mr-2"><?php echo htmlspecialchars($source['name'] ?? '播放源 ' . ($sIndex + 1)); ?></span>
+                        <?php endif; ?>
+                        共<?php echo count($source['urls'] ?? []); ?>集
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <?php foreach (($source['urls'] ?? []) as $nIndex => $ep): ?>
+                            <?php 
+                                $isActive = (($sIndex + 1) == $sid && ($nIndex + 1) == $nid);
+                                $btnClass = $isActive ? 'bg-red-600 text-white' : 'bg-gray-100 hover:bg-gray-200';
+                            ?>
+                            <a href="<?php echo xpk_page_url('vod_play', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug'], 'sid' => $sIndex + 1, 'nid' => $nIndex + 1]); ?>" class="px-4 py-2 rounded text-sm <?php echo $btnClass; ?>">
+                                <?php echo htmlspecialchars($ep['name']); ?>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+
+    <!-- 视频信息 -->
+    <div class="bg-gray-50 rounded-lg p-4 mb-6">
+        <div class="flex items-start gap-4">
+            <img src="<?php echo $vod['vod_pic'] ?: '/static/images/no-image.svg'; ?>" alt="" class="w-20 h-28 object-cover rounded">
+            <div class="flex-1">
+                <h3 class="font-medium"><?php echo htmlspecialchars($vod['vod_name']); ?></h3>
+                <p class="text-gray-500 text-sm mt-1"><?php echo htmlspecialchars($vod['vod_actor'] ?? ''); ?></p>
+                <p class="text-gray-400 text-sm mt-2 line-clamp-2"><?php echo htmlspecialchars($vod['vod_content'] ?? ''); ?></p>
+                <a href="<?php echo xpk_page_url('vod_detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="text-red-600 text-sm mt-2 inline-block hover:underline">查看详情 &gt;</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 自动连播脚本 -->
+<script>
+<?php if ($canWatch && $vipEnabled && !empty($user)): ?>
+// 记录观看（消耗免费次数或VIP次数）
+(function() {
+    fetch('/api?action=vip.watch', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        credentials: 'same-origin',
+        body: JSON.stringify({vod_id: <?= $vod['vod_id'] ?>, use_points: false})
+    })
+    .then(r => r.json())
+    .then(data => {
+        console.log('vip.watch response:', data);
+    })
+    .catch(err => {
+        console.error('vip.watch error:', err);
+    });
+})();
+<?php endif; ?>
+
+<?php if (!$canWatch && !empty($user)): ?>
+// 积分解锁
+function unlockWithPoints() {
+    xpk.confirm('确定使用 <?= $vipCheck['need_points'] ?? 10 ?> 积分解锁此视频？', function() {
+        fetch('/api?action=vip.watch', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({vod_id: <?= $vod['vod_id'] ?>, use_points: true})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.code === 0) {
+                location.reload();
+            } else {
+                xpk.toast(data.msg || '解锁失败', 'error');
+            }
+        })
+        .catch(() => xpk.toast('网络错误，请重试', 'error'));
+    });
+}
+<?php endif; ?>
+
+(function() {
+    var nextUrl = '<?php 
+        $nextNid = $nid + 1;
+        $nextSid = $sid;
+        $hasNext = false;
+        if (!empty($playUrls[$sid - 1]) && isset($playUrls[$sid - 1][$nextNid - 1])) {
+            $hasNext = true;
+        } elseif (!empty($playUrls[$sid]) && isset($playUrls[$sid][0])) {
+            $nextSid = $sid + 1;
+            $nextNid = 1;
+            $hasNext = true;
+        }
+        echo $hasNext ? xpk_page_url('vod_play', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug'], 'sid' => $nextSid, 'nid' => $nextNid]) : "";
+    ?>';
+    
+    if (!nextUrl) return;
+    
+    // 监听 iframe 消息（部分播放器支持）
+    window.addEventListener('message', function(e) {
+        if (e.data === 'ended' || e.data.event === 'ended') {
+            xpkConfirm('播放结束，是否播放下一集？', function() {
+                location.href = nextUrl;
+            });
+        }
+    });
+    
+    // 添加下一集按钮
+    var container = document.querySelector('.player-container');
+    if (container) {
+        var btn = document.createElement('a');
+        btn.href = nextUrl;
+        btn.className = 'absolute top-4 right-4 bg-black/50 text-white px-3 py-1 rounded text-sm hover:bg-black/70 z-10';
+        btn.textContent = '下一集 >';
+        btn.style.display = 'none';
+        container.style.position = 'relative';
+        container.appendChild(btn);
+        
+        // 鼠标悬停显示
+        container.addEventListener('mouseenter', function() { btn.style.display = 'block'; });
+        container.addEventListener('mouseleave', function() { btn.style.display = 'none'; });
+    }
+    
+    // 监听播放器广告消息（暂停广告展示/点击统计）
+    window.addEventListener('message', function(e) {
+        if (e.data && typeof e.data === 'object') {
+            if (e.data.type === 'ad_show' || e.data.type === 'ad_click') {
+                var action = e.data.type === 'ad_click' ? 'click' : 'show';
+                fetch('/api.php?action=ad.' + action, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'id=' + e.data.id
+                });
+            }
+        }
+    });
+})();
+</script>
+
+<?php include VIEW_PATH . 'layouts/footer.php'; ?>

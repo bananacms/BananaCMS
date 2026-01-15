@@ -1,0 +1,132 @@
+<?php include TPL_PATH . 'bilibili/layouts/header.php'; ?>
+
+<!-- 分类标签 -->
+<div class="bg-white border-b">
+    <div class="max-w-7xl mx-auto px-4 py-3">
+        <div class="flex space-x-3 overflow-x-auto scroll-hide">
+            <a href="/" class="bg-pink-500 text-white px-4 py-1 rounded-full text-sm whitespace-nowrap">全部</a>
+            <?php if (!empty($navTypes)): ?>
+                <?php foreach ($navTypes as $type): ?>
+                    <a href="<?php echo xpk_page_url('type', ['id' => $type['type_id'], 'slug' => $type['type_en']]); ?>" class="bg-gray-200 px-4 py-1 rounded-full text-sm whitespace-nowrap hover:bg-pink-100 hover:text-pink-500"><?php echo htmlspecialchars($type['type_name']); ?></a>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 py-6">
+    <!-- 轮播区 -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
+        <div class="lg:col-span-2 bg-gradient-to-r from-pink-400 to-blue-400 rounded-lg h-48 md:h-64 flex items-center justify-center overflow-hidden relative">
+            <?php if (!empty($slides) && count($slides) > 0): ?>
+                <?php $slide = $slides[0]; ?>
+                <a href="<?php echo xpk_page_url('detail', ['id' => $slide['vod_id'], 'slug' => $slide['vod_slug']]); ?>" class="block w-full h-full">
+                    <img src="<?php echo htmlspecialchars($slide['vod_pic']); ?>" alt="<?php echo htmlspecialchars($slide['vod_name']); ?>" class="w-full h-full object-cover">
+                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                        <h3 class="text-white text-lg font-bold"><?php echo htmlspecialchars($slide['vod_name']); ?></h3>
+                    </div>
+                </a>
+            <?php else: ?>
+                <span class="text-white text-xl">轮播图区域</span>
+            <?php endif; ?>
+        </div>
+        <div class="space-y-4">
+            <div class="bg-white rounded-lg p-4 shadow-sm h-full">
+                <h3 class="font-bold text-pink-500 mb-3 flex items-center">
+                    <span class="mr-2">🔥</span>热门排行
+                </h3>
+                <div class="space-y-2 text-sm">
+                    <?php if (!empty($hotList)): ?>
+                        <?php foreach (array_slice($hotList, 0, 7) as $index => $hot): ?>
+                            <a href="<?php echo xpk_page_url('detail', ['id' => $hot['vod_id'], 'slug' => $hot['vod_slug']]); ?>" class="flex items-center hover:text-pink-500">
+                                <span class="<?php echo $index < 3 ? 'text-pink-500' : 'text-gray-400'; ?> font-bold mr-2 w-4"><?php echo $index + 1; ?></span>
+                                <span class="truncate"><?php echo htmlspecialchars($hot['vod_name']); ?></span>
+                            </a>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="text-gray-400">暂无数据</div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('home_top') ?>
+
+    <!-- 热门推荐 -->
+    <section class="mb-8">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-bold flex items-center">
+                <span class="text-pink-500 mr-2">📺</span>热门推荐
+            </h2>
+            <a href="/hot" class="text-gray-500 text-sm hover:text-pink-500">查看更多 &gt;</a>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <?php if (!empty($recommendList)): ?>
+                <?php foreach (array_slice($recommendList, 0, 10) as $vod): ?>
+                    <a href="<?php echo xpk_page_url('detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="card bg-white rounded-lg overflow-hidden cursor-pointer">
+                        <div class="relative">
+                            <img src="<?php echo htmlspecialchars($vod['vod_pic']); ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full aspect-video object-cover" loading="lazy">
+                            <?php if (!empty($vod['vod_remarks'])): ?>
+                                <div class="absolute bottom-1 right-1 bg-black/70 text-white text-xs px-1 rounded"><?php echo htmlspecialchars($vod['vod_remarks']); ?></div>
+                            <?php endif; ?>
+                            <div class="absolute bottom-1 left-1 text-white text-xs flex items-center">
+                                <span class="mr-2">▶ <?php echo xpk_format_number($vod['vod_hits'] ?? 0); ?></span>
+                            </div>
+                        </div>
+                        <div class="p-2">
+                            <h3 class="text-sm line-clamp-2 hover:text-pink-500"><?php echo htmlspecialchars($vod['vod_name']); ?></h3>
+                            <p class="text-gray-400 text-xs mt-1"><?php echo htmlspecialchars($vod['vod_year'] ?? ''); ?></p>
+                        </div>
+                    </a>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+    </section>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('home_middle') ?>
+
+    <!-- 分类内容 -->
+    <?php if (!empty($navTypes)): ?>
+        <?php foreach (array_slice($navTypes, 0, 4) as $type): ?>
+            <?php 
+            $typeVods = $typeVideos[$type['type_id']] ?? [];
+            if (empty($typeVods)) continue;
+            ?>
+            <section class="mb-8">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-bold flex items-center">
+                        <span class="text-pink-500 mr-2">📁</span><?php echo htmlspecialchars($type['type_name']); ?>
+                    </h2>
+                    <a href="<?php echo xpk_page_url('type', ['id' => $type['type_id'], 'slug' => $type['type_en']]); ?>" class="text-gray-500 text-sm hover:text-pink-500">查看更多 &gt;</a>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    <?php foreach (array_slice($typeVods, 0, 10) as $vod): ?>
+                        <a href="<?php echo xpk_page_url('detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="card bg-white rounded-lg overflow-hidden cursor-pointer">
+                            <div class="relative">
+                                <img src="<?php echo htmlspecialchars($vod['vod_pic']); ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full aspect-video object-cover" loading="lazy">
+                                <?php if (!empty($vod['vod_remarks'])): ?>
+                                    <div class="absolute bottom-1 right-1 bg-black/70 text-white text-xs px-1 rounded"><?php echo htmlspecialchars($vod['vod_remarks']); ?></div>
+                                <?php endif; ?>
+                                <div class="absolute bottom-1 left-1 text-white text-xs flex items-center">
+                                    <span class="mr-2">▶ <?php echo xpk_format_number($vod['vod_hits'] ?? 0); ?></span>
+                                </div>
+                            </div>
+                            <div class="p-2">
+                                <h3 class="text-sm line-clamp-2 hover:text-pink-500"><?php echo htmlspecialchars($vod['vod_name']); ?></h3>
+                                <p class="text-gray-400 text-xs mt-1"><?php echo htmlspecialchars($vod['vod_year'] ?? ''); ?></p>
+                            </div>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
+            </section>
+        <?php endforeach; ?>
+    <?php endif; ?>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('home_bottom') ?>
+</div>
+
+<?php include TPL_PATH . 'bilibili/layouts/footer.php'; ?>

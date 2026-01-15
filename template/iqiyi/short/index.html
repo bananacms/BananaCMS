@@ -1,0 +1,55 @@
+<?php include TPL_PATH . 'iqiyi/layouts/header.php'; ?>
+
+<div class="max-w-7xl mx-auto px-4 py-6">
+    <!-- 页面标题 -->
+    <div class="bg-white rounded-lg shadow p-4 mb-6">
+        <h1 class="text-xl font-bold text-gray-800">短剧</h1>
+    </div>
+
+    <!-- 分类标签 -->
+    <?php if (!empty($shortTypes)): ?>
+        <div class="bg-white rounded-lg shadow p-4 mb-6">
+            <div class="flex flex-wrap gap-2">
+                <a href="/short" class="px-4 py-1 <?php echo empty($currentType) ? 'bg-green-500 text-white' : 'bg-gray-100 hover:bg-green-50 hover:text-green-500'; ?> rounded text-sm">全部</a>
+                <?php foreach ($shortTypes as $stype): ?>
+                    <a href="/short?type=<?php echo $stype['type_id']; ?>" class="px-4 py-1 <?php echo ($currentType ?? '') == $stype['type_id'] ? 'bg-green-500 text-white' : 'bg-gray-100 hover:bg-green-50 hover:text-green-500'; ?> rounded text-sm"><?php echo htmlspecialchars($stype['type_name']); ?></a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('short_top') ?>
+
+    <!-- 短剧列表 -->
+    <?php if (!empty($shortList)): ?>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 mb-6">
+            <?php foreach ($shortList as $short): ?>
+                <a href="<?php echo xpk_page_url('short_detail', ['id' => $short['vod_id'], 'slug' => $short['vod_slug']]); ?>" class="card cursor-pointer group">
+                    <div class="relative">
+                        <img src="<?php echo htmlspecialchars($short['vod_pic']); ?>" alt="<?php echo htmlspecialchars($short['vod_name']); ?>" class="w-full aspect-[3/4] object-cover rounded-lg" loading="lazy">
+                        <?php if (!empty($short['vod_remarks'])): ?>
+                            <span class="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-1 rounded"><?php echo htmlspecialchars($short['vod_remarks']); ?></span>
+                        <?php endif; ?>
+                        <div class="card-overlay absolute inset-0 bg-black/30 opacity-0 rounded-lg flex items-center justify-center">
+                            <span class="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center text-green-500 text-xl">▶</span>
+                        </div>
+                    </div>
+                    <h3 class="mt-2 text-sm truncate group-hover:text-green-500"><?php echo htmlspecialchars($short['vod_name']); ?></h3>
+                </a>
+            <?php endforeach; ?>
+        </div>
+
+        <!-- 分页 -->
+        <?php include TPL_PATH . 'iqiyi/components/pagination.php'; ?>
+    <?php else: ?>
+        <div class="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+            暂无短剧
+        </div>
+    <?php endif; ?>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('short_bottom') ?>
+</div>
+
+<?php include TPL_PATH . 'iqiyi/layouts/footer.php'; ?>

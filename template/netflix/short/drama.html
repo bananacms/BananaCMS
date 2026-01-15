@@ -1,0 +1,55 @@
+<?php 
+$netflixLayoutPath = TPL_PATH . 'netflix/layouts/';
+include $netflixLayoutPath . 'header.php'; 
+?>
+
+<!-- 短剧剧场页 -->
+<div class="pt-20 md:pt-24 px-4 md:px-12 pb-10">
+    <h1 class="text-2xl md:text-3xl font-bold mb-6">短剧剧场</h1>
+
+    <!-- 热门短剧 -->
+    <?php if (!empty($hotShorts)): ?>
+    <section class="mb-10">
+        <h2 class="text-lg font-bold mb-4">🔥 热门短剧</h2>
+        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 md:gap-4">
+            <?php foreach ($hotShorts as $short): ?>
+            <a href="<?php echo xpk_page_url('short_detail', ['id' => $short['short_id'], 'slug' => $short['short_slug']]); ?>" class="card cursor-pointer relative overflow-hidden rounded group">
+                <img src="<?php echo $short['short_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($short['short_name']); ?>" class="w-full aspect-[9/16] object-cover bg-gray-800">
+                <div class="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                    <p class="text-xs md:text-sm truncate"><?php echo htmlspecialchars($short['short_name']); ?></p>
+                    <p class="text-xs text-gray-400"><?php echo $short['short_total']; ?>集</p>
+                </div>
+            </a>
+            <?php endforeach; ?>
+        </div>
+    </section>
+    <?php endif; ?>
+
+    <!-- 最新短剧 -->
+    <?php if (!empty($newShorts)): ?>
+    <section class="mb-10">
+        <h2 class="text-lg font-bold mb-4">最新更新</h2>
+        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 md:gap-4">
+            <?php foreach ($newShorts as $short): ?>
+            <a href="<?php echo xpk_page_url('short_detail', ['id' => $short['short_id'], 'slug' => $short['short_slug']]); ?>" class="card cursor-pointer relative overflow-hidden rounded group">
+                <img src="<?php echo $short['short_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($short['short_name']); ?>" class="w-full aspect-[9/16] object-cover bg-gray-800">
+                <div class="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                    <p class="text-xs md:text-sm truncate"><?php echo htmlspecialchars($short['short_name']); ?></p>
+                    <p class="text-xs text-gray-400"><?php echo $short['short_total']; ?>集</p>
+                </div>
+                <span class="absolute top-1 left-1 bg-green-600 text-white text-xs px-1.5 py-0.5 rounded">NEW</span>
+            </a>
+            <?php endforeach; ?>
+        </div>
+    </section>
+    <?php endif; ?>
+
+    <!-- 查看更多 -->
+    <div class="text-center">
+        <a href="/short" class="inline-block bg-gray-800 hover:bg-gray-700 px-8 py-3 rounded transition">
+            查看全部短剧 →
+        </a>
+    </div>
+</div>
+
+<?php include $netflixLayoutPath . 'footer.php'; ?>

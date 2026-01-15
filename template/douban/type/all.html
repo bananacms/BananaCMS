@@ -1,0 +1,34 @@
+<?php include TPL_PATH . 'douban/layouts/header.php'; ?>
+
+<div class="max-w-5xl mx-auto px-4 py-8">
+    <!-- 页面标题 -->
+    <div class="mb-6 border-b pb-2">
+        <h1 class="text-lg font-bold text-gray-800">分类浏览</h1>
+    </div>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('type_top') ?>
+
+    <!-- 分类列表 -->
+    <?php if (!empty($typeList)): ?>
+        <div class="flex flex-wrap gap-3">
+            <?php foreach ($typeList as $type): ?>
+                <a href="<?php echo xpk_page_url('type', ['id' => $type['type_id'], 'slug' => $type['type_en']]); ?>" class="px-4 py-2 bg-gray-100 rounded hover:bg-green-100 hover:text-green-700 text-sm">
+                    <?php echo htmlspecialchars($type['type_name']); ?>
+                    <?php if (!empty($type['type_des'])): ?>
+                        <span class="text-gray-400 ml-1">(<?php echo htmlspecialchars($type['type_des']); ?>)</span>
+                    <?php endif; ?>
+                </a>
+            <?php endforeach; ?>
+        </div>
+    <?php else: ?>
+        <div class="text-center text-gray-500 py-12">
+            暂无分类
+        </div>
+    <?php endif; ?>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('type_bottom') ?>
+</div>
+
+<?php include TPL_PATH . 'douban/layouts/footer.php'; ?>

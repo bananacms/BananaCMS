@@ -1,0 +1,85 @@
+<?php include TPL_PATH . 'bilibili/layouts/header.php'; ?>
+
+<!-- 分类标签 -->
+<div class="bg-white border-b">
+    <div class="max-w-7xl mx-auto px-4 py-3">
+        <div class="flex space-x-3 overflow-x-auto scroll-hide">
+            <a href="/type/all" class="bg-gray-200 px-4 py-1 rounded-full text-sm whitespace-nowrap hover:bg-pink-100 hover:text-pink-500">全部</a>
+            <?php if (!empty($navTypes)): ?>
+                <?php 
+                // 获取当前分类的顶级分类ID（用于高亮导航）
+                $currentTopId = ($type['type_pid'] == 0) ? $type['type_id'] : $type['type_pid'];
+                ?>
+                <?php foreach ($navTypes as $navType): ?>
+                    <?php $isActive = ($navType['type_id'] == $currentTopId); ?>
+                    <a href="<?php echo xpk_page_url('type', ['id' => $navType['type_id'], 'slug' => $navType['type_en']]); ?>" class="<?php echo $isActive ? 'bg-pink-500 text-white' : 'bg-gray-200 hover:bg-pink-100 hover:text-pink-500'; ?> px-4 py-1 rounded-full text-sm whitespace-nowrap"><?php echo htmlspecialchars($navType['type_name']); ?></a>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 py-6">
+    <!-- 页面标题 -->
+    <div class="mb-6">
+        <h1 class="text-xl font-bold text-gray-800 flex items-center">
+            <svg class="w-5 h-5 text-pink-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+            <?php echo htmlspecialchars($type['type_name']); ?>
+        </h1>
+    </div>
+
+    <!-- 筛选条件 -->
+    <?php if (!empty($filters)): ?>
+        <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+            <?php foreach ($filters as $filterKey => $filterOptions): ?>
+                <div class="flex flex-wrap items-center gap-2 mb-2 last:mb-0">
+                    <span class="text-gray-500 text-sm w-16"><?php echo htmlspecialchars($filterOptions['name']); ?>：</span>
+                    <div class="flex flex-wrap gap-2">
+                        <?php foreach ($filterOptions['options'] as $option): ?>
+                            <?php $isActive = ($currentFilters[$filterKey] ?? '') == $option['value']; ?>
+                            <a href="<?php echo $option['url']; ?>" class="px-3 py-1 <?php echo $isActive ? 'bg-pink-500 text-white' : 'bg-gray-100 hover:bg-pink-100 hover:text-pink-500'; ?> rounded-full text-xs"><?php echo htmlspecialchars($option['label']); ?></a>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('type_top') ?>
+
+    <!-- 视频列表 -->
+    <?php if (!empty($vodList)): ?>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6">
+            <?php foreach ($vodList as $vod): ?>
+                <a href="<?php echo xpk_page_url('detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="card bg-white rounded-lg overflow-hidden cursor-pointer">
+                    <div class="relative">
+                        <img src="<?php echo htmlspecialchars($vod['vod_pic']); ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full aspect-video object-cover" loading="lazy">
+                        <?php if (!empty($vod['vod_remarks'])): ?>
+                            <div class="absolute bottom-1 right-1 bg-black/70 text-white text-xs px-1 rounded"><?php echo htmlspecialchars($vod['vod_remarks']); ?></div>
+                        <?php endif; ?>
+                        <div class="absolute bottom-1 left-1 text-white text-xs flex items-center">
+                            <span class="mr-2">▶ <?php echo xpk_format_number($vod['vod_hits'] ?? 0); ?></span>
+                        </div>
+                    </div>
+                    <div class="p-2">
+                        <h3 class="text-sm line-clamp-2 hover:text-pink-500"><?php echo htmlspecialchars($vod['vod_name']); ?></h3>
+                        <p class="text-gray-400 text-xs mt-1"><?php echo htmlspecialchars($vod['vod_year'] ?? ''); ?></p>
+                    </div>
+                </a>
+            <?php endforeach; ?>
+        </div>
+
+        <!-- 分页 -->
+        <?php include TPL_PATH . 'bilibili/components/pagination.php'; ?>
+    <?php else: ?>
+        <div class="bg-white rounded-lg shadow-sm p-8 text-center text-gray-500">
+            暂无相关视频
+        </div>
+    <?php endif; ?>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('type_bottom') ?>
+</div>
+
+<?php include TPL_PATH . 'bilibili/layouts/footer.php'; ?>

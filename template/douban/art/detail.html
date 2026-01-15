@@ -1,0 +1,58 @@
+<?php include TPL_PATH . 'douban/layouts/header.php'; ?>
+
+<div class="max-w-3xl mx-auto px-4 py-8">
+    <!-- 面包屑 -->
+    <div class="text-sm text-gray-500 mb-6">
+        <a href="/" class="hover:text-green-700">首页</a>
+        <span class="mx-2">/</span>
+        <a href="/art" class="hover:text-green-700">影评</a>
+        <span class="mx-2">/</span>
+        <span class="text-gray-700"><?php echo htmlspecialchars($art['art_title']); ?></span>
+    </div>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('art_top') ?>
+
+    <!-- 文章内容 -->
+    <article class="mb-8">
+        <h1 class="text-2xl font-bold text-gray-800 mb-4"><?php echo htmlspecialchars($art['art_title']); ?></h1>
+        
+        <div class="flex items-center text-sm text-gray-400 mb-6 pb-4 border-b">
+            <span><?php echo date('Y-m-d H:i', strtotime($art['art_time'])); ?></span>
+            <span class="mx-3">·</span>
+            <span>阅读 <?php echo $art['art_hits'] ?? 0; ?></span>
+        </div>
+
+        <?php if (!empty($art['art_pic'])): ?>
+            <div class="mb-6">
+                <img src="<?php echo htmlspecialchars($art['art_pic']); ?>" alt="<?php echo htmlspecialchars($art['art_title']); ?>" class="w-full rounded">
+            </div>
+        <?php endif; ?>
+
+        <div class="prose prose-green max-w-none text-gray-600 leading-relaxed">
+            <?php echo $art['art_content']; ?>
+        </div>
+    </article>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('art_middle') ?>
+
+    <!-- 相关文章 -->
+    <?php if (!empty($relatedArts)): ?>
+        <div class="border-t pt-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">相关文章</h2>
+            <div class="space-y-3">
+                <?php foreach (array_slice($relatedArts, 0, 5) as $related): ?>
+                    <a href="<?php echo xpk_page_url('art_detail', ['id' => $related['art_id'], 'slug' => $related['art_slug']]); ?>" class="block text-gray-600 hover:text-green-700">
+                        <?php echo htmlspecialchars($related['art_title']); ?>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('art_bottom') ?>
+</div>
+
+<?php include TPL_PATH . 'douban/layouts/footer.php'; ?>

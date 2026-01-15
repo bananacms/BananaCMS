@@ -1,0 +1,76 @@
+<?php include TPL_PATH . 'douban/layouts/header.php'; ?>
+
+<div class="max-w-5xl mx-auto px-4 py-8">
+    <!-- 面包屑 -->
+    <div class="text-sm text-gray-500 mb-6">
+        <a href="/" class="hover:text-green-700">首页</a>
+        <span class="mx-2">/</span>
+        <a href="/actor" class="hover:text-green-700">影人</a>
+        <span class="mx-2">/</span>
+        <span class="text-gray-700"><?php echo htmlspecialchars($actor['actor_name']); ?></span>
+    </div>
+
+    <!-- 演员信息 -->
+    <div class="flex flex-col md:flex-row mb-8 pb-6 border-b">
+        <div class="w-32 h-32 mx-auto md:mx-0 bg-gray-200 rounded-full overflow-hidden flex-shrink-0">
+            <?php if (!empty($actor['actor_pic'])): ?>
+                <img src="<?php echo htmlspecialchars($actor['actor_pic']); ?>" alt="<?php echo htmlspecialchars($actor['actor_name']); ?>" class="w-full h-full object-cover">
+            <?php else: ?>
+                <div class="w-full h-full flex items-center justify-center text-gray-400 text-4xl">
+                    <?php echo mb_substr($actor['actor_name'], 0, 1); ?>
+                </div>
+            <?php endif; ?>
+        </div>
+        <div class="mt-4 md:mt-0 md:ml-6 text-center md:text-left">
+            <h1 class="text-2xl font-bold text-gray-800"><?php echo htmlspecialchars($actor['actor_name']); ?></h1>
+            <?php if (!empty($actor['actor_en'])): ?>
+                <p class="text-gray-500 text-sm mt-1"><?php echo htmlspecialchars($actor['actor_en']); ?></p>
+            <?php endif; ?>
+            <?php if (!empty($actor['actor_content'])): ?>
+                <p class="text-gray-600 text-sm mt-4 max-w-2xl"><?php echo nl2br(htmlspecialchars($actor['actor_content'])); ?></p>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('actor_top') ?>
+
+    <!-- 相关作品 -->
+    <div>
+        <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">相关作品</h2>
+        <?php if (!empty($vodList)): ?>
+            <div class="space-y-4 mb-6">
+                <?php foreach ($vodList as $vod): ?>
+                    <a href="<?php echo xpk_page_url('detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="flex cursor-pointer group p-3 md:p-4 hover:bg-gray-50 rounded -mx-3 md:-mx-4 border-b">
+                        <div class="w-20 md:w-24 h-28 md:h-32 flex-shrink-0">
+                            <img src="<?php echo htmlspecialchars($vod['vod_pic']); ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full h-full object-cover rounded" loading="lazy">
+                        </div>
+                        <div class="ml-3 md:ml-4 flex-1 min-w-0">
+                            <h3 class="font-medium group-hover:text-green-700 truncate"><?php echo htmlspecialchars($vod['vod_name']); ?></h3>
+                            <div class="flex items-center mt-1 flex-wrap">
+                                <?php $score = $vod['vod_score'] ?? 0; include TPL_PATH . 'douban/components/rating.php'; ?>
+                            </div>
+                            <p class="text-gray-500 text-sm mt-2 truncate">
+                                <?php echo htmlspecialchars($vod['vod_year'] ?? ''); ?> 
+                                <?php if (!empty($vod['vod_area'])): ?>/ <?php echo htmlspecialchars($vod['vod_area']); ?><?php endif; ?>
+                                <?php if (!empty($vod['vod_class'])): ?>/ <?php echo htmlspecialchars($vod['vod_class']); ?><?php endif; ?>
+                            </p>
+                        </div>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+
+            <!-- 分页 -->
+            <?php include TPL_PATH . 'douban/components/pagination.php'; ?>
+        <?php else: ?>
+            <div class="text-center text-gray-400 py-8">
+                暂无相关作品
+            </div>
+        <?php endif; ?>
+    </div>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('actor_bottom') ?>
+</div>
+
+<?php include TPL_PATH . 'douban/layouts/footer.php'; ?>

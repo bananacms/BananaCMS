@@ -1,0 +1,83 @@
+<?php include TPL_PATH . 'iqiyi/layouts/header.php'; ?>
+
+<div class="max-w-7xl mx-auto px-4 py-6">
+    <!-- 面包屑 -->
+    <div class="text-sm text-gray-500 mb-4">
+        <a href="/" class="hover:text-green-500">首页</a>
+        <span class="mx-2">/</span>
+        <a href="/short" class="hover:text-green-500">短剧</a>
+        <span class="mx-2">/</span>
+        <a href="<?php echo xpk_page_url('short_detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="hover:text-green-500"><?php echo htmlspecialchars($vod['vod_name']); ?></a>
+        <span class="mx-2">/</span>
+        <span class="text-gray-700"><?php echo htmlspecialchars($currentEp['name'] ?? '正在播放'); ?></span>
+    </div>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('short_play_top') ?>
+
+    <!-- 播放器 -->
+    <div class="bg-black rounded-lg overflow-hidden mb-6">
+        <div class="aspect-video max-h-[70vh] mx-auto">
+            <?php if (!empty($playerUrl)): ?>
+                <iframe src="<?php echo htmlspecialchars($playerUrl); ?>" class="w-full h-full" allowfullscreen frameborder="0" scrolling="no"></iframe>
+            <?php else: ?>
+                <div class="w-full h-full flex items-center justify-center text-white">
+                    <p>播放地址加载失败</p>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- 视频信息 -->
+    <div class="bg-white rounded-lg shadow p-4 mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-lg font-bold text-gray-800"><?php echo htmlspecialchars($vod['vod_name']); ?></h1>
+                <p class="text-green-500 text-sm mt-1"><?php echo htmlspecialchars($currentEp['name'] ?? ''); ?></p>
+            </div>
+            <div class="text-sm text-gray-500">
+                <?php echo xpk_format_number($vod['vod_hits'] ?? 0); ?>次播放
+            </div>
+        </div>
+    </div>
+
+    <!-- 选集列表 -->
+    <?php if (!empty($playUrls)): ?>
+        <div class="bg-white rounded-lg shadow p-4 md:p-6 mb-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">选集</h2>
+            <?php foreach ($playUrls as $sid => $source): ?>
+                <div class="mb-4">
+                    <h3 class="text-sm text-gray-500 mb-2"><?php echo htmlspecialchars($source['name']); ?></h3>
+                    <div class="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-2">
+                        <?php foreach ($source['urls'] as $nid => $ep): ?>
+                            <?php $isActive = ($sid == $currentSid && $nid == $currentNid); ?>
+                            <a href="<?php echo xpk_page_url('short_play', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug'], 'sid' => $sid, 'nid' => $nid]); ?>" class="px-3 py-2 <?php echo $isActive ? 'bg-green-500 text-white' : 'bg-gray-100 hover:bg-green-500 hover:text-white'; ?> rounded text-sm text-center transition"><?php echo htmlspecialchars($ep['name']); ?></a>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+
+    <!-- 相关推荐 -->
+    <?php if (!empty($relatedList)): ?>
+        <div class="bg-white rounded-lg shadow p-4 md:p-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">相关推荐</h2>
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
+                <?php foreach (array_slice($relatedList, 0, 8) as $related): ?>
+                    <a href="<?php echo xpk_page_url('short_detail', ['id' => $related['vod_id'], 'slug' => $related['vod_slug']]); ?>" class="card group">
+                        <div class="relative">
+                            <img src="<?php echo htmlspecialchars($related['vod_pic']); ?>" alt="<?php echo htmlspecialchars($related['vod_name']); ?>" class="w-full aspect-[3/4] object-cover rounded-lg" loading="lazy">
+                        </div>
+                        <h3 class="text-xs mt-2 truncate group-hover:text-green-500"><?php echo htmlspecialchars($related['vod_name']); ?></h3>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('short_play_bottom') ?>
+</div>
+
+<?php include TPL_PATH . 'iqiyi/layouts/footer.php'; ?>

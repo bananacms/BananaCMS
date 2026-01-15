@@ -1,0 +1,63 @@
+<?php 
+$netflixLayoutPath = TPL_PATH . 'netflix/layouts/';
+include $netflixLayoutPath . 'header.php'; 
+?>
+
+<!-- 短剧播放页 -->
+<div class="pt-16">
+    <!-- 播放器区域 -->
+    <div class="bg-black">
+        <div class="max-w-3xl mx-auto">
+            <div class="relative w-full" style="padding-top: 177.78%;">
+                <iframe id="player" src="<?php echo $playUrl; ?>" class="absolute inset-0 w-full h-full" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- 视频信息 -->
+    <div class="max-w-3xl mx-auto px-4 py-6">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h1 class="text-xl font-bold"><?php echo htmlspecialchars($short['short_name']); ?></h1>
+                <p class="text-gray-400 text-sm mt-1">第 <?php echo $currentEpisode; ?> 集</p>
+            </div>
+            <a href="<?php echo xpk_page_url('short_detail', ['id' => $short['short_id'], 'slug' => $short['short_slug']]); ?>" class="text-gray-400 hover:text-white text-sm">
+                ← 返回详情
+            </a>
+        </div>
+
+        <!-- 上下集 -->
+        <div class="flex justify-between items-center py-4 border-t border-b border-gray-800 mb-6">
+            <?php if ($prevEpisode): ?>
+            <a href="<?php echo xpk_page_url('short_play', ['id' => $short['short_id'], 'slug' => $short['short_slug'], 'ep' => $prevEpisode]); ?>" class="bg-gray-800 hover:bg-gray-700 px-6 py-2 rounded transition">
+                ← 上一集
+            </a>
+            <?php else: ?>
+            <span class="text-gray-600 px-6 py-2">← 上一集</span>
+            <?php endif; ?>
+
+            <?php if ($nextEpisode): ?>
+            <a href="<?php echo xpk_page_url('short_play', ['id' => $short['short_id'], 'slug' => $short['short_slug'], 'ep' => $nextEpisode]); ?>" class="bg-gray-800 hover:bg-gray-700 px-6 py-2 rounded transition">
+                下一集 →
+            </a>
+            <?php else: ?>
+            <span class="text-gray-600 px-6 py-2">下一集 →</span>
+            <?php endif; ?>
+        </div>
+
+        <!-- 选集 -->
+        <div>
+            <h3 class="text-sm text-gray-400 mb-3">选集</h3>
+            <div class="grid grid-cols-8 sm:grid-cols-10 gap-2 max-h-48 overflow-y-auto">
+                <?php foreach ($episodes as $ep): ?>
+                <a href="<?php echo xpk_page_url('short_play', ['id' => $short['short_id'], 'slug' => $short['short_slug'], 'ep' => $ep['episode']]); ?>" 
+                   class="<?php echo $ep['episode'] == $currentEpisode ? 'bg-red-600' : 'bg-gray-800 hover:bg-gray-700'; ?> text-center py-2 rounded text-sm transition">
+                    <?php echo $ep['episode']; ?>
+                </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
+</div>
+
+<?php include $netflixLayoutPath . 'footer.php'; ?>

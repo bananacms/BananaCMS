@@ -1,0 +1,205 @@
+<?php include TPL_PATH . 'bilibili/layouts/header.php'; ?>
+
+<div class="max-w-4xl mx-auto px-4 py-6">
+    <!-- 用户VIP状态 -->
+    <div class="bg-gradient-to-r from-pink-500 to-purple-500 rounded-lg shadow-lg p-6 mb-8 text-white">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold mb-2">
+                    <?php if (!empty($user) && !empty($vipStatus['is_vip'])): ?>
+                    <span class="inline-flex items-center"><svg class="w-6 h-6 mr-1 text-yellow-300" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> 大会员</span>
+                    <?php else: ?>
+                    开通大会员
+                    <?php endif; ?>
+                </h1>
+                <?php if (!empty($user)): ?>
+                    <?php if (!empty($vipStatus['is_vip'])): ?>
+                    <p class="opacity-90">到期时间：<?= $vipStatus['vip_expire'] ?></p>
+                    <p class="text-sm opacity-75 mt-1">今日剩余观看：<?= $vipStatus['remaining_views'] >= 9999 ? '无限' : $vipStatus['remaining_views'] . '次' ?></p>
+                    <?php else: ?>
+                    <p class="opacity-90">今日免费观看剩余：<?= $vipStatus['remaining_views'] ?>次</p>
+                    <?php endif; ?>
+                <?php else: ?>
+                <p class="opacity-90">登录后开通大会员，享受无限观看特权</p>
+                <?php endif; ?>
+            </div>
+            <?php if (!empty($user)): ?>
+            <div class="text-right">
+                <p class="text-sm opacity-75">硬币</p>
+                <p class="text-3xl font-bold"><?= $vipStatus['points'] ?? 0 ?></p>
+            </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- VIP套餐列表 -->
+    <h2 class="text-xl font-bold mb-4 text-gray-800">选择套餐</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <?php foreach ($packages as $pkg): ?>
+        <div class="package-card bg-white rounded-lg shadow border-2 border-transparent hover:border-pink-400 cursor-pointer transition-all p-4 relative <?= $pkg['is_hot'] ? 'ring-2 ring-pink-400' : '' ?>"
+             data-id="<?= $pkg['package_id'] ?>" data-price="<?= $pkg['price'] ?>" data-price-usdt="<?= $pkg['price_usdt'] ?>" onclick="selectPackage(this)">
+            <?php if ($pkg['is_hot']): ?>
+            <span class="absolute -top-2 -right-2 bg-pink-500 text-white text-xs px-2 py-0.5 rounded-full">推荐</span>
+            <?php endif; ?>
+            <h3 class="text-lg font-bold text-center mb-2 text-gray-800"><?= htmlspecialchars($pkg['package_name']) ?></h3>
+            <div class="text-center mb-2">
+                <span class="text-2xl font-bold text-pink-500">¥<?= number_format($pkg['price'], 2) ?></span>
+                <?php if ($pkg['original_price']): ?>
+                <span class="text-gray-400 line-through text-sm ml-1">¥<?= number_format($pkg['original_price'], 2) ?></span>
+                <?php endif; ?>
+            </div>
+            <?php if ($pkg['price_usdt']): ?>
+            <p class="text-center text-gray-500 text-sm mb-2">≈ $<?= $pkg['price_usdt'] ?> USDT</p>
+            <?php endif; ?>
+            <div class="text-center text-gray-600 text-sm space-y-1">
+                <p><?= $pkg['days'] ?>天有效期</p>
+                <p><?= $pkg['daily_limit'] >= 9999 ? '无限观看' : '每日' . $pkg['daily_limit'] . '次' ?></p>
+                <?php if ($pkg['bonus_points']): ?>
+                <p class="text-pink-500">+<?= $pkg['bonus_points'] ?>硬币</p>
+                <?php endif; ?>
+            </div>
+        </div>
+        <?php endforeach; ?>
+    </div>
+
+    <!-- 支付方式 -->
+    <h2 class="text-xl font-bold mb-4 text-gray-800">选择支付方式</h2>
+    <div class="bg-white rounded-lg shadow p-6 mb-8">
+        <div id="mchTip" class="hidden mb-4 p-3 bg-amber-50 border border-amber-300 rounded-lg text-sm">
+            <span class="font-bold text-amber-700 inline-flex items-center gap-1">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="2" width="14" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="18" r="1"/></svg>
+                温馨提示：
+            </span>
+            <span class="text-amber-600">请在手机浏览器中完成支付，将自动跳转支付宝/微信。</span>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <?php foreach ($channels as $ch): ?>
+                <?php foreach ($ch['support_methods'] as $method): ?>
+                <label class="pay-method flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:border-pink-400 transition-all"
+                       data-channel="<?= $ch['channel_id'] ?>" data-method="<?= $method ?>">
+                    <input type="radio" name="pay_method" value="<?= $method ?>" data-channel="<?= $ch['channel_id'] ?>" class="hidden">
+                    <?php if ($method === 'alipay'): ?>
+                    <span class="text-blue-500 font-medium">支付宝</span>
+                    <?php elseif ($method === 'wechat'): ?>
+                    <span class="text-green-500 font-medium">微信支付</span>
+                    <?php endif; ?>
+                </label>
+                <?php endforeach; ?>
+            <?php endforeach; ?>
+            <?php if ($usdtEnabled): ?>
+            <label class="pay-method flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:border-pink-400 transition-all"
+                   data-channel="0" data-method="usdt">
+                <input type="radio" name="pay_method" value="usdt" data-channel="0" class="hidden">
+                <span class="text-green-600 font-medium">USDT</span>
+            </label>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- 支付按钮 -->
+    <div class="text-center">
+        <p class="text-gray-500 mb-4">
+            已选套餐：<span id="selectedPackage" class="font-medium text-gray-800">请选择</span>
+            <span class="mx-2">|</span>
+            支付金额：<span id="payAmount" class="font-bold text-pink-500 text-xl">¥0.00</span>
+        </p>
+        <?php if (!empty($user)): ?>
+        <button id="payBtn" onclick="submitPay()" disabled
+            class="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-12 py-3 rounded-lg text-lg font-bold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed">
+            立即开通
+        </button>
+        <?php else: ?>
+        <a href="/user/login?redirect=<?= urlencode('/user/vip') ?>" 
+            class="inline-block bg-gradient-to-r from-pink-500 to-purple-500 text-white px-12 py-3 rounded-lg text-lg font-bold hover:opacity-90">
+            登录后开通
+        </a>
+        <?php endif; ?>
+    </div>
+</div>
+
+<script>
+var selectedPackageId = 0, selectedChannelId = 0, selectedMethod = '';
+
+function selectPackage(el) {
+    document.querySelectorAll('.package-card').forEach(c => c.classList.remove('border-pink-400', 'bg-pink-50'));
+    el.classList.add('border-pink-400', 'bg-pink-50');
+    selectedPackageId = el.dataset.id;
+    document.getElementById('selectedPackage').textContent = el.querySelector('h3').textContent;
+    updatePayAmount();
+    checkCanPay();
+}
+
+document.querySelectorAll('.pay-method').forEach(el => {
+    el.addEventListener('click', function() {
+        document.querySelectorAll('.pay-method').forEach(m => m.classList.remove('border-pink-500', 'bg-pink-50'));
+        this.classList.add('border-pink-500', 'bg-pink-50');
+        this.querySelector('input').checked = true;
+        selectedChannelId = this.dataset.channel;
+        selectedMethod = this.dataset.method;
+        updatePayAmount();
+        checkCanPay();
+        var mchTip = document.getElementById('mchTip');
+        if (mchTip) mchTip.classList.toggle('hidden', selectedMethod === 'usdt');
+    });
+});
+
+function updatePayAmount() {
+    if (!selectedPackageId) return;
+    var card = document.querySelector('.package-card[data-id="' + selectedPackageId + '"]');
+    if (selectedMethod === 'usdt' && card.dataset.priceUsdt) {
+        document.getElementById('payAmount').textContent = '$' + card.dataset.priceUsdt + ' USDT';
+    } else {
+        document.getElementById('payAmount').textContent = '¥' + parseFloat(card.dataset.price).toFixed(2);
+    }
+}
+
+function checkCanPay() {
+    var btn = document.getElementById('payBtn');
+    if (btn) btn.disabled = !(selectedPackageId && selectedMethod);
+}
+
+function submitPay() {
+    if (!selectedPackageId || !selectedMethod) { xpk.toast('请选择套餐和支付方式', 'warning'); return; }
+    var btn = document.getElementById('payBtn');
+    btn.disabled = true;
+    btn.textContent = '处理中...';
+    fetch('/api?action=pay.create', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({package_id: selectedPackageId, pay_method: selectedMethod, channel_id: selectedChannelId})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.code === 0) {
+            if (data.data.pay_method === 'usdt') {
+                location.href = '/user/pay/usdt?order_no=' + data.data.order_no;
+            } else {
+                var form = document.createElement('form');
+                form.method = data.data.method || 'GET';
+                form.action = data.data.gateway;
+                for (var key in data.data.params) {
+                    var input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = key;
+                    input.value = data.data.params[key];
+                    form.appendChild(input);
+                }
+                document.body.appendChild(form);
+                form.submit();
+            }
+        } else {
+            xpk.toast(data.msg || '创建订单失败', 'error');
+            btn.disabled = false;
+            btn.textContent = '立即开通';
+        }
+    })
+    .catch(() => { xpk.toast('网络错误，请重试', 'error'); btn.disabled = false; btn.textContent = '立即开通'; });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var hotCard = document.querySelector('.package-card.ring-2');
+    if (hotCard) selectPackage(hotCard);
+});
+</script>
+
+<?php include TPL_PATH . 'bilibili/layouts/footer.php'; ?>

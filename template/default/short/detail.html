@@ -1,0 +1,69 @@
+<?php include VIEW_PATH . 'layouts/header.php'; ?>
+
+<div class="container mx-auto px-4 py-6">
+    <!-- 面包屑 -->
+    <div class="text-sm text-gray-500 mb-4">
+        <a href="<?= xpk_url() ?>" class="hover:text-red-600">首页</a>
+        <span class="mx-2">/</span>
+        <a href="<?= xpk_url('short/drama') ?>" class="hover:text-red-600">短剧</a>
+        <span class="mx-2">/</span>
+        <span><?= htmlspecialchars($short['short_name']) ?></span>
+    </div>
+
+    <div class="flex flex-col md:flex-row gap-6">
+        <!-- 封面 -->
+        <div class="w-full md:w-48 flex-shrink-0">
+            <div class="aspect-[3/4] rounded-lg overflow-hidden bg-gray-200">
+                <?php if (!empty($short['short_pic'])): ?>
+                <img src="<?= htmlspecialchars($short['short_pic']) ?>" alt="<?= htmlspecialchars($short['short_name']) ?>" class="w-full h-full object-cover">
+                <?php else: ?>
+                <div class="w-full h-full flex items-center justify-center text-gray-400">暂无封面</div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- 信息 -->
+        <div class="flex-1">
+            <h1 class="text-2xl font-bold mb-3"><?= htmlspecialchars($short['short_name']) ?></h1>
+            
+            <div class="flex flex-wrap gap-4 text-sm text-gray-500 mb-4">
+                <span>▶ <?= $short['short_hits'] ?> 播放</span>
+                <span>❤ <?= $short['short_likes'] ?> 喜欢</span>
+                <span>共 <?= count($episodes) ?> 集</span>
+            </div>
+
+            <?php if (!empty($short['short_tags'])): ?>
+            <div class="mb-4">
+                <?php foreach (explode(',', $short['short_tags']) as $tag): ?>
+                <span class="inline-block bg-gray-100 text-gray-600 px-2 py-1 rounded text-sm mr-2 mb-2">#<?= htmlspecialchars(trim($tag)) ?></span>
+                <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
+
+            <p class="text-gray-600 mb-6"><?= htmlspecialchars($short['short_desc']) ?></p>
+
+            <?php if (!empty($episodes)): ?>
+            <a href="<?= xpk_url('short/play/' . $short['short_id'] . '/1') ?>" class="inline-block bg-red-600 text-white px-8 py-3 rounded-lg hover:bg-red-700">
+                ▶ 立即观看
+            </a>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- 剧集列表 -->
+    <?php if (!empty($episodes)): ?>
+    <div class="mt-8">
+        <h2 class="text-lg font-bold mb-4">选集</h2>
+        <div class="xpk-episode-list">
+            <?php foreach ($episodes as $index => $ep): ?>
+            <a href="<?= xpk_url('short/play/' . $short['short_id'] . '/' . ($index + 1)) ?>" 
+               class="xpk-episode-item <?= $ep['episode_free'] ? '' : 'locked' ?>">
+                <?= $ep['episode_name'] ?: '第' . ($index + 1) . '集' ?>
+            </a>
+            <?php endforeach; ?>
+        </div>
+    </div>
+    <?php endif; ?>
+</div>
+
+<?php include VIEW_PATH . 'layouts/footer.php'; ?>

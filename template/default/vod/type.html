@@ -1,0 +1,40 @@
+<?php include VIEW_PATH . 'layouts/header.php'; ?>
+
+<!-- 分类标签 -->
+<div class="flex items-center gap-3 pt-2 mb-6 overflow-x-auto pb-2 px-1 -mx-1 scroll-hide">
+    <a href="/" class="bg-gray-100 px-4 py-1.5 rounded-lg text-sm whitespace-nowrap hover:bg-gray-200 flex-shrink-0">全部</a>
+    <?php foreach ($navTypes as $navType): ?>
+        <a href="<?php echo xpk_page_url('type', ['id' => $navType['type_id'], 'slug' => $navType['type_en']]); ?>" 
+           class="<?php echo ($navType['type_id'] == $type['type_id'] || $navType['type_id'] == $type['type_pid']) ? 'bg-white border-2 border-blue-500 text-blue-600' : 'bg-gray-100 hover:bg-gray-200'; ?> px-4 py-1.5 rounded-lg text-sm whitespace-nowrap flex-shrink-0"><?php echo htmlspecialchars($navType['type_name']); ?></a>
+    <?php endforeach; ?>
+</div>
+
+<div class="mb-6">
+    <h1 class="text-2xl font-bold"><?php echo htmlspecialchars($type['type_name']); ?></h1>
+    <p class="text-gray-500 text-sm mt-1">共 <?php echo $total; ?> 部</p>
+</div>
+
+<!-- 视频列表 -->
+<?php if (!empty($vodList)): ?>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-8">
+        <?php foreach ($vodList as $vod): ?>
+            <a href="<?php echo xpk_page_url('vod_detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="group cursor-pointer card-hover">
+                <div class="relative">
+                    <img src="<?php echo $vod['vod_pic'] ?: '/static/images/no-image.svg'; ?>" alt="<?php echo htmlspecialchars($vod['vod_name']); ?>" class="w-full aspect-[2/3] object-cover rounded-lg bg-gray-100">
+                    <div class="absolute bottom-1 right-1 bg-black/80 text-white text-xs px-1 rounded"><?php echo $vod['vod_remarks'] ?: '更新中'; ?></div>
+                </div>
+                <h3 class="mt-2 text-sm truncate group-hover:text-red-600"><?php echo htmlspecialchars($vod['vod_name']); ?></h3>
+                <p class="text-gray-400 text-xs"><?php echo $vod['vod_hits']; ?>次播放</p>
+            </a>
+        <?php endforeach; ?>
+    </div>
+
+    <!-- 分页 -->
+    <?php include TPL_PATH . 'default/components/pagination.php'; ?>
+<?php else: ?>
+    <div class="text-center py-12 text-gray-500">
+        <p>暂无视频</p>
+    </div>
+<?php endif; ?>
+
+<?php include VIEW_PATH . 'layouts/footer.php'; ?>

@@ -1,0 +1,74 @@
+<?php include TPL_PATH . 'douban/layouts/header.php'; ?>
+
+<div class="max-w-5xl mx-auto px-4 py-8">
+    <!-- 面包屑 -->
+    <div class="text-sm text-gray-500 mb-4">
+        <a href="/" class="hover:text-green-700">首页</a>
+        <span class="mx-2">/</span>
+        <a href="/short" class="hover:text-green-700">短剧</a>
+        <span class="mx-2">/</span>
+        <a href="<?php echo xpk_page_url('short_detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="hover:text-green-700"><?php echo htmlspecialchars($vod['vod_name']); ?></a>
+        <span class="mx-2">/</span>
+        <span class="text-gray-700"><?php echo htmlspecialchars($currentEp['name'] ?? '正在播放'); ?></span>
+    </div>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('short_play_top') ?>
+
+    <!-- 播放器 -->
+    <div class="bg-black rounded overflow-hidden mb-6">
+        <div class="aspect-video max-h-[70vh] mx-auto">
+            <?php if (!empty($playerUrl)): ?>
+                <iframe src="<?php echo htmlspecialchars($playerUrl); ?>" class="w-full h-full" allowfullscreen frameborder="0" scrolling="no"></iframe>
+            <?php else: ?>
+                <div class="w-full h-full flex items-center justify-center text-white">
+                    <p>播放地址加载失败</p>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- 视频信息 -->
+    <div class="mb-6 pb-4 border-b">
+        <h1 class="text-xl font-bold text-gray-800"><?php echo htmlspecialchars($vod['vod_name']); ?></h1>
+        <p class="text-green-700 text-sm mt-1"><?php echo htmlspecialchars($currentEp['name'] ?? ''); ?></p>
+    </div>
+
+    <!-- 选集列表 -->
+    <?php if (!empty($playUrls)): ?>
+        <div class="mb-8">
+            <h2 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2">选集</h2>
+            <?php foreach ($playUrls as $sid => $source): ?>
+                <div class="mb-4">
+                    <h3 class="text-sm text-gray-500 mb-2"><?php echo htmlspecialchars($source['name']); ?></h3>
+                    <div class="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-2">
+                        <?php foreach ($source['urls'] as $nid => $ep): ?>
+                            <?php $isActive = ($sid == $currentSid && $nid == $currentNid); ?>
+                            <a href="<?php echo xpk_page_url('short_play', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug'], 'sid' => $sid, 'nid' => $nid]); ?>" class="px-2 py-1 border <?php echo $isActive ? 'border-green-700 bg-green-700 text-white' : 'border-gray-300 hover:border-green-700 hover:text-green-700'; ?> rounded text-sm text-center"><?php echo htmlspecialchars($ep['name']); ?></a>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+
+    <!-- 相关推荐 -->
+    <?php if (!empty($relatedList)): ?>
+        <div>
+            <h2 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2">相关推荐</h2>
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
+                <?php foreach (array_slice($relatedList, 0, 6) as $related): ?>
+                    <a href="<?php echo xpk_page_url('short_detail', ['id' => $related['vod_id'], 'slug' => $related['vod_slug']]); ?>" class="cursor-pointer group">
+                        <img src="<?php echo htmlspecialchars($related['vod_pic']); ?>" alt="<?php echo htmlspecialchars($related['vod_name']); ?>" class="w-full aspect-[2/3] object-cover rounded shadow-md" loading="lazy">
+                        <h3 class="mt-2 text-sm font-medium group-hover:text-green-700 line-clamp-1"><?php echo htmlspecialchars($related['vod_name']); ?></h3>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('short_play_bottom') ?>
+</div>
+
+<?php include TPL_PATH . 'douban/layouts/footer.php'; ?>

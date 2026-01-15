@@ -1,0 +1,214 @@
+<?php include TPL_PATH . 'douban/layouts/header.php'; ?>
+
+<div class="max-w-5xl mx-auto px-4 py-8">
+    <!-- 面包屑 -->
+    <div class="text-sm text-gray-500 mb-4">
+        <a href="/" class="hover:text-green-700">首页</a>
+        <span class="mx-2">/</span>
+        <a href="<?php echo xpk_page_url('detail', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug']]); ?>" class="hover:text-green-700"><?php echo htmlspecialchars($vod['vod_name']); ?></a>
+        <span class="mx-2">/</span>
+        <span class="text-gray-700"><?php echo htmlspecialchars($currentEp['name'] ?? '正在播放'); ?></span>
+    </div>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('play_top') ?>
+
+    <!-- 播放器 -->
+    <div class="bg-black rounded overflow-hidden mb-6">
+        <div class="aspect-video relative">
+            <?php if (!$canWatch): ?>
+            <!-- VIP限制遮罩 -->
+            <div class="absolute inset-0 z-50 bg-gray-900/95 flex flex-col items-center justify-center text-white p-6">
+                <svg class="w-20 h-20 mb-4 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+                <?php if (empty($user)): ?>
+                <h3 class="text-xl font-bold mb-2">请先登录</h3>
+                <p class="text-gray-400 mb-4">登录后即可观看视频</p>
+                <a href="/user/login?redirect=<?= urlencode($_SERVER['REQUEST_URI']) ?>" class="bg-green-700 text-white px-8 py-3 rounded font-medium hover:bg-green-800">立即登录</a>
+                <?php elseif ($vipCheck['reason'] === 'limit_exceeded'): ?>
+                <h3 class="text-xl font-bold mb-2">今日免费次数已用完</h3>
+                <p class="text-gray-400 mb-4">开通豆瓣会员，享受无限观看特权</p>
+                <div class="flex gap-4">
+                    <a href="/user/vip" class="bg-green-700 text-white px-8 py-3 rounded font-medium hover:bg-green-800">开通会员</a>
+                    <?php if (!empty($vipCheck['have_points']) && $vipCheck['have_points'] >= ($vipCheck['need_points'] ?? 10)): ?>
+                    <button onclick="unlockWithPoints()" class="bg-gray-600 text-white px-8 py-3 rounded font-medium hover:bg-gray-700">
+                        积分解锁 (<?= $vipCheck['need_points'] ?? 10 ?>积分)
+                    </button>
+                    <?php endif; ?>
+                </div>
+                <p class="text-sm text-gray-500 mt-4">当前积分: <?= $vipCheck['have_points'] ?? 0 ?></p>
+                <?php else: ?>
+                <h3 class="text-xl font-bold mb-2"><?= htmlspecialchars($vipCheck['message'] ?? '无法观看') ?></h3>
+                <a href="/user/vip" class="bg-green-700 text-white px-8 py-3 rounded font-medium hover:bg-green-800 mt-4">开通会员</a>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
+            
+            <!-- 片头广告 -->
+            <?php 
+            $playBeforeAd = xpk_ads('play_before');
+            if (!empty($playBeforeAd)): 
+                $adItem = $playBeforeAd[0];
+            ?>
+            <div id="playBeforeAd" class="absolute inset-0 z-50 bg-black flex items-center justify-center">
+                <?php if ($adItem['ad_type'] === 'video' && !empty($adItem['ad_video'])): ?>
+                <video id="adVideo" src="<?= htmlspecialchars($adItem['ad_video']) ?>" autoplay playsinline class="w-full h-full object-contain"></video>
+                <?php elseif ($adItem['ad_type'] === 'image' && !empty($adItem['ad_image'])): ?>
+                <a href="<?= htmlspecialchars($adItem['ad_link']) ?>" target="_blank" rel="nofollow" class="flex items-center justify-center w-full h-full">
+                    <img src="<?= htmlspecialchars($adItem['ad_image']) ?>" class="max-w-full max-h-full object-contain" alt="广告">
+                </a>
+                <?php endif; ?>
+                <div class="absolute top-2 right-2 bg-black/70 text-white px-3 py-1 rounded text-sm">
+                    广告 <span id="adCountdown"><?= (int)($adItem['ad_skip_time'] ?: 5) ?></span>s
+                </div>
+                <button id="skipAdBtn" onclick="skipAd()" class="absolute bottom-4 right-4 bg-white/90 text-gray-800 px-4 py-2 rounded hover:bg-white hidden">
+                    跳过广告
+                </button>
+            </div>
+            <script>
+            (function() {
+                var countdown = <?= (int)($adItem['ad_skip_time'] ?: 5) ?>;
+                var countdownEl = document.getElementById('adCountdown');
+                var skipBtn = document.getElementById('skipAdBtn');
+                var adContainer = document.getElementById('playBeforeAd');
+                var timer = setInterval(function() {
+                    countdown--;
+                    if (countdown <= 0) {
+                        clearInterval(timer);
+                        skipBtn.classList.remove('hidden');
+                        countdownEl.parentElement.innerHTML = '广告';
+                    } else {
+                        countdownEl.textContent = countdown;
+                    }
+                }, 1000);
+                window.skipAd = function() { adContainer.style.display = 'none'; };
+                var adVideo = document.getElementById('adVideo');
+                if (adVideo) { adVideo.addEventListener('ended', function() { adContainer.style.display = 'none'; }); }
+            })();
+            </script>
+            <?php endif; ?>
+
+            <?php if (!empty($playerUrl)): ?>
+                <iframe src="<?php echo htmlspecialchars($playerUrl); ?>" class="w-full h-full" allowfullscreen frameborder="0" scrolling="no"></iframe>
+            <?php else: ?>
+                <div class="w-full h-full flex items-center justify-center text-white">
+                    <p>播放地址加载失败</p>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- 视频信息 -->
+    <div class="mb-6 pb-4 border-b">
+        <h1 class="text-xl font-bold text-gray-800"><?php echo htmlspecialchars($vod['vod_name']); ?></h1>
+        <p class="text-green-700 text-sm mt-1"><?php echo htmlspecialchars($currentEp['name'] ?? ''); ?></p>
+        <div class="flex items-center mt-2 text-sm text-gray-500">
+            <?php if (!empty($vod['vod_score'])): ?>
+                <span class="text-orange-500 font-bold mr-2"><?php echo number_format($vod['vod_score'], 1); ?>分</span>
+            <?php endif; ?>
+            <span><?php echo htmlspecialchars($vod['vod_year'] ?? ''); ?></span>
+            <?php if (!empty($vod['vod_area'])): ?>
+                <span class="mx-1">/</span>
+                <span><?php echo htmlspecialchars($vod['vod_area']); ?></span>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('play_middle') ?>
+
+    <!-- 播放列表 -->
+    <?php if (!empty($playUrls)): ?>
+        <div class="mb-8">
+            <h2 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2">选集播放</h2>
+            <?php $sourceCount = count($playUrls); ?>
+            <?php foreach ($playUrls as $sidIdx => $source): ?>
+                <div class="mb-4">
+                    <h3 class="text-sm text-gray-500 mb-2">
+                        <?php if ($sourceCount > 1): ?>
+                            <span class="<?php echo (($sidIdx + 1) == $currentSid) ? 'bg-green-700 text-white' : 'bg-gray-200'; ?> px-2 py-1 rounded mr-2"><?php echo htmlspecialchars($source['name']); ?></span>
+                        <?php endif; ?>
+                        共<?php echo count($source['urls']); ?>集
+                    </h3>
+                    <div class="flex flex-wrap gap-2">
+                        <?php foreach ($source['urls'] as $nidIdx => $ep): ?>
+                            <?php $isActive = (($sidIdx + 1) == $currentSid && ($nidIdx + 1) == $currentNid); ?>
+                            <a href="<?php echo xpk_page_url('play', ['id' => $vod['vod_id'], 'slug' => $vod['vod_slug'], 'sid' => $sidIdx + 1, 'nid' => $nidIdx + 1]); ?>" class="px-3 py-1 border <?php echo $isActive ? 'border-green-700 bg-green-700 text-white' : 'border-gray-300 hover:border-green-700 hover:text-green-700'; ?> rounded text-sm"><?php echo htmlspecialchars($ep['name']); ?></a>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+
+    <!-- 相关推荐 -->
+    <?php if (!empty($relatedList)): ?>
+        <div class="mb-8">
+            <h2 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2">相关推荐</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                <?php foreach (array_slice($relatedList, 0, 10) as $related): ?>
+                    <a href="<?php echo xpk_page_url('detail', ['id' => $related['vod_id'], 'slug' => $related['vod_slug']]); ?>" class="cursor-pointer group">
+                        <img src="<?php echo htmlspecialchars($related['vod_pic']); ?>" alt="<?php echo htmlspecialchars($related['vod_name']); ?>" class="w-full aspect-[2/3] object-cover rounded shadow-md" loading="lazy">
+                        <h3 class="mt-2 text-sm font-medium group-hover:text-green-700 line-clamp-1"><?php echo htmlspecialchars($related['vod_name']); ?></h3>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <!-- 广告位 -->
+    <?= xpk_ad('play_bottom') ?>
+</div>
+
+<!-- VIP脚本 -->
+<script>
+<?php if ($canWatch && $vipEnabled && !empty($user)): ?>
+// 记录观看
+(function() {
+    fetch('/api?action=vip.watch', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({vod_id: <?= $vod['vod_id'] ?>, use_points: false})
+    });
+})();
+<?php endif; ?>
+
+<?php if (!$canWatch && !empty($user)): ?>
+// 积分解锁
+function unlockWithPoints() {
+    xpk.confirm('确定使用 <?= $vipCheck['need_points'] ?? 10 ?> 积分解锁此视频？', function() {
+        fetch('/api?action=vip.watch', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({vod_id: <?= $vod['vod_id'] ?>, use_points: true})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.code === 0) {
+                location.reload();
+            } else {
+                xpk.toast(data.msg || '解锁失败', 'error');
+            }
+        })
+        .catch(() => xpk.toast('网络错误，请重试', 'error'));
+    });
+}
+<?php endif; ?>
+
+// 播放器广告消息监听
+window.addEventListener('message', function(e) {
+    if (e.data && typeof e.data === 'object') {
+        if (e.data.type === 'ad_show' || e.data.type === 'ad_click') {
+            var action = e.data.type === 'ad_click' ? 'click' : 'show';
+            fetch('/api.php?action=ad.' + action, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'id=' + e.data.id
+            });
+        }
+    }
+});
+</script>
+
+<?php include TPL_PATH . 'douban/layouts/footer.php'; ?>

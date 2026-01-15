@@ -1,0 +1,21 @@
+<?php include TPL_PATH . 'douban/layouts/header.php'; ?>
+
+<div class="max-w-3xl mx-auto px-4 py-8">
+    <!-- 面包屑 -->
+    <div class="text-sm text-gray-500 mb-6">
+        <a href="/" class="hover:text-green-700">首页</a>
+        <span class="mx-2">/</span>
+        <span class="text-gray-700"><?php echo htmlspecialchars($page['page_title']); ?></span>
+    </div>
+
+    <!-- 页面内容 -->
+    <article>
+        <h1 class="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b"><?php echo htmlspecialchars($page['page_title']); ?></h1>
+        
+        <div class="prose prose-green max-w-none text-gray-600 leading-relaxed">
+            <?php echo $page['page_content']; ?>
+        </div>
+    </article>
+</div>
+
+<?php include TPL_PATH . 'douban/layouts/footer.php'; ?>
