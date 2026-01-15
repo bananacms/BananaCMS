@@ -114,6 +114,10 @@ class AdminConfigController extends AdminBaseController
             'url_art_detail' => trim($this->post('url_art_detail', '')),
             // 统计代码
             'site_analytics' => $this->post('site_analytics', ''),
+            // IndexNow 配置
+            'indexnow_enabled' => $this->post('indexnow_enabled', '0'),
+            'indexnow_api_key' => $this->sanitizeApiKey($this->post('indexnow_api_key', '')),
+            'indexnow_host' => $this->sanitizeHost($this->post('indexnow_host', '')),
             // SEO模板
             'seo_title_vod_detail' => trim($this->post('seo_title_vod_detail', '')),
             'seo_keywords_vod_detail' => trim($this->post('seo_keywords_vod_detail', '')),
@@ -149,6 +153,34 @@ class AdminConfigController extends AdminBaseController
         // 清除所有缓存（包括模板编译缓存）
         xpk_cache()->clear();
         $this->clearTemplateCache();
+        
+        // IndexNow key file management
+        require_once CORE_PATH . 'IndexNow.php';
+        if (!empty($configs['indexnow_enabled']) && $configs['indexnow_enabled'] == '1') {
+            // Validate API key when enabling
+            if (empty($configs['indexnow_api_key'])) {
+                $this->flash('error', '启用 IndexNow 时必须设置 API Key');
+                $this->redirect('/' . $this->adminEntry . '?s=config');
+                return;
+            }
+            
+            // Create new key file
+            $indexNow = new XpkIndexNow();
+            if (!$indexNow->createKeyFile()) {
+                error_log('IndexNow: Failed to create key file');
+            }
+        }
+        
+        // Clean up old key files if API key changed
+        $oldApiKey = $db->queryOne(
+            "SELECT config_value FROM " . DB_PREFIX . "config WHERE config_name = 'indexnow_api_key'"
+        );
+        if ($oldApiKey && !empty($oldApiKey['config_value']) && $oldApiKey['config_value'] !== $configs['indexnow_api_key']) {
+            $oldKeyFile = ROOT_PATH . $oldApiKey['config_value'] . '.txt';
+            if (file_exists($oldKeyFile)) {
+                @unlink($oldKeyFile);
+            }
+        }
 
         $this->log('修改', '配置', '更新站点配置');
         $this->flash('success', '保存成功');
@@ -637,6 +669,44 @@ class AdminConfigController extends AdminBaseController
         $this->assign('csrfToken', $this->csrfToken());
         $this->render('config/security', '安全配置');
     }
+    
+    /**
+     * Sanitize IndexNow API Key
+     */
+    private function sanitizeApiKey(string $key): string
+    {
+        $key = trim($key);
+        if (empty($key)) {
+            return ''; // Allow empty for disabling
+        }
+        // Only allow hexadecimal characters (0-9, a-f)
+        if (!preg_match('/^[a-f0-9]{32}$/i', $key)) {
+            $this->error('API Key 格式不正确，必须是32位十六进制字符');
+        }
+        return strtolower($key);
+    }
+    
+    /**
+     * Sanitize IndexNow Host
+     */
+    private function sanitizeHost(string $host): string
+    {
+        $host = trim($host);
+        if (empty($host)) {
+            return '';
+        }
+        
+        // Remove protocol
+        $host = preg_replace('#^https?://#i', '', $host);
+        // Remove trailing slash
+        $host = rtrim($host, '/');
+        // Validate domain format
+        if (!preg_match('/^[a-z0-9]([a-z0-9\-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9\-]{0,61}[a-z0-9])?)*$/i', $host)) {
+            $this->error('域名格式不正确');
+        }
+        
+        return $host;
+    }
 
     /**
      * 更新安全配置
@@ -711,5 +781,21 @@ class AdminConfigController extends AdminBaseController
         ];
         
         return array_merge($defaults, $config);
+    }
+    
+    /**
+     * 安全配置页面
+     */
+    public function security(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->updateSecurityConfig();
+            return;
+        }
+        
+        $config = $this->getSecurityConfig();
+        $this->assign('config', $config);
+        $this->assign('csrfToken', $this->csrfToken());
+        $this->render('config/security', '安全配置');
     }
 }

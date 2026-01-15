@@ -104,13 +104,14 @@ Optional:
 - ✅ **Page Management** - Page creation, page editing, page deletion, page sorting
 
 ### Technical Features
-- ✅ **SEO Optimization** - Sitemap generation, robots configuration, custom URLs, meta tags
+- ✅ **SEO Optimization** - Sitemap generation, IndexNow instant indexing, robots configuration, custom URLs, meta tags
 - ✅ **5 URL Modes** - Supports slug rewrite, custom rules, SEO friendly
 - ✅ **Dual Cache Drivers** - File cache/Redis cache, cache preheating, cache cleanup
 - ✅ **Dual Storage Drivers** - Local storage/Cloudflare R2, file management, CDN acceleration
 - ✅ **Security Protection** - CSRF/XSS/SQL injection protection, IP obfuscation, operation audit
 - ✅ **RESTful API** - 40+ interfaces, Token authentication, APP support, API documentation
 - ✅ **Template System** - Custom tags, template compilation, variable rendering, template cache
+- ✅ **Analytics Integration** - Third-party analytics code integration, UV/PV statistics, data analysis
 - ✅ **Multi-language Support** - Chinese/English interface, multi-language templates, internationalization configuration
 
 ## 📥 Collection Feature
@@ -129,6 +130,25 @@ Supports connecting to resource site APIs (JSON/XML), automatic video collection
 ## 🔧 Configuration
 
 > The config file `config/config.php` is auto-generated during installation with database connection and site info. Below are optional advanced configurations.
+
+### Analytics Code Configuration
+
+In backend "System Configuration", you can add third-party analytics code (such as Google Analytics, Baidu Statistics, etc.). The analytics code will be automatically output at the bottom of all pages.
+
+### IndexNow Instant Indexing
+
+IndexNow is an open protocol that instantly notifies search engines (Bing, Yandex, etc.) about your content updates, speeding up indexing.
+
+**Configuration Steps**:
+1. Enable IndexNow in backend "System Configuration"
+2. Click "Generate" button to create API Key (32-character random string)
+3. Fill in website domain (without http://)
+4. After saving, the system will automatically create a verification file in the website root directory
+
+**Auto Submission**:
+- Auto-submit when publishing videos
+- Auto-submit when video status changes to published
+- Batch submit when generating sitemap (first 100 URLs)
 
 ### Cache Configuration
 

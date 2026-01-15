@@ -191,6 +191,51 @@
             </div>
         </div>
 
+        <!-- IndexNow 配置 -->
+        <div>
+            <h3 class="font-bold text-gray-700 border-b pb-2 mb-4">IndexNow 快速索引</h3>
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <div class="flex items-start">
+                    <svg class="w-5 h-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div class="text-sm text-blue-800">
+                        <p class="font-medium mb-1">什么是 IndexNow？</p>
+                        <p>IndexNow 是一个开放协议，可以即时通知搜索引擎（Bing、Yandex 等）您的内容更新，加快索引速度。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="flex items-center">
+                        <input type="checkbox" name="indexnow_enabled" value="1" <?= !empty($config['indexnow_enabled']) && $config['indexnow_enabled'] == '1' ? 'checked' : '' ?> class="mr-2">
+                        <span class="text-sm font-medium text-gray-700">启用 IndexNow</span>
+                    </label>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
+                    <div class="flex gap-2">
+                        <input type="text" name="indexnow_api_key" id="indexnowApiKey" value="<?= htmlspecialchars($config['indexnow_api_key'] ?? '') ?>"
+                            class="flex-1 border rounded px-3 py-2 font-mono text-sm" placeholder="32位随机字符串">
+                        <button type="button" onclick="generateIndexNowKey()" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">生成</button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">保存后会自动在网站根目录创建 {api_key}.txt 验证文件</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">网站域名</label>
+                    <input type="text" name="indexnow_host" value="<?= htmlspecialchars($config['indexnow_host'] ?? $config['site_url'] ?? '') ?>"
+                        class="w-full border rounded px-3 py-2" placeholder="example.com（不含 http://）">
+                    <p class="text-xs text-gray-500 mt-1">留空则使用站点 URL</p>
+                </div>
+                <?php if (!empty($config['indexnow_api_key'])): ?>
+                <div class="bg-gray-50 rounded p-3">
+                    <p class="text-sm text-gray-600 mb-2">验证文件地址：</p>
+                    <code class="text-xs bg-white border rounded px-2 py-1 block"><?= htmlspecialchars(rtrim($config['site_url'] ?? SITE_URL, '/')) ?>/<?= htmlspecialchars($config['indexnow_api_key']) ?>.txt</code>
+                </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
         <!-- 模板管理 -->
         <div>
             <h3 class="font-bold text-gray-700 border-b pb-2 mb-4">模板管理</h3>
@@ -762,5 +807,15 @@ function testRedis() {
     .catch(() => {
         result.innerHTML = '<span class="text-red-600">✗ 请求失败</span>';
     });
+}
+
+// Generate IndexNow API Key
+function generateIndexNowKey() {
+    const chars = '0123456789abcdef';
+    let key = '';
+    for (let i = 0; i < 32; i++) {
+        key += chars[Math.floor(Math.random() * chars.length)];
+    }
+    document.getElementById('indexnowApiKey').value = key;
 }
 </script>

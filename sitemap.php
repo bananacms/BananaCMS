@@ -150,6 +150,12 @@ function generateSitemap($db, $baseUrl, $type, $page, $perPage, $urlMode) {
             break;
     }
     
+    // Submit to IndexNow (batch) - limit to 100 URLs to avoid timeout
+    if (!empty($urls) && $page == 1) { // Only submit first page to avoid duplicate
+        $urlsToSubmit = array_slice($urls, 0, 100); // Limit to 100 to prevent timeout
+        submitToIndexNow($urlsToSubmit);
+    }
+    
     echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
     echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
     foreach ($urls as $url) {
@@ -167,4 +173,32 @@ function generateSitemap($db, $baseUrl, $type, $page, $perPage, $urlMode) {
         echo "  </url>\n";
     }
     echo '</urlset>';
+}
+
+/**
+ * Submit URLs to IndexNow
+ */
+function submitToIndexNow($urls) {
+    if (empty($urls)) {
+        return;
+    }
+    
+    try {
+        require_once CORE_PATH . 'IndexNow.php';
+        $indexNow = new XpkIndexNow();
+        
+        // Extract URLs from sitemap data
+        $urlList = array_map(function($item) {
+            return $item['loc'];
+        }, $urls);
+        
+        // Submit in batches of 100 (IndexNow limit)
+        $batches = array_chunk($urlList, 100);
+        foreach ($batches as $batch) {
+            $indexNow->submitUrls($batch);
+            usleep(100000); // 100ms delay between batches
+        }
+    } catch (Exception $e) {
+        error_log('IndexNow submission error: ' . $e->getMessage());
+    }
 }

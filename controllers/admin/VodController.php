@@ -127,6 +127,14 @@ class AdminVodController extends AdminBaseController
 
         if ($id) {
             $this->log('添加', '视频', "ID:{$id} {$data['vod_name']}");
+            
+            // Submit to IndexNow
+            if (!empty($data['vod_status']) && $data['vod_status'] == 1) {
+                require_once CORE_PATH . 'IndexNow.php';
+                $url = xpk_page_url('vod_detail', ['id' => $id, 'slug' => $data['vod_slug']]);
+                xpk_indexnow_submit($url);
+            }
+            
             $this->success('添加成功');
         } else {
             $this->error('添加失败');
@@ -177,6 +185,13 @@ class AdminVodController extends AdminBaseController
 
         $this->vodModel->update($id, $data);
         $this->log('编辑', '视频', "ID:{$id} {$data['vod_name']}");
+        
+        // Submit to IndexNow
+        if (!empty($data['vod_status']) && $data['vod_status'] == 1) {
+            require_once CORE_PATH . 'IndexNow.php';
+            $url = xpk_page_url('vod_detail', ['id' => $id, 'slug' => $data['vod_slug']]);
+            xpk_indexnow_submit($url);
+        }
 
         $this->success('保存成功');
     }
@@ -248,6 +263,17 @@ class AdminVodController extends AdminBaseController
 
         if ($id > 0) {
             $this->vodModel->update($id, ['vod_status' => $status]);
+            
+            // Submit to IndexNow when publishing
+            if ($status == 1) {
+                $vod = $this->vodModel->find($id);
+                if ($vod) {
+                    require_once CORE_PATH . 'IndexNow.php';
+                    $url = xpk_page_url('vod_detail', ['id' => $id, 'slug' => $vod['vod_slug']]);
+                    xpk_indexnow_submit($url);
+                }
+            }
+            
             $this->success('操作成功');
         } else {
             $this->error('参数错误');
