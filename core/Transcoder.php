@@ -9,9 +9,16 @@ class XpkTranscoder
     private string $ffmpeg = 'ffmpeg';
     private string $ffprobe = 'ffprobe';
     private string $logFile = '';
+    private array $allowedDirs = [];
     
     public function __construct()
     {
+        // 设置允许的目录白名单
+        $this->allowedDirs = [
+            realpath(UPLOAD_PATH),
+            realpath(RUNTIME_PATH),
+        ];
+        
         // 尝试常见路径
         $paths = [
             '/usr/bin/ffmpeg',
@@ -27,6 +34,58 @@ class XpkTranscoder
                 break;
             }
         }
+    }
+    
+    /**
+     * 验证文件路径是否在允许的目录内
+     */
+    private function validatePath(string $path): bool
+    {
+        $realPath = realpath($path);
+        if ($realPath === false) {
+            return false;
+        }
+        
+        foreach ($this->allowedDirs as $allowedDir) {
+            if ($allowedDir && strpos($realPath, $allowedDir) === 0) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * 安全地转义文件路径
+     */
+    private function escapePath(string $path): string
+    {
+        if (!$this->validatePath($path)) {
+            throw new Exception('Invalid file path: path outside allowed directories');
+        }
+        return escapeshellarg($path);
+    }
+    
+    /**
+     * 记录命令执行日志
+     */
+    private function logCommand(string $cmd, int $returnCode): void
+    {
+        $logFile = RUNTIME_PATH . 'logs/transcode_' . date('Y-m-d') . '.log';
+        $logDir = dirname($logFile);
+        
+        if (!is_dir($logDir)) {
+            @mkdir($logDir, 0755, true);
+        }
+        
+        $log = sprintf(
+            "[%s] Return Code: %d\nCommand: %s\n\n",
+            date('Y-m-d H:i:s'),
+            $returnCode,
+            $cmd
+        );
+        
+        @file_put_contents($logFile, $log, FILE_APPEND);
     }
     
     private function commandExists(string $cmd): bool
@@ -111,7 +170,7 @@ class XpkTranscoder
         }
         
         $cmd = sprintf('%s -v quiet -print_format json -show_format -show_streams %s',
-            $this->ffprobe, escapeshellarg($file));
+            $this->ffprobe, $this->escapePath($file));
         
         exec($cmd, $output, $code);
         
@@ -224,22 +283,25 @@ class XpkTranscoder
         }
         
         // 构建 HLS 转码命令
-        $cmd = sprintf('%s -y -i %s ', $this->ffmpeg, escapeshellarg($inputForHLS));
+        $cmd = sprintf('%s -y -i %s ', $this->ffmpeg, $this->escapePath($inputForHLS));
         $cmd .= sprintf('-c:v libx264 -preset %s -crf %d ', $preset, $crf);
         $cmd .= sprintf('-c:a aac -b:a %s ', $audioBitrate);
         $cmd .= sprintf('-hls_time %d ', $segmentTime);
-        $cmd .= sprintf('-hls_segment_filename %s ', escapeshellarg($outputDir . '/%08d.ts'));
+        $cmd .= sprintf('-hls_segment_filename %s ', $this->escapePath($outputDir . '/%08d.ts'));
         $cmd .= '-hls_playlist_type vod ';
         $cmd .= '-hls_flags independent_segments ';
         
         if ($encrypt) {
-            $cmd .= sprintf('-hls_key_info_file %s ', escapeshellarg($keyInfo));
+            $cmd .= sprintf('-hls_key_info_file %s ', $this->escapePath($keyInfo));
         }
         
-        $cmd .= escapeshellarg($outputDir . '/index.m3u8');
-        $cmd .= sprintf(' 2>>%s', escapeshellarg($this->logFile));
+        $cmd .= $this->escapePath($outputDir . '/index.m3u8');
+        $cmd .= sprintf(' 2>>%s', $this->escapePath($this->logFile));
         
         exec($cmd, $output, $returnCode);
+        
+        // 记录命令执行
+        $this->logCommand($cmd, $returnCode);
         
         // 清理临时文件
         if ($encrypt && file_exists($keyInfo)) {
@@ -398,10 +460,10 @@ class XpkTranscoder
             '%s -y -ss %.2f -i %s -t %.2f -vf "scale=%d:%d:force_original_aspect_ratio=decrease,pad=%d:%d:(ow-iw)/2:(oh-ih)/2" -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k %s 2>&1',
             $this->ffmpeg,
             $start,
-            escapeshellarg($input),
+            $this->escapePath($input),
             $duration,
             $width, $height, $width, $height,
-            escapeshellarg($output)
+            $this->escapePath($output)
         );
         
         exec($cmd, $out, $code);
@@ -425,9 +487,9 @@ class XpkTranscoder
             $cmd = sprintf(
                 '%s -y -i %s -vf "scale=%d:%d:force_original_aspect_ratio=decrease,pad=%d:%d:(ow-iw)/2:(oh-ih)/2,setsar=1" -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k -f mpegts %s 2>&1',
                 $this->ffmpeg,
-                escapeshellarg($seg['file']),
+                $this->escapePath($seg['file']),
                 $width, $height, $width, $height,
-                escapeshellarg($normalizedFile)
+                $this->escapePath($normalizedFile)
             );
             
             exec($cmd, $out, $code);
@@ -451,8 +513,8 @@ class XpkTranscoder
         $cmd = sprintf(
             '%s -y -f concat -safe 0 -i %s -c copy %s 2>&1',
             $this->ffmpeg,
-            escapeshellarg($listFile),
-            escapeshellarg($output)
+            $this->escapePath($listFile),
+            $this->escapePath($output)
         );
         
         exec($cmd, $out, $code);
@@ -543,7 +605,7 @@ class XpkTranscoder
     public function generateThumbnail(string $input, string $output, int $time = 5): bool
     {
         $cmd = sprintf('%s -y -i %s -ss %d -vframes 1 -q:v 2 %s 2>&1',
-            $this->ffmpeg, escapeshellarg($input), $time, escapeshellarg($output));
+            $this->ffmpeg, $this->escapePath($input), $time, $this->escapePath($output));
         
         exec($cmd, $out, $code);
         return $code === 0 && file_exists($output);

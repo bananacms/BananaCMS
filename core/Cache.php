@@ -40,9 +40,15 @@ class XpkFileCache implements XpkCacheDriver
         }
 
         $content = file_get_contents($file);
-        $data = @unserialize($content);
+        $data = @json_decode($content, true);
 
-        if ($data === false || !isset($data['expire'], $data['value'])) {
+        if ($data === null || !isset($data['expire'], $data['value'], $data['signature'])) {
+            return $default;
+        }
+
+        // 验证签名
+        if (!$this->verifySignature($data)) {
+            @unlink($file); // 删除被篡改的缓存
             return $default;
         }
 
@@ -63,8 +69,44 @@ class XpkFileCache implements XpkCacheDriver
             'expire' => $ttl > 0 ? time() + $ttl : 0,
             'value' => $value,
         ];
+        
+        // 添加签名
+        $data['signature'] = $this->generateSignature($data);
 
-        return file_put_contents($file, serialize($data), LOCK_EX) !== false;
+        return file_put_contents($file, json_encode($data, JSON_UNESCAPED_UNICODE), LOCK_EX) !== false;
+    }
+    
+    /**
+     * 生成数据签名
+     */
+    private function generateSignature(array $data): string
+    {
+        $payload = json_encode([
+            'expire' => $data['expire'],
+            'value' => $data['value']
+        ]);
+        return hash_hmac('sha256', $payload, $this->getSecret());
+    }
+    
+    /**
+     * 验证数据签名
+     */
+    private function verifySignature(array $data): bool
+    {
+        if (!isset($data['signature'])) {
+            return false;
+        }
+        
+        $expectedSignature = $this->generateSignature($data);
+        return hash_equals($expectedSignature, $data['signature']);
+    }
+    
+    /**
+     * 获取签名密钥
+     */
+    private function getSecret(): string
+    {
+        return defined('APP_SECRET') ? APP_SECRET : 'xpk_default_secret';
     }
 
     public function delete(string $key): bool
@@ -144,19 +186,68 @@ class XpkRedisCache implements XpkCacheDriver
         if ($value === false) {
             return $default;
         }
-        $data = @unserialize($value);
-        return $data !== false ? $data : $value;
+        
+        $data = @json_decode($value, true);
+        if ($data === null) {
+            return $default;
+        }
+        
+        // 验证签名
+        if (!$this->verifySignature($data)) {
+            $this->delete($key); // 删除被篡改的缓存
+            return $default;
+        }
+        
+        return $data['value'] ?? $default;
     }
 
     public function set(string $key, mixed $value, int $ttl = 0): bool
     {
         $ttl = $ttl ?: $this->defaultTtl;
-        $value = serialize($value);
+        
+        $data = [
+            'value' => $value,
+        ];
+        
+        // 添加签名
+        $data['signature'] = $this->generateSignature($data);
+        
+        $encoded = json_encode($data, JSON_UNESCAPED_UNICODE);
         
         if ($ttl > 0) {
-            return $this->redis->setex($this->prefix . $key, $ttl, $value);
+            return $this->redis->setex($this->prefix . $key, $ttl, $encoded);
         }
-        return $this->redis->set($this->prefix . $key, $value);
+        return $this->redis->set($this->prefix . $key, $encoded);
+    }
+    
+    /**
+     * 生成数据签名
+     */
+    private function generateSignature(array $data): string
+    {
+        $payload = json_encode(['value' => $data['value']]);
+        return hash_hmac('sha256', $payload, $this->getSecret());
+    }
+    
+    /**
+     * 验证数据签名
+     */
+    private function verifySignature(array $data): bool
+    {
+        if (!isset($data['signature'])) {
+            return false;
+        }
+        
+        $expectedSignature = $this->generateSignature($data);
+        return hash_equals($expectedSignature, $data['signature']);
+    }
+    
+    /**
+     * 获取签名密钥
+     */
+    private function getSecret(): string
+    {
+        return defined('APP_SECRET') ? APP_SECRET : 'xpk_default_secret';
     }
 
     public function delete(string $key): bool

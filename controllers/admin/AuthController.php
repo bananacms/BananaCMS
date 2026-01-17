@@ -115,12 +115,16 @@ class AdminAuthController
         $fakeIP = $this->generateFakeIP($admin['admin_id']);
         $adminModel->updateLogin($admin['admin_id'], $fakeIP);
 
+        // 重新生成 Session ID，防止会话固定攻击
+        session_regenerate_id(true);
+        
         // 保存Session
         $_SESSION['admin'] = [
             'id' => $admin['admin_id'],
             'name' => $admin['admin_name'],
             'login_time' => time()
         ];
+        $_SESSION['created'] = time();
 
         header('Location: ' . $this->adminUrl('dashboard'));
         exit;

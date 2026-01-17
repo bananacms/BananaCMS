@@ -8,17 +8,85 @@ class XpkDatabase
 {
     private static ?XpkDatabase $instance = null;
     private PDO $pdo;
+    private int $lastQueryTime = 0;
+    private int $connectionTimeout = 28800; // 8小时
 
     private function __construct()
     {
-        $dsn = 'mysql:host=' . DB_HOST . ';port=' . DB_PORT . ';dbname=' . DB_NAME . ';charset=' . DB_CHARSET;
-        $options = [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES => false,
-        ];
-        $this->pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
-        $this->pdo->exec("SET time_zone = '+08:00'");
+        $this->connect();
+    }
+    
+    /**
+     * 建立数据库连接
+     */
+    private function connect(): void
+    {
+        try {
+            $dsn = 'mysql:host=' . DB_HOST . ';port=' . DB_PORT . ';dbname=' . DB_NAME . ';charset=' . DB_CHARSET;
+            $options = [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES => false,
+            ];
+            $this->pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+            $this->pdo->exec("SET time_zone = '+08:00'");
+            $this->lastQueryTime = time();
+        } catch (PDOException $e) {
+            // 记录详细错误到日志
+            $this->logError('Database connection failed', $e);
+            
+            // 生产环境不暴露详细错误
+            if (defined('APP_DEBUG') && APP_DEBUG) {
+                throw $e;
+            } else {
+                throw new Exception('数据库连接失败，请联系管理员');
+            }
+        }
+    }
+    
+    /**
+     * 检查并重连数据库
+     */
+    private function checkConnection(): void
+    {
+        // 检查连接是否超时
+        if (time() - $this->lastQueryTime > $this->connectionTimeout) {
+            $this->reconnect();
+        }
+    }
+    
+    /**
+     * 重新连接数据库
+     */
+    private function reconnect(): void
+    {
+        $this->pdo = null;
+        $this->connect();
+    }
+    
+    /**
+     * 记录数据库错误
+     */
+    private function logError(string $message, PDOException $e): void
+    {
+        $logFile = RUNTIME_PATH . 'logs/database_' . date('Y-m-d') . '.log';
+        $logDir = dirname($logFile);
+        
+        if (!is_dir($logDir)) {
+            @mkdir($logDir, 0755, true);
+        }
+        
+        $log = sprintf(
+            "[%s] %s\nError: %s\nCode: %s\nFile: %s:%d\n\n",
+            date('Y-m-d H:i:s'),
+            $message,
+            $e->getMessage(),
+            $e->getCode(),
+            $e->getFile(),
+            $e->getLine()
+        );
+        
+        @file_put_contents($logFile, $log, FILE_APPEND);
     }
 
     public static function getInstance(): XpkDatabase
@@ -39,9 +107,34 @@ class XpkDatabase
      */
     public function query(string $sql, array $params = []): array
     {
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute($params);
-        return $stmt->fetchAll();
+        $this->checkConnection();
+        
+        try {
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute($params);
+            $this->lastQueryTime = time();
+            return $stmt->fetchAll();
+        } catch (PDOException $e) {
+            // 如果是连接丢失，尝试重连
+            if ($this->isConnectionLost($e)) {
+                $this->reconnect();
+                // 重试一次
+                $stmt = $this->pdo->prepare($sql);
+                $stmt->execute($params);
+                $this->lastQueryTime = time();
+                return $stmt->fetchAll();
+            }
+            
+            // 记录错误
+            $this->logError('Query failed: ' . $sql, $e);
+            
+            // 生产环境不暴露 SQL
+            if (defined('APP_DEBUG') && APP_DEBUG) {
+                throw $e;
+            } else {
+                throw new Exception('数据库查询失败');
+            }
+        }
     }
 
     /**
@@ -49,10 +142,36 @@ class XpkDatabase
      */
     public function queryOne(string $sql, array $params = []): ?array
     {
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute($params);
-        $result = $stmt->fetch();
-        return $result ?: null;
+        $this->checkConnection();
+        
+        try {
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute($params);
+            $this->lastQueryTime = time();
+            $result = $stmt->fetch();
+            return $result ?: null;
+        } catch (PDOException $e) {
+            // 如果是连接丢失，尝试重连
+            if ($this->isConnectionLost($e)) {
+                $this->reconnect();
+                // 重试一次
+                $stmt = $this->pdo->prepare($sql);
+                $stmt->execute($params);
+                $this->lastQueryTime = time();
+                $result = $stmt->fetch();
+                return $result ?: null;
+            }
+            
+            // 记录错误
+            $this->logError('Query failed: ' . $sql, $e);
+            
+            // 生产环境不暴露 SQL
+            if (defined('APP_DEBUG') && APP_DEBUG) {
+                throw $e;
+            } else {
+                throw new Exception('数据库查询失败');
+            }
+        }
     }
 
     /**
@@ -60,9 +179,62 @@ class XpkDatabase
      */
     public function execute(string $sql, array $params = []): int
     {
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute($params);
-        return $stmt->rowCount();
+        $this->checkConnection();
+        
+        try {
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute($params);
+            $this->lastQueryTime = time();
+            return $stmt->rowCount();
+        } catch (PDOException $e) {
+            // 如果是连接丢失，尝试重连
+            if ($this->isConnectionLost($e)) {
+                $this->reconnect();
+                // 重试一次
+                $stmt = $this->pdo->prepare($sql);
+                $stmt->execute($params);
+                $this->lastQueryTime = time();
+                return $stmt->rowCount();
+            }
+            
+            // 记录错误
+            $this->logError('Execute failed: ' . $sql, $e);
+            
+            // 生产环境不暴露 SQL
+            if (defined('APP_DEBUG') && APP_DEBUG) {
+                throw $e;
+            } else {
+                throw new Exception('数据库操作失败');
+            }
+        }
+    }
+    
+    /**
+     * 判断是否为连接丢失错误
+     */
+    private function isConnectionLost(PDOException $e): bool
+    {
+        $lostMessages = [
+            'server has gone away',
+            'no connection to the server',
+            'Lost connection',
+            'is dead or not enabled',
+            'Error while sending',
+            'decryption failed or bad record mac',
+            'server closed the connection unexpectedly',
+            'SSL connection has been closed unexpectedly',
+            'Error writing data to the connection',
+            'Resource deadlock avoided',
+        ];
+        
+        $message = $e->getMessage();
+        foreach ($lostMessages as $lostMessage) {
+            if (stripos($message, $lostMessage) !== false) {
+                return true;
+            }
+        }
+        
+        return false;
     }
 
     /**

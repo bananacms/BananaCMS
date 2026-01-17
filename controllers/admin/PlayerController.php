@@ -42,9 +42,7 @@ class AdminPlayerController extends AdminBaseController
      */
     public function doAdd(): void
     {
-        if (!$this->verifyCsrf()) {
-            $this->error('非法请求');
-        }
+        $this->requireCsrf();
 
         $code = trim($this->post('player_code', ''));
         $name = trim($this->post('player_name', ''));
@@ -102,9 +100,7 @@ class AdminPlayerController extends AdminBaseController
      */
     public function doEdit(int $id): void
     {
-        if (!$this->verifyCsrf()) {
-            $this->error('非法请求');
-        }
+        $this->requireCsrf();
 
         $player = $this->playerModel->find($id);
         if (!$player) {
@@ -150,6 +146,9 @@ class AdminPlayerController extends AdminBaseController
      */
     public function delete(): void
     {
+        // CSRF 验证
+        $this->requireCsrf();
+        
         $id = (int)$this->post('id', 0);
         
         $player = $this->playerModel->find($id);
@@ -167,6 +166,9 @@ class AdminPlayerController extends AdminBaseController
      */
     public function toggle(): void
     {
+        // CSRF 验证
+        $this->requireCsrf();
+        
         $id = (int)$this->post('id', 0);
         
         $player = $this->playerModel->find($id);

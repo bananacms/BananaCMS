@@ -178,4 +178,124 @@ class XpkSecurity
     {
         self::$config = null;
     }
+
+    /**
+     * 生成 CSRF Token
+     * 如果 Session 中不存在 Token，则生成新的
+     * 
+     * @return string CSRF Token
+     */
+    public static function generateToken(): string
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
+        if (empty($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+            $_SESSION['csrf_token_time'] = time();
+        }
+        
+        return $_SESSION['csrf_token'];
+    }
+
+    /**
+     * 验证 CSRF Token
+     * 使用时间常数比较防止时序攻击
+     * 
+     * @param string $token 待验证的 Token
+     * @return bool 验证是否通过
+     */
+    public static function validateToken(string $token): bool
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
+        // 检查 Token 是否存在
+        if (empty($_SESSION['csrf_token'])) {
+            return false;
+        }
+        
+        // 检查 Token 是否过期（24小时）
+        $tokenTime = $_SESSION['csrf_token_time'] ?? 0;
+        if (time() - $tokenTime > 86400) {
+            unset($_SESSION['csrf_token']);
+            unset($_SESSION['csrf_token_time']);
+            return false;
+        }
+        
+        // 使用时间常数比较防止时序攻击
+        return hash_equals($_SESSION['csrf_token'], $token);
+    }
+
+    /**
+     * 强制验证 CSRF Token
+     * 验证失败时返回 403 错误并终止执行
+     * 
+     * @param bool $fromPost 是否从 POST 获取 Token（默认 true）
+     * @return void
+     */
+    public static function requireToken(bool $fromPost = true): void
+    {
+        $token = '';
+        
+        if ($fromPost) {
+            $token = $_POST['csrf_token'] ?? '';
+        } else {
+            $token = $_GET['csrf_token'] ?? $_POST['csrf_token'] ?? '';
+        }
+        
+        if (!self::validateToken($token)) {
+            http_response_code(403);
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode([
+                'success' => false,
+                'error' => 'CSRF token 验证失败，请刷新页面后重试'
+            ], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+    }
+
+    /**
+     * 刷新 CSRF Token
+     * 在敏感操作后调用，生成新的 Token
+     * 
+     * @return string 新的 CSRF Token
+     */
+    public static function refreshToken(): string
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
+        unset($_SESSION['csrf_token']);
+        unset($_SESSION['csrf_token_time']);
+        
+        return self::generateToken();
+    }
+
+    /**
+     * 获取 CSRF Token 的 HTML input 标签
+     * 方便在表单中使用
+     * 
+     * @return string HTML input 标签
+     */
+    public static function getTokenField(): string
+    {
+        $token = self::generateToken();
+        return '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($token, ENT_QUOTES, 'UTF-8') . '">';
+    }
+
+    /**
+     * 获取 CSRF Token 的 meta 标签
+     * 方便在 AJAX 请求中使用
+     * 
+     * @return string HTML meta 标签
+     */
+    public static function getTokenMeta(): string
+    {
+        $token = self::generateToken();
+        return '<meta name="csrf-token" content="' . htmlspecialchars($token, ENT_QUOTES, 'UTF-8') . '">';
+    }
 }

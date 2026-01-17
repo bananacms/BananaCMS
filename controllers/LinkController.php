@@ -32,9 +32,7 @@ class LinkController extends BaseController
      */
     public function apply(): void
     {
-        if (!$this->verifyCsrfToken()) {
-            $this->error('非法请求，请刷新页面重试');
-        }
+        $this->requireCsrf();
 
         $name = trim($this->post('link_name', ''));
         $url = trim($this->post('link_url', ''));

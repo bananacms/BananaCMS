@@ -991,6 +991,9 @@ class AdminCollectController extends AdminBaseController
      */
     public function test(): void
     {
+        // CSRF 验证
+        $this->requireCsrf();
+        
         $api = trim($this->post('api', ''));
         if (empty($api)) {
             $this->error('API地址不能为空');

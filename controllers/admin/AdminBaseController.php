@@ -129,22 +129,39 @@ class AdminBaseController
 
     /**
      * CSRF Token生成
+     * 使用统一的 XpkSecurity 类
      */
     protected function csrfToken(): string
     {
-        if (!isset($_SESSION['csrf_token'])) {
-            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-        }
-        return $_SESSION['csrf_token'];
+        return XpkSecurity::generateToken();
     }
 
     /**
      * CSRF验证
+     * 兼容旧的 _token 参数名和新的 csrf_token 参数名
      */
     protected function verifyCsrf(): bool
     {
-        $token = $this->post('_token') ?? '';
-        return hash_equals($_SESSION['csrf_token'] ?? '', $token);
+        $token = $this->post('csrf_token') ?? $this->post('_token') ?? '';
+        return XpkSecurity::validateToken($token);
+    }
+
+    /**
+     * 要求CSRF验证
+     */
+    protected function requireCsrf(): void
+    {
+        if (!$this->verifyCsrf()) {
+            $this->error('CSRF验证失败，请刷新页面后重试');
+        }
+    }
+
+    /**
+     * 获取CSRF Token HTML字段
+     */
+    protected function csrfField(): string
+    {
+        return XpkSecurity::getTokenField();
     }
 
     /**
@@ -171,5 +188,146 @@ class AdminBaseController
     protected function log(string $action, string $module, string $content = ''): void
     {
         XpkAdminLog::log($action, $module, $content);
+    }
+
+    /**
+     * 验证输入数据
+     * @param array $data 数据数组
+     * @param array $rules 验证规则
+     * @return array 错误信息数组（为空表示验证通过）
+     */
+    protected function validate(array $data, array $rules): array
+    {
+        require_once CORE_PATH . 'Validator.php';
+        return XpkValidator::validate($data, $rules);
+    }
+
+    /**
+     * 验证邮箱
+     * @param string $email 邮箱地址
+     * @return bool
+     */
+    protected function validateEmail(string $email): bool
+    {
+        require_once CORE_PATH . 'Validator.php';
+        return XpkValidator::email($email);
+    }
+
+    /**
+     * 验证URL
+     * @param string $url URL地址
+     * @return bool
+     */
+    protected function validateUrl(string $url): bool
+    {
+        require_once CORE_PATH . 'Validator.php';
+        return XpkValidator::url($url);
+    }
+
+    /**
+     * 验证整数
+     * @param mixed $value 值
+     * @param int|null $min 最小值
+     * @param int|null $max 最大值
+     * @return bool
+     */
+    protected function validateInt($value, ?int $min = null, ?int $max = null): bool
+    {
+        require_once CORE_PATH . 'Validator.php';
+        return XpkValidator::int($value, $min, $max);
+    }
+
+    /**
+     * 验证浮点数
+     * @param mixed $value 值
+     * @param float|null $min 最小值
+     * @param float|null $max 最大值
+     * @return bool
+     */
+    protected function validateFloat($value, ?float $min = null, ?float $max = null): bool
+    {
+        require_once CORE_PATH . 'Validator.php';
+        return XpkValidator::float($value, $min, $max);
+    }
+
+    /**
+     * 验证Slug格式
+     * @param string $slug Slug字符串
+     * @return bool
+     */
+    protected function validateSlug(string $slug): bool
+    {
+        require_once CORE_PATH . 'Validator.php';
+        return XpkValidator::slug($slug);
+    }
+
+    /**
+     * 验证用户名
+     * @param string $username 用户名
+     * @return bool
+     */
+    protected function validateUsername(string $username): bool
+    {
+        require_once CORE_PATH . 'Validator.php';
+        return XpkValidator::username($username);
+    }
+
+    /**
+     * 验证手机号码
+     * @param string $phone 手机号码
+     * @return bool
+     */
+    protected function validatePhone(string $phone): bool
+    {
+        require_once CORE_PATH . 'Validator.php';
+        return XpkValidator::phone($phone);
+    }
+
+    /**
+     * 验证字符串长度
+     * @param string $str 字符串
+     * @param int|null $min 最小长度
+     * @param int|null $max 最大长度
+     * @return bool
+     */
+    protected function validateLength(string $str, ?int $min = null, ?int $max = null): bool
+    {
+        require_once CORE_PATH . 'Validator.php';
+        return XpkValidator::length($str, $min, $max);
+    }
+
+    /**
+     * 验证值是否为空
+     * @param mixed $value 值
+     * @return bool
+     */
+    protected function validateRequired($value): bool
+    {
+        require_once CORE_PATH . 'Validator.php';
+        return XpkValidator::required($value);
+    }
+
+    /**
+     * 验证值是否在指定范围内
+     * @param mixed $value 值
+     * @param array $allowed 允许的值列表
+     * @return bool
+     */
+    protected function validateIn($value, array $allowed): bool
+    {
+        require_once CORE_PATH . 'Validator.php';
+        return XpkValidator::in($value, $allowed);
+    }
+
+    /**
+     * 验证正则表达式匹配
+     * @param string $str 字符串
+     * @param string $pattern 正则表达式
+     * @return bool
+     */
+    protected function validateRegex(string $str, string $pattern): bool
+    {
+        require_once CORE_PATH . 'Validator.php';
+        return XpkValidator::regex($str, $pattern);
     }
 }

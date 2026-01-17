@@ -74,6 +74,11 @@ class AdminTranscodeController extends AdminBaseController
      */
     public function doUpload(): void
     {
+        // 对于分片上传，GET 请求用于检查，POST 请求需要 CSRF 验证
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->requireCsrf();
+        }
+        
         require_once CORE_PATH . 'ChunkUpload.php';
         $uploader = new XpkChunkUpload();
         
@@ -158,6 +163,8 @@ class AdminTranscodeController extends AdminBaseController
      */
     public function retry(): void
     {
+        $this->requireCsrf();
+        
         $id = (int)$this->post('id', 0);
         
         if ($id <= 0) {
@@ -177,6 +184,9 @@ class AdminTranscodeController extends AdminBaseController
      */
     public function delete(): void
     {
+        // CSRF 验证
+        $this->requireCsrf();
+        
         $id = (int)$this->post('id', 0);
         $deleteFiles = (bool)$this->post('delete_files', true);
         
@@ -197,6 +207,9 @@ class AdminTranscodeController extends AdminBaseController
      */
     public function batchDelete(): void
     {
+        // CSRF 验证
+        $this->requireCsrf();
+        
         $ids = $_POST['ids'] ?? [];
         $deleteFiles = (bool)$this->post('delete_files', true);
         
@@ -220,6 +233,9 @@ class AdminTranscodeController extends AdminBaseController
      */
     public function process(): void
     {
+        // CSRF 验证
+        $this->requireCsrf();
+        
         $id = (int)$this->post('id', 0);
         
         $task = $id > 0 

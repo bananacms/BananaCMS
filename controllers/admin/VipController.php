@@ -70,6 +70,9 @@ class AdminVipController extends AdminBaseController
      */
     private function save(int $id = 0): void
     {
+        // CSRF 验证
+        $this->requireCsrf();
+        
         $data = [
             'package_name' => trim($this->post('package_name', '')),
             'package_code' => trim($this->post('package_code', '')),
@@ -123,6 +126,9 @@ class AdminVipController extends AdminBaseController
      */
     public function toggle(): void
     {
+        // CSRF 验证
+        $this->requireCsrf();
+        
         $id = (int)$this->post('id', 0);
         
         $package = $this->db->queryOne(
@@ -150,6 +156,9 @@ class AdminVipController extends AdminBaseController
      */
     public function delete(): void
     {
+        // CSRF 验证
+        $this->requireCsrf();
+        
         $id = (int)$this->post('id', 0);
         
         $package = $this->db->queryOne(

@@ -57,9 +57,7 @@ class AdminShortController extends AdminBaseController
      */
     public function doAdd(): void
     {
-        if (!$this->verifyCsrf()) {
-            $this->error('非法请求');
-        }
+        $this->requireCsrf();
 
         $data = $this->getFormData();
 
@@ -105,9 +103,7 @@ class AdminShortController extends AdminBaseController
      */
     public function doEdit(int $id): void
     {
-        if (!$this->verifyCsrf()) {
-            $this->error('非法请求');
-        }
+        $this->requireCsrf();
 
         $short = $this->shortModel->find($id);
         if (!$short) {
@@ -131,6 +127,9 @@ class AdminShortController extends AdminBaseController
      */
     public function delete(): void
     {
+        // CSRF 验证
+        $this->requireCsrf();
+        
         $id = (int)$this->post('id', 0);
 
         if ($id <= 0) {
@@ -148,6 +147,9 @@ class AdminShortController extends AdminBaseController
      */
     public function toggle(): void
     {
+        // CSRF 验证
+        $this->requireCsrf();
+        
         $id = (int)$this->post('id', 0);
 
         if ($id <= 0) {
@@ -207,9 +209,7 @@ class AdminShortController extends AdminBaseController
      */
     public function doAddEpisode(int $shortId): void
     {
-        if (!$this->verifyCsrf()) {
-            $this->error('非法请求');
-        }
+        $this->requireCsrf();
 
         $data = [
             'short_id' => $shortId,
@@ -254,9 +254,7 @@ class AdminShortController extends AdminBaseController
      */
     public function doEditEpisode(int $id): void
     {
-        if (!$this->verifyCsrf()) {
-            $this->error('非法请求');
-        }
+        $this->requireCsrf();
 
         $episode = $this->shortModel->getEpisode($id);
         if (!$episode) {
@@ -283,6 +281,9 @@ class AdminShortController extends AdminBaseController
      */
     public function deleteEpisode(): void
     {
+        // CSRF 验证
+        $this->requireCsrf();
+        
         $id = (int)$this->post('id', 0);
 
         if ($id <= 0) {

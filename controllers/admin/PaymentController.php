@@ -68,6 +68,8 @@ class AdminPaymentController extends AdminBaseController
      */
     private function save(int $id = 0): void
     {
+        $this->requireCsrf();
+        
         $channelType = $this->post('channel_type', 'epay');
         
         $data = [
@@ -142,6 +144,9 @@ class AdminPaymentController extends AdminBaseController
      */
     public function toggle(): void
     {
+        // CSRF 验证
+        $this->requireCsrf();
+        
         $id = (int)$this->post('id', 0);
         
         $channel = $this->db->queryOne(
@@ -169,6 +174,9 @@ class AdminPaymentController extends AdminBaseController
      */
     public function delete(): void
     {
+        // CSRF 验证
+        $this->requireCsrf();
+        
         $id = (int)$this->post('id', 0);
         
         $channel = $this->db->queryOne(
@@ -208,6 +216,7 @@ class AdminPaymentController extends AdminBaseController
         $config = require $configFile;
         
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->requireCsrf();
             $config['usdt'] = [
                 'enabled' => (bool)$this->post('enabled', false),
                 'address' => trim($this->post('address', '')),

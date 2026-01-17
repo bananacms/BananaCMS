@@ -259,13 +259,38 @@ class AdminTranscodeAdController extends AdminBaseController
         
         $file = $_FILES['file'];
         
+        // 清理文件名，防止路径遍历
+        $originalName = basename($file['name']);
+        $originalName = preg_replace('/[^a-zA-Z0-9._-]/', '_', $originalName);
+        
         // 检查文件类型
         $allowExt = ['mp4', 'mov', 'avi', 'mkv', 'webm'];
-        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
         
         if (!in_array($ext, $allowExt)) {
             $this->json(['success' => false, 'error' => '不支持的文件格式']);
             return;
+        }
+        
+        // 验证 MIME 类型
+        if (function_exists('finfo_open')) {
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $mimeType = finfo_file($finfo, $file['tmp_name']);
+            finfo_close($finfo);
+            
+            $allowedMimes = [
+                'video/mp4',
+                'video/quicktime',
+                'video/x-msvideo',
+                'video/x-matroska',
+                'video/webm',
+                'application/octet-stream',
+            ];
+            
+            if (!in_array($mimeType, $allowedMimes)) {
+                $this->json(['success' => false, 'error' => '文件类型验证失败']);
+                return;
+            }
         }
         
         // 检查大小（最大100MB）

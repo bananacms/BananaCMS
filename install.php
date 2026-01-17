@@ -228,6 +228,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 file_put_contents(CONFIG_PATH . 'config.php', $config);
                 file_put_contents(CONFIG_PATH . 'install.lock', date('Y-m-d H:i:s'));
                 
+                // 加载配置验证器并修复权限
+                require_once ROOT_PATH . 'core/ConfigValidator.php';
+                XpkConfigValidator::fixPermissions();
+                
                 // 创建自定义后台入口文件
                 $adminContent = file_get_contents(ROOT_PATH . 'admin.php');
                 file_put_contents(ROOT_PATH . $adminEntry . '.php', $adminContent);

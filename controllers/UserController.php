@@ -90,10 +90,14 @@ class UserController extends BaseController
         // 更新登录时间
         $this->userModel->updateLoginTime($user['user_id']);
 
+        // 重新生成 Session ID，防止会话固定攻击
+        session_regenerate_id(true);
+        
         // 保存Session
         unset($user['user_pwd']);
         $_SESSION['user'] = $user;
         $_SESSION['user_id'] = $user['user_id']; // 兼容API收藏等功能
+        $_SESSION['created'] = time();
 
         // 记录登录成功事件
         $this->logUserAction(XpkEventTypes::USER_LOGIN, [

@@ -129,6 +129,9 @@ class AdminAdController extends AdminBaseController
      */
     public function delete(): void
     {
+        // CSRF 验证
+        $this->requireCsrf();
+        
         $id = (int)$this->post('id', 0);
 
         if ($id <= 0) {
@@ -146,6 +149,9 @@ class AdminAdController extends AdminBaseController
      */
     public function toggle(): void
     {
+        // CSRF 验证
+        $this->requireCsrf();
+        
         $id = (int)$this->post('id', 0);
 
         if ($id <= 0) {

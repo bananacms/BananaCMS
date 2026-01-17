@@ -5,8 +5,21 @@
  * Powered by https://xpornkit.com
  */
 
+// 启动输出缓冲，防止 header 错误
+ob_start();
+
 // 加载配置
 require_once __DIR__ . '/config/config.php';
+
+// 验证配置文件（仅在调试模式下显示警告）
+if (APP_DEBUG) {
+    require_once CORE_PATH . 'ConfigValidator.php';
+    $validation = XpkConfigValidator::validate();
+    if (!$validation['valid'] && !empty($validation['warnings'])) {
+        // 在调试模式下记录警告
+        error_log('配置验证警告: ' . implode(', ', $validation['warnings']));
+    }
+}
 
 // 初始调试模式
 if (APP_DEBUG) {
@@ -87,13 +100,22 @@ require_once CTRL_PATH . 'admin/OrderController.php';
 if (session_status() === PHP_SESSION_NONE) {
     xpk_init_redis_session();
     session_set_cookie_params([
-        'lifetime' => 0,
+        'lifetime' => 7200,  // 2小时
         'path' => '/',
-        'secure' => isset($_SERVER['HTTPS']),
+        'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
         'httponly' => true,
         'samesite' => 'Lax'
     ]);
     session_start();
+    
+    // 设置 Session 超时时间
+    if (!isset($_SESSION['created'])) {
+        $_SESSION['created'] = time();
+    } else if (time() - $_SESSION['created'] > 7200) {
+        // Session 超时，销毁并重新创建
+        session_regenerate_id(true);
+        $_SESSION['created'] = time();
+    }
 }
 
 // 获取当前后台入口文件名（支持从 index.php 转发）

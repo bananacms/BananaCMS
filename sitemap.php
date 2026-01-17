@@ -6,11 +6,27 @@
  * Powered by https://xpornkit.com
  */
 
+// 启动输出缓冲，防止 header 错误
+ob_start();
+
 require_once __DIR__ . '/config/config.php';
+
+// 验证配置文件（仅在调试模式下显示警告）
+if (APP_DEBUG) {
+    require_once CORE_PATH . 'ConfigValidator.php';
+    $validation = XpkConfigValidator::validate();
+    if (!$validation['valid'] && !empty($validation['warnings'])) {
+        // 在调试模式下记录警告
+        error_log('配置验证警告: ' . implode(', ', $validation['warnings']));
+    }
+}
+
 require_once CORE_PATH . 'Database.php';
 require_once CORE_PATH . 'Cache.php';
 require_once CORE_PATH . 'Router.php';
 
+// 清空缓冲并设置 XML 响应头
+ob_end_clean();
 header('Content-Type: application/xml; charset=utf-8');
 
 $baseUrl = rtrim(SITE_URL, '/');

@@ -69,6 +69,9 @@ class CommentController extends BaseController
      */
     public function postComment(): void
     {
+        // CSRF 验证
+        $this->requireCsrf();
+        
         // 速率限制检查
         $this->requireRateLimit('comment', 5, 300); // 5分钟内最多5条评论
         
@@ -153,6 +156,9 @@ class CommentController extends BaseController
      */
     public function vote(): void
     {
+        // CSRF 验证
+        $this->requireCsrf();
+        
         // 速率限制检查
         $this->requireRateLimit('vote', 20, 60); // 1分钟内最多20次投票
         
@@ -193,6 +199,9 @@ class CommentController extends BaseController
      */
     public function delete(): void
     {
+        // CSRF 验证
+        $this->requireCsrf();
+        
         $userId = $this->getUserId();
         if (!$userId) {
             $this->apiJson(2, '请先登录');

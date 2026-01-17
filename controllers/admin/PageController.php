@@ -43,9 +43,7 @@ class AdminPageController extends AdminBaseController
      */
     public function doAdd(): void
     {
-        if (!$this->verifyCsrf()) {
-            $this->error('非法请求');
-        }
+        $this->requireCsrf();
 
         $slug = trim($this->post('page_slug', ''));
         $title = trim($this->post('page_title', ''));
@@ -103,9 +101,7 @@ class AdminPageController extends AdminBaseController
      */
     public function doEdit(int $id): void
     {
-        if (!$this->verifyCsrf()) {
-            $this->error('非法请求');
-        }
+        $this->requireCsrf();
 
         $page = $this->pageModel->find($id);
         if (!$page) {
@@ -151,6 +147,9 @@ class AdminPageController extends AdminBaseController
      */
     public function delete(): void
     {
+        // CSRF 验证
+        $this->requireCsrf();
+        
         $id = (int)$this->post('id', 0);
         
         $page = $this->pageModel->find($id);

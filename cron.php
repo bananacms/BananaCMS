@@ -25,6 +25,16 @@ if (php_sapi_name() !== 'cli') {
 // 加载配置
 require_once __DIR__ . '/config/config.php';
 
+// 验证配置文件（仅在调试模式下显示警告）
+if (APP_DEBUG) {
+    require_once CORE_PATH . 'ConfigValidator.php';
+    $validation = XpkConfigValidator::validate();
+    if (!$validation['valid'] && !empty($validation['warnings'])) {
+        // 在调试模式下记录警告
+        error_log('配置验证警告: ' . implode(', ', $validation['warnings']));
+    }
+}
+
 // 加载核心
 require_once CORE_PATH . 'Database.php';
 require_once CORE_PATH . 'Slug.php';

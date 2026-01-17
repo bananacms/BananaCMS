@@ -30,7 +30,16 @@
 AcceptPathInfo On
 
 # Block sensitive directories
-<FilesMatch "^(config|core|models|controllers|views|runtime)">
-    Order deny,allow
-    Deny from all
-</FilesMatch>
+<IfModule mod_authz_core.c>
+    # Apache 2.4+
+    <DirectoryMatch "^.*(config|core|models|controllers|views|runtime).*$">
+        Require all denied
+    </DirectoryMatch>
+</IfModule>
+<IfModule !mod_authz_core.c>
+    # Apache 2.2
+    <FilesMatch "^(config|core|models|controllers|views|runtime)">
+        Order deny,allow
+        Deny from all
+    </FilesMatch>
+</IfModule>

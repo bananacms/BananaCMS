@@ -147,6 +147,8 @@ class ShortController extends BaseController
      */
     public function apiLike(): void
     {
+        $this->requireCsrf();
+        
         $id = (int)($this->post('id', 0));
 
         if ($id <= 0) {

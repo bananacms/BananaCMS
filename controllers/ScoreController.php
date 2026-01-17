@@ -20,6 +20,9 @@ class ScoreController extends BaseController
      */
     public function rate(): void
     {
+        // CSRF 验证
+        $this->requireCsrf();
+        
         // 速率限制检查
         $this->requireRateLimit('score', 10, 300); // 5分钟内最多10次评分
         
