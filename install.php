@@ -33,17 +33,20 @@ function getSensitiveFiles(): array {
     return $files;
 }
 
-// 先启动 session
+// 启动输出缓冲，防止header错误
+ob_start();
+
+// 启动session
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
 // 检查是否已安装
 if (file_exists(CONFIG_PATH . 'install.lock')) {
-    // 如果是 step4 且有有效的安装 session，允许访问
+    // 如果是step4且有有效的安装session，允许访问
     $step = (int)($_GET['step'] ?? 1);
     if ($step === 4 && !empty($_SESSION['install_admin']) && !empty($_SESSION['install_admin_entry'])) {
-        // 允许继续显示 step4
+        // 允许继续显示step4
     } else {
         // 尝试加载配置以获取后台入口
         $adminEntry = 'admin';
@@ -56,6 +59,7 @@ if (file_exists(CONFIG_PATH . 'install.lock')) {
         
         // 处理删除文件请求
         if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['file'])) {
+            ob_clean(); // 清除之前的输出
             header('Content-Type: application/json');
             $allowedFiles = getSensitiveFiles();
             $file = $_GET['file'];
@@ -79,8 +83,9 @@ if (file_exists(CONFIG_PATH . 'install.lock')) {
             exit;
         }
         
-        // 获取文件列表（用于 AJAX）
+        // 获取文件列表（用于AJAX）
         if (isset($_GET['action']) && $_GET['action'] === 'list') {
+            ob_clean(); // 清除之前的输出
             header('Content-Type: application/json');
             echo json_encode(['code' => 0, 'files' => getSensitiveFiles()]);
             exit;
@@ -93,9 +98,10 @@ if (file_exists(CONFIG_PATH . 'install.lock')) {
 $step = max(1, min(4, (int)($_GET['step'] ?? 1)));
 $error = '';
 
-// 处理POST
+// 处理POST请求
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($step === 2) {
+        ob_end_clean(); // 重定向前清空输出缓冲
         header('Location: install.php?step=3');
         exit;
     }
@@ -323,6 +329,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['install_admin_pass'] = $adminPass;
                 $_SESSION['install_admin_entry'] = $adminEntry;
                 $_SESSION['install_site_url'] = $siteUrl;
+                ob_end_clean(); // 重定向前清空输出缓冲
                 header('Location: install.php?step=4');
                 exit;
                 
@@ -603,8 +610,9 @@ $envPass = !in_array(false, array_column($envChecks, 3));
         </script>
 
         <?php elseif ($step === 4): 
-            // 检查是否有安装信息（防止直接访问 step 4）
+            // 检查是否有安装信息（防止直接访问step 4）
             if (empty($_SESSION['install_admin']) || empty($_SESSION['install_admin_entry'])) {
+                ob_end_clean(); // 重定向前清空输出缓冲
                 header('Location: install.php?step=1');
                 exit;
             }
